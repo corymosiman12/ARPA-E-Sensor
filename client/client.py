@@ -9,9 +9,16 @@ def import_conf(config_file, server_id):
         ip_line = [line.strip('\n') for line in f if server_id in line]
         assert len(ip_line) == 1
         return ip_line[0].split(" ")[1]
-        # print(ip_line)
 
 def create_message(params = [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "temp", "rh"]):
+    """
+    Join all parameters with a carriage return and newline and
+    send to server. The default parameters are:
+        1. datetime as a str()
+        2. temp
+        3. rh
+        4. ...ELSE...
+    """
     # dt_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     params = '\r\n'.join(params)
     print(params)
