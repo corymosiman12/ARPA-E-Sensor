@@ -67,6 +67,7 @@ class Server():
             if client_socket:
                 thr = Multiple(client_socket, client_address, self.settings)
                 thr.start()
+                thr.join()
                 print("New connection with: {}".format(client_address))
 
 class Multiple(threading.Thread):
@@ -123,6 +124,7 @@ class Multiple(threading.Thread):
         if len(partial_request) < self.stream_size and len(partial_request) != 0:
             request += partial_request
         client_request_time, params = self.decode_request(request)
+
         self.client_socket.close()
 
 
