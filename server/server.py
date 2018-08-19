@@ -5,12 +5,15 @@ import sys
 import logging
 from datetime import datetime
 import re
+import json
+import hpd_sensors
 
 # Set logging level and format logging entries.
+"""
 logging.basicConfig(filename = 'server_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
-
+"""
 def import_server_conf(config_file):
     """
     This function is used to import the configuration file from the
@@ -32,6 +35,7 @@ def import_server_conf(config_file):
         print("Unable to read server configuration file")
         exit()
 
+                                     
 class Server():
     def __init__(self, settings):
         """
@@ -46,8 +50,10 @@ class Server():
         self.host = ''
         self.port = int(self.settings['listen_port'])
         self.root = self.settings['root']
+        self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']))
+        self.sensors.start()
         self.create_socket()
-
+        
 
     def create_socket(self):
         """
@@ -65,36 +71,20 @@ class Server():
             # main listening socket.
             (client_socket, client_address) = self.sock.accept()
             if client_socket:
-                thr = Multiple(client_socket, client_address, self.settings)
+                thr = Multiple(client_socket, client_address, self.settings, self.sensors)
                 thr.start()
                 thr.join()
                 print("New connection with: {}".format(client_address))
 
 class Multiple(threading.Thread):
-    def __init__(self, socket, address, settings):
+    def __init__(self, socket, address, settings, sensors):
         threading.Thread.__init__(self)
         self.client_socket = socket
         self.client_address = address
         self.stream_size = 4096 # 4096 bytes
         self.settings = settings
+        self.sensors = sensors
     
-    def read_params(self, params):
-        vals = []
-        for p in params:
-            vals.append(p + "_" + self.my_read_adc(p))
-        return " ".join(vals)
-
-    def my_read_adc(self, param):
-        """
-        Code to read in analog signal from raspberry pi
-        based on the defined parameter.
-
-        param: param; Basically, one for each parameter that we
-        want to measure/read.
-        i.e. one of "rh", "temp", "gas", "mic", etc.
-        """
-        continue
-
     def decode_request(self, request):
         """
         Each line in the client message is separated by a
@@ -106,24 +96,37 @@ class Multiple(threading.Thread):
         param: request; full request sent by client
         """
         decoded = request.decode().split('\r\n')
-        client_request_time = decoded[0]
-        params = decoded[1:]
-        return (client_request_time, params)
-
+        self.client_request_time = decoded[0]
+        self.client_request = decoded[1]
+        
+    def send_sensors(self):
+        to_send = {"Client_Request_Time": self.client_request_time,
+                   "Server_Response_Time": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                   "Readings": self.sensors.readings}
+        return json.dumps(to_send).encode()
+    
     def run(self):
         """
         The run method is called when thr.start() is called.  This
         will in turn call other functions
         """
+        # print("RUN")
         request = b''
         partial_request = self.client_socket.recv(self.stream_size)
-        while len(partial_request) == self.stream_size:
-            # print(len(partial_request))
+        while len(partial_request) == self.stream_size: 
             request += partial_request
             partial_request = self.client_socket.recv(self.stream_size)
         if len(partial_request) < self.stream_size and len(partial_request) != 0:
             request += partial_request
-        client_request_time, params = self.decode_request(request)
+        self.decode_request(request)
+
+        # print("Client request: " + self.client_request)
+        if self.client_request == "sensors":
+            self.client_socket.send(self.send_sensors())
+            self.sensors.readings = []
+            
+        elif self.client_request == "sound":
+            print("sound")
 
         self.client_socket.close()
 
@@ -135,7 +138,7 @@ if __name__=='__main__':
     # function is defined outside of a class so that the settingsDict and settingsKeys variables will be available
     # to the 'Threading' class as well.
     settings = import_server_conf('server.conf')
-    print(settings)
+    # print(settings)
     try:
         s = Server(settings)
     except Exception as e:
