@@ -8,7 +8,6 @@ import threading
 import logging
 import time
 import influxdb
-import my_utils
 
 logging.basicConfig(filename = 'client_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -25,23 +24,48 @@ class MyClient():
         self.influx_client = influxdb.InfluxDBClient('localhost', 8086, database='hpd_mobile_test')
 
     def import_conf(self, server_id):
+        """
+        Import the client configuration file.
+
+        param: server_id <class 'str'>
+        return: <class 'dict'> of configuration parameters
+        """
         with open('client.conf', 'r') as f:
             conf = json.loads(f.read())
             
         return conf
 
-    def create_message(self, params):
-        # Always include the datetime as the first line item in
-        # a message sent to the server
+    def create_message(self, to_send):
+        """
+        Configure the message to send to the server.
+        Elements are separated by a carriage return and newline.
+        The first line is always the datetime of client request.
+
+        param: to_send <class 'list'>
+                List of elements to send to server.
+
+        return: <class 'bytes'> a byte string (b''), ready to 
+                send over a socket connection
+        """
         dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
-        for p in params:
-            dt_str.append(p)
+        for item in to_send:
+            dt_str.append(item)
         
         message = '\r\n'.join(dt_str)
         print("Sending Message: \n{}".format(message))
         return message.encode()
 
     def my_recv_all(self, s, timeout=2):
+        """
+        Regardless of message size, ensure that entire message is received
+        from server.  Timeout specifies time to wait for additional socket
+        stream.
+
+        param: s <class 'socket.socket'>
+                A socket connection to server.
+        return: <class 'str'>
+                A string containing all info sent.
+        """
         #make socket non blocking
         s.setblocking(0)
         
@@ -77,10 +101,21 @@ class MyClient():
         return ''.join(total_data)
 
     def influx_write(self):
+        """
+        Format all data received from server to be inserted into the
+        InfluxDB.  This is currently specific to all data excluding
+        microphone and camera data.
+
+        return: <class 'bool'>
+                When the influx write_points method is called to write
+                all points of the json_body to the DB, the result of the
+                write (True or False) indicates success or not.  This
+                is returned for further processing.
+        """
         json_body = []
         for r in self.response["Readings"]:
             json_body.append({
-                "measurement": "environmental_params",
+                "measurement": "env_params",
                 "tags": {
                     "server_id": self.server_id,
                     "server_ip": self.server_ip,
@@ -100,15 +135,41 @@ class MyClient():
                 }
             })
         return(self.influx_client.write_points(json_body))
-        # print("Successful Write: {}".format(successful_write))
 
     def get_sensors_data(self):
+        """
+        Connect to server and get data.  This is currently specific to
+        all data excluding the microphone and camera.
+        """
+        # Instantiate IPV4 TCP socket class
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Create a socket connection to the server at the specified port
         s.connect((self.server_ip, self.listen_port))
-        s.sendall(self.create_message(["sensors"]))
-        self.response = json.loads(my_utils.my_recv_all(s))
+
+        # Send message over socket connection, requesting aforementioned data
+        s.sendall(self.create_message(["env_params"]))
+
+        # Receive all data from server.  Load as dictionary
+        self.response = json.loads(self.my_recv_all(s))
+        
+        # Attempt to write to InfluxDB.  Relay success/not to server
+        # Upon success, server removes data from cache
         try:
-            successful_write = self.influx_write()        
+            # influx_write() returns 'bool'
+            successful_write = self.influx_write()
+            if successful_write:
+                s.sendall(self.create_message(["success"]))
+            else:
+                s.sendall(self.create_message(["not success"]))
+        except:
+            s.sendall(self.create_message(["not success"]))
+
+        # Check that server received message correctly
+        self.validation = self.my_recv_all(s)
+        print("Validation: {}".format(self.validation))
+
+        # Close socket
         s.close()
 
 
@@ -116,6 +177,10 @@ if __name__ == "__main__":
     """
     The client must be run by specifying a server id. Example:
         client$ python client.py S1
+    Client is currently set to ping it's specified server
+    every 2 minutes, get data, and write to InfluxDB.
+    
+    TODO: Get camera working as well.
     """
     server_id = sys.argv[1]
 
