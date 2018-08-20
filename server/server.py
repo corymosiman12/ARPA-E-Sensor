@@ -4,9 +4,9 @@ import os
 import sys
 import logging
 from datetime import datetime
-import re
 import json
 import hpd_sensors
+import time
 
 # Set logging level and format logging entries.
 """
@@ -85,7 +85,7 @@ class Multiple(threading.Thread):
         self.settings = settings
         self.sensors = sensors
     
-    def decode_request(self, request):
+    def decode_request(self):
         """
         Each line in the client message is separated by a
         carriage return and newline. The first line is 
@@ -95,7 +95,7 @@ class Multiple(threading.Thread):
 
         param: request; full request sent by client
         """
-        decoded = request.decode().split('\r\n')
+        decoded = self.request.split('\r\n')
         self.client_request_time = decoded[0]
         self.client_request = decoded[1]
         
@@ -104,26 +104,70 @@ class Multiple(threading.Thread):
                    "Server_Response_Time": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                    "Readings": self.sensors.readings}
         return json.dumps(to_send).encode()
+
+    def my_recv_all(self, timeout=2):
+        #make socket non blocking
+        self.client_socket.setblocking(0)
+        
+        #total data partwise in an array
+        total_data=[]
+        data=''
+        
+        #beginning time
+        begin=time.time()
+        while 1:
+            #if you got some data, then break after timeout
+            if total_data and time.time()-begin > timeout:
+                break
+            
+            #if you got no data at all, wait a little longer, twice the timeout
+            elif time.time()-begin > timeout*2:
+                break
+            
+            #recv something
+            try:
+                data = self.client_socket.recv(8192).decode()
+                if data:
+                    total_data.append(data)
+                    #change the beginning time for measurement
+                    begin = time.time()
+                else:
+                    #sleep for sometime to indicate a gap
+                    time.sleep(0.1)
+            except:
+                pass
+        
+        #join all parts to make final string
+        return ''.join(total_data)
     
     def run(self):
         """
         The run method is called when thr.start() is called.  This
         will in turn call other functions
         """
-        # print("RUN")
-        request = b''
-        partial_request = self.client_socket.recv(self.stream_size)
-        while len(partial_request) == self.stream_size: 
-            request += partial_request
-            partial_request = self.client_socket.recv(self.stream_size)
-        if len(partial_request) < self.stream_size and len(partial_request) != 0:
-            request += partial_request
-        self.decode_request(request)
+        self.request = self.my_recv_all()
+##        partial_request = self.client_socket.recv(self.stream_size)
+##        while len(partial_request) == self.stream_size: 
+##            request += partial_request
+##            partial_request = self.client_socket.recv(self.stream_size)
+##        if len(partial_request) < self.stream_size and len(partial_request) != 0:
+##            request += partial_request
+        self.decode_request()
 
         # print("Client request: " + self.client_request)
         if self.client_request == "sensors":
-            self.client_socket.send(self.send_sensors())
-            self.sensors.readings = []
+            self.client_socket.sendall(self.send_sensors())
+            self.request = self.my_recv_all()
+            self.decode_request()
+            print("Write to influx: {}".format(self.client_request))
+            if self.client_request == "success":
+                self.sensors.readings = []
+                self.client_socket.sendall("Received: {}. self.readings = {}".format(self.client_request,
+                                                                                     self.sensors.readings).encode())
+            elif self.client_request == "not success":
+                self.client_socket.sendall("self.readings has not been cleared".encode())
+            print("self.readings: {}".format(self.sensors.readings))
+            self.client_socket.close()
             
         elif self.client_request == "sound":
             print("sound")
