@@ -1,8 +1,7 @@
-Directory structure should look like:
-
-C:/.../root/
-servers.conf
-|--client/
-|--server/
-
-Plan on running everything from the root directory.  There will also be an external disk attached to the host.  This will (hopefully) be used for all data storage.  My current concern is that the I/O rate for USB 3.0 will not be high enough to write to disk, but we shall see.
+This repository contains both the client and server side code for the ARPA-E-Sensor project HPDMobile.  Each 'server' is a raspberry pi with the following peripherals:
+- Raspberry pi camera
+- SPG30 Gas Sensor (TVOC and eCO2)
+- DHT22 Sensor (Temp and RH)
+- SPH0645LM4H Microphone
+- VL53L1X Distance Sensor
+- APDS-9301 Sensor (luminosity)
