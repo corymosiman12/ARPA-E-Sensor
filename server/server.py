@@ -24,13 +24,10 @@ def import_server_conf():
     """
     try:
         with open('server.conf', 'r') as f:
-            config_params = [line.strip('\n') for line in f if not "#" in line]
-            settings = {}
-            for setting in config_params:
-                if setting != "":
-                    k, v = setting.split(" ")
-                    settings[k] = v
-            return settings
+            conf = json.loads(f.read())
+        
+        return conf
+        
     except:
         logging.CRITICAL("Unable to read server configuration file")
         print("Unable to read server configuration file")
@@ -196,17 +193,20 @@ class Multiple(threading.Thread):
 
             # self.client_request is now either "success" or "not success"
             print("Write to influx: {}".format(self.client_request))
-            if self.client_request == "success":
+            if self.client_request == "SUCCESS":
                 
                 # clear sensor cache
                 self.sensors.readings = []
 
                 # respond that cache has been cleared.
-                self.client_socket.sendall("Received: {}. self.readings = {}".format(self.client_request,
-                                                                                     self.sensors.readings).encode())
-            elif self.client_request == "not success":
+                self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
+                                            \tself.readings is now cleared. \n\
+                                            \tself.readings= {}".format(self.client_request,
+                                                                      self.sensors.readings).encode())
+            elif self.client_request == "NOT SUCCESS":
                 # Respond that cache has not been cleared
-                self.client_socket.sendall("self.readings has not been cleared".encode())
+                self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
+                                            \tself.readings has not been cleared".encode())
             print("self.readings: {}".format(self.sensors.readings))
 
             # Close socket
