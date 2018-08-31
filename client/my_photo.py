@@ -1,12 +1,12 @@
 import cv2
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import pickle
 import logging
 import time
 import threading
-from imutils.video import WebcamVideoStream
 import imutils
+from imutils.video import WebcamVideoStream
 
 # TODO:
 # 1. Add error checking and logging to script
@@ -21,13 +21,15 @@ import imutils
 #                     datefmt='%d-%m-%Y:%H:%M:%S',)
 
 class MyPhoto2(threading.Thread):
-    def __init__(self, img_dir, pi_ip_address, stream_type, sec):
+    # def __init__(self, img_dir, pi_ip_address, stream_type, sec):
+    def __init__(self, img_root, pi_ip_address, stream_type):
+
         threading.Thread.__init__(self)
-        self.img_dir = img_dir
+        self.img_root = img_root
         self.pi_ip_address = pi_ip_address
         self.stream_type = stream_type
-        self.sec = sec
         self.video_status = False
+        self.create_dir(os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d %H%M")))
         self.connect_to_video()
         self.start()
             
@@ -41,28 +43,45 @@ class MyPhoto2(threading.Thread):
         
         self.cam = WebcamVideoStream(stream_path).start()
         while not self.cam.stream.isOpened():
-            print("Unsuccessful connection for self.sec = {}".format(self.sec))
+            # print("Unsuccessful connection for self.sec = {}".format(self.sec))
             self.cam = WebcamVideoStream(stream_path).start()
             self.video_status = False
             time.sleep(1)
         self.video_status = True
-        print("Connected for self.sec = {}".format(self.sec))
+        # print("Connected for self.sec = {}".format(self.sec))
+        print("Connected to video stream")
+
+    def create_dir(self, new_dir):
+        if not os.path.isdir(new_dir):
+            os.makedirs(new_dir)
+            self.img_dir = new_dir
+        elif os.path.isdir(new_dir):
+            self.img_dir = new_dir
+
+    def img_dir_update(self):
+        while 1:
+            if datetime.now().second == 0:
+                new_dir = os.path.join(self.img_root, (datetime.now() + timedelta(seconds=2)).strftime("%Y-%m-%d %H%M"))
+                self.create_dir(new_dir)
+
 
     def run(self):
+        dir_create = threading.Thread(target=self.img_dir_update)
+        dir_create.start()
         while 1:
-            if datetime.now().second % 2 == self.sec:
-                # print("Capturing image for second == {}".format(datetime.now().second))
-                # logging.DEBUG("Capturing image for second == {}".format(sec))
-                fname = datetime.now().strftime("%Y-%m-%d %H%M%S_grey.png")
+            f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
+            f_path = os.path.join(self.img_dir,f_name)
+
+            # Only capture a photo if it doesn't already exist
+            if not os.path.isfile(f_path) and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
                 img = self.cam.read()
-                # fname = datetime.now().strftime("%Y-%m-%d %H%M%S_grey.png")
                 
                 try:
                     # Convert image to greyscale
                     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
                     # Write to disk
-                    cv2.imwrite(os.path.join(self.img_dir,fname), img)
+                    cv2.imwrite(f_path, img)
                 except Exception as e:
                     print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
                     # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))

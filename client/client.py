@@ -17,11 +17,14 @@ class MyClient():
     def __init__(self, server_id):
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)
-        self.server_ip = self.conf[self.server_id]
+        self.server_ip = self.conf['servers'][self.server_id]
         self.root = self.conf['root']
+        self.image_dir = os.path.join(self.root, 'img')
         self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
         self.influx_client = influxdb.InfluxDBClient('localhost', 8086, database='hpd_mobile_test')
+        self.create_img_dir()
+        self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
 
     def import_conf(self, server_id):
         """
@@ -34,6 +37,18 @@ class MyClient():
             conf = json.loads(f.read())
             
         return conf
+    
+    def create_img_dir(self):
+        """
+        Check if server directories for images exist.  If they exist, do nothing.
+        If they don't exist yet, create.  Image directories will be created like:
+            root/img/S1/datetime
+            ...
+            root/img/Sn/datetime
+        """
+        self.image_dir = os.path.join(self.root, 'img',self.server_id)
+        if not os.path.isdir(self.image_dir):
+            os.makedirs(self.image_dir)
 
     def create_message(self, to_send):
         """
@@ -159,11 +174,11 @@ class MyClient():
             # influx_write() returns 'bool'
             successful_write = self.influx_write()
             if successful_write:
-                s.sendall(self.create_message(["success"]))
+                s.sendall(self.create_message(["SUCCESS"]))
             else:
-                s.sendall(self.create_message(["not success"]))
+                s.sendall(self.create_message(["NOT SUCCESS"]))
         except:
-            s.sendall(self.create_message(["not success"]))
+            s.sendall(self.create_message(["NOT SUCCESS"]))
 
         # Check that server received message correctly
         self.validation = self.my_recv_all(s)
