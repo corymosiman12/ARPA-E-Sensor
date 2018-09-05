@@ -23,8 +23,8 @@ from imutils.video import WebcamVideoStream
 class MyPhoto2(threading.Thread):
     # def __init__(self, img_dir, pi_ip_address, stream_type, sec):
     def __init__(self, img_root, pi_ip_address, stream_type):
-
         threading.Thread.__init__(self)
+        print("Initializing MyPhoto2 class")
         self.img_root = img_root
         self.pi_ip_address = pi_ip_address
         self.stream_type = stream_type
@@ -52,6 +52,7 @@ class MyPhoto2(threading.Thread):
         print("Connected to video stream")
 
     def create_dir(self, new_dir):
+        print("")
         if not os.path.isdir(new_dir):
             os.makedirs(new_dir)
             self.img_dir = new_dir
@@ -71,7 +72,7 @@ class MyPhoto2(threading.Thread):
         while 1:
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir,f_name)
-
+            print("Creating file: {}".format(f_path))
             # Only capture a photo if it doesn't already exist
             if not os.path.isfile(f_path) and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
                 img = self.cam.read()
