@@ -6,7 +6,7 @@ import logging
 import time
 import threading
 import imutils
-from imutils.video import webcamvideostream
+from imutils.video import WebcamVideoStream
 
 # TODO:
 # 1. Add error checking and logging to script
@@ -41,10 +41,10 @@ class MyPhoto2(threading.Thread):
         elif self.stream_type == "jpeg":
             stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.jpeg"
         
-        self.cam = webcamvideostream(stream_path).start()
+        self.cam = WebcamVideoStream(stream_path).start()
         while not self.cam.stream.isOpened():
             # print("Unsuccessful connection for self.sec = {}".format(self.sec))
-            self.cam = webcamvideostream(stream_path).start()
+            self.cam = WebcamVideoStream(stream_path).start()
             self.video_status = False
             time.sleep(1)
         self.video_status = True

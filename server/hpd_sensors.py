@@ -110,7 +110,7 @@ class HPD_DHT22():
     
     def read(self):
         h, t = Adafruit_DHT.read_retry(self.sensor, self.pin)
-        return((h, self.to_f(t)))
+        return((h, t))
 
 
 class Sensors(threading.Thread):
@@ -132,15 +132,8 @@ class Sensors(threading.Thread):
                 h = 10
                 (co2, tvoc) = self.gas.read()
                 (co2_base, tvoc_base) = self.gas.read_baseline()
-                self.readings.append({"time": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                                      "light_lux": self.light.read(),
-                                      "temp_f": t,
-                                      "rh": h,
-                                      "dist_in": self.dist.read(),
-                                      "co2eq_ppm": co2,
-                                      "tvoc_ppb": tvoc,
-                                      "co2eq_base_ppm": co2_base,
-                                      "tvoc_base": tvoc_base})
+
+
                 if len(self.readings) % 2 == 0:
                     print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),
                                                                                                   self.readings[0]["time"],
