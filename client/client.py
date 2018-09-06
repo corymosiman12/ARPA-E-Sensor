@@ -18,7 +18,7 @@ class MyClient():
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)
         self.server_ip = self.conf['servers'][self.server_id]
-        self.root = self.conf['root']
+        self.root = self.conf['img_audio_root']
         self.image_dir = os.path.join(self.root, 'img')
         self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
