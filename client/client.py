@@ -22,7 +22,7 @@ class MyClient():
         self.image_dir = os.path.join(self.root, 'img')
         self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
-        self.influx_client = influxdb.InfluxDBClient('localhost', 8086, database='hpd_mobile_test')
+        self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.create_img_dir()
         self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
 

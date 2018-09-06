@@ -46,6 +46,7 @@ class MyPhoto2(threading.Thread):
             # print("Unsuccessful connection for self.sec = {}".format(self.sec))
             self.cam = WebcamVideoStream(stream_path).start()
             self.video_status = False
+            print("Unable to connect to video")
             time.sleep(1)
         self.video_status = True
         # print("Connected for self.sec = {}".format(self.sec))
