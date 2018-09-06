@@ -127,12 +127,18 @@ class Sensors(threading.Thread):
     def run(self):
         while True:
             if datetime.now().second % self.read_interval == 0:
-                # (t, h) = self.temp_humid.read()
-                t = 5
-                h = 10
+                (h, t) = self.temp_humid.read()
                 (co2, tvoc) = self.gas.read()
                 (co2_base, tvoc_base) = self.gas.read_baseline()
-
+                self.readings.append({"time": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                                      "light_lux": self.light.read(),
+                                      "temp_f": t,
+                                      "rh": h,
+                                      "dist_in": self.dist.read(),
+                                      "co2eq_ppm": co2,
+                                      "tvoc_ppb": tvoc,
+                                      "co2eq_base_ppm": co2_base,
+                                      "tvoc_base": tvoc_base})
 
                 if len(self.readings) % 2 == 0:
                     print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),

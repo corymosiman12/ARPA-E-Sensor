@@ -73,9 +73,9 @@ class MyPhoto2(threading.Thread):
         while 1:
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir,f_name)
-            print("Creating file: {}".format(f_path))
             # Only capture a photo if it doesn't already exist
             if not os.path.isfile(f_path) and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
+                print("Creating file: {}".format(f_path))
                 img = self.cam.read()
                 
                 try:
