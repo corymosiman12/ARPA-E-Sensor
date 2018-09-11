@@ -13,11 +13,11 @@ def main(id):
         print("Second: {}\tCurrent value: {}".format(size, d[size]))
         size += 1
         time.sleep(1)
-        
+
     fname = os.path.join('tests','APDS9301_{}.txt'.format(id))
     with open(fname, 'w+') as f:
         for k, v in d.items():
-            f.write("{},{}".format(k,v))
+            f.write("{},{}\n".format(k,v))
 
 
 if __name__=="__main__":

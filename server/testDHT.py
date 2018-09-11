@@ -17,7 +17,7 @@ def main(id):
     fname = os.path.join('tests','DHT_{}.txt'.format(id))
     with open(fname, 'w+') as f:
         for k, v in d.items():
-            f.write("{},{}".format(k,v))
+            f.write("{},{}\n".format(k,v))
 
 
 if __name__=="__main__":
