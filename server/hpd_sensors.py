@@ -132,7 +132,7 @@ class Sensors(threading.Thread):
                 (co2_base, tvoc_base) = self.gas.read_baseline()
                 self.readings.append({"time": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                                       "light_lux": self.light.read(),
-                                      "temp_f": t,
+                                      "temp_c": t,
                                       "rh": h,
                                       "dist_in": self.dist.read(),
                                       "co2eq_ppm": co2,
