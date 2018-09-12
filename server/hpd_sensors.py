@@ -82,7 +82,7 @@ class HPD_SGP30():
         self.sensor.set_iaq_baseline(0x8973, 0x8aae)
 
     def read(self):
-        return((self.sensor.co2eq, self.sensor.tvoc))
+        return((self.sensor.co2eq, self.sensor.tvoc)) # returns co2eq in ppm and TVOC in ppb
 
     def read_baseline(self):
         return((self.sensor.baseline_co2eq, self.sensor.baseline_tvoc))
@@ -94,8 +94,8 @@ class HPD_VL53L1X():
         self.sensor.open()
 
     def read(self):
-        self.sensor.start_ranging(1)
-        distance = self.sensor.get_distance()
+        self.sensor.start_ranging(1) # 1 = Short range, 2 = Medium Range, 3 = Long Range
+        distance = self.sensor.get_distance() # Default returns the distance in mm
         self.sensor.stop_ranging()
         return distance
 
@@ -109,7 +109,7 @@ class HPD_DHT22():
         return t * 9/5.0 + 32
     
     def read(self):
-        h, t = Adafruit_DHT.read_retry(self.sensor, self.pin)
+        h, t = Adafruit_DHT.read_retry(self.sensor, self.pin) # returns humidity in % and temp in celsius
         return((h, t))
 
 
@@ -133,11 +133,11 @@ class Sensors(threading.Thread):
                 self.readings.append({"time": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                                       "light_lux": self.light.read(),
                                       "temp_c": t,
-                                      "rh": h,
-                                      "dist_in": self.dist.read(),
+                                      "rh_percent": h,
+                                      "dist_mm": self.dist.read(),
                                       "co2eq_ppm": co2,
                                       "tvoc_ppb": tvoc,
-                                      "co2eq_base_ppm": co2_base,
+                                      "co2eq_base": co2_base,
                                       "tvoc_base": tvoc_base})
 
                 if len(self.readings) % 2 == 0:

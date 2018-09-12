@@ -1,6 +1,6 @@
 #!/bin/bash
 # Shell script to run inside Debian Antlet. Will install nano, curl, influxdb and dependencies.
-# It will then start the influx service
+# It will then start the influx service.
 apt-get update -y
 apt-get install nano apt-transport-https ca-certificates curl -y
 curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
@@ -10,3 +10,6 @@ test $VERSION_ID = "8" && echo "deb https://repos.influxdata.com/debian jessie s
 test $VERSION_ID = "9" && echo "deb https://repos.influxdata.com/debian stretch stable" | tee /etc/apt/sources.list.d/influxdb.list
 apt-get update && apt-get install influxdb
 service influxdb start
+
+# After the influx service is started, the hpd_mobile database must be created.
+influx -execute 'create database hpd_mobile'

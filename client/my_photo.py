@@ -34,6 +34,7 @@ class MyPhoto2(threading.Thread):
         self.start()
             
     def connect_to_video(self):
+        # Select the stream type based on that specified in server.conf
         if self.stream_type == "mjpeg":
             stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.mjpeg"
         elif self.stream_type == "h264":
@@ -41,15 +42,18 @@ class MyPhoto2(threading.Thread):
         elif self.stream_type == "jpeg":
             stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.jpeg"
         
+        # Attempt to start the video stream
         self.cam = WebcamVideoStream(stream_path).start()
+
+        # Keep attempting to open the video stream until it is opened
         while not self.cam.stream.isOpened():
-            # print("Unsuccessful connection for self.sec = {}".format(self.sec))
             self.cam = WebcamVideoStream(stream_path).start()
             self.video_status = False
             print("Unable to connect to video")
             time.sleep(1)
+        
+        # Set the video status to true
         self.video_status = True
-        # print("Connected for self.sec = {}".format(self.sec))
         print("Connected to video stream")
 
     def create_dir(self, new_dir):
@@ -61,10 +65,17 @@ class MyPhoto2(threading.Thread):
             self.img_dir = new_dir
 
     def img_dir_update(self):
+        # This function is run in a separate thread to continuously create a new directory for each day, and for each minute.
         while 1:
-            if datetime.now().second == 0:
-                new_dir = os.path.join(self.img_root, (datetime.now() + timedelta(seconds=2)).strftime("%Y-%m-%d %H%M"))
-                self.create_dir(new_dir)
+            date_dir = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
+            if not os.path.isdir(date_dir):
+                os.makedirs(date_dir)
+                self.img_root_date = date_dir
+            
+            min_dir = os.path.join(self.img_root_date, datetime.now().strftime("%H%M"))
+            if not os.path.isdir(min_dir):
+                os.makedirs(min_dir)
+                self.img_dir = min_dir
 
 
     def run(self):
@@ -73,28 +84,29 @@ class MyPhoto2(threading.Thread):
         while 1:
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir,f_name)
+
             # Only capture a photo if it doesn't already exist
             if not os.path.isfile(f_path) and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
                 print("Creating file: {}".format(f_path))
-                img = self.cam.read()
+                capture_status, img = self.cam.read()
                 
-                try:
-                    # Convert image to greyscale
-                    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                if capture_status:
+                    try:
+                        # Convert image to greyscale
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-                    # Write to disk
-                    cv2.imwrite(f_path, img)
-                except Exception as e:
-                    print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
-                    # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
+                        # Write to disk
+                        cv2.imwrite(f_path, img)
+                    except Exception as e:
+                        print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
+                        # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
             
-            # elif not capture_status:
-            #     print("Capture from pi failed for second: {}".format(self.sec))
-            #     print("Reconnecting to server")
-            #     self.video_status = False
-            #     self.connect_to_video()
-            #     # logging.CRITICAL("Capture from pi failed for file: {}".format(fname))
-            # time.sleep(0.99999)
+                elif not capture_status:
+                    print("Capture from pi failed")
+                    print("Reconnecting to server")
+                    self.video_status = False
+                    self.connect_to_video()
+
 
 #####################################################################################
 ##################################### LEFTOVERS #####################################

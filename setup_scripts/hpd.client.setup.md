@@ -1,7 +1,10 @@
 # Introduction
 The following outlines 3 different ways to install opencv, imutils, and their required dependencies on Ubuntu16.04 KVM for the Antsle.  It took quite a few tries to get opencv working, and the first method presented is actually the easiest and was discovered last.  The other references are kept in case of difficulties.  Anything proceeded by `$` should be run at the command line.  Note that for any of this to work, the Antsle must have an outbound internet connection.
 
-# 1. Easiest Method
+We will use the `ubuntu` user for all of the individual antlet setups.  If, at any point, a network error is encountered, simply restart the Antsle.  This typically works.
+
+# OpenCV Setup
+## 1. Easiest Method
 This is a combination of the update posted in [this install guide](https://medium.com/@debugvn/installing-opencv-3-3-0-on-ubuntu-16-04-lts-7db376f93961), addressing the [errors noted here](https://stackoverflow.com/questions/47113029/importerror-libsm-so-6-cannot-open-shared-object-file-no-such-file-or-directo).  Note that parts 1 and 2 are just to get the virtualenv setup.  Once we are in the virtualenv, it follows the first install guide.
 
 1. Install pip
@@ -31,7 +34,7 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 `(cv) $ pip install imutils`
 
 
-# 2. Other method
+## 2. Other method
 This basically follows this [PyImageSearch Post](https://www.pyimagesearch.com/2015/07/20/install-opencv-3-0-and-python-3-4-on-ubuntu/), but with a few modifications.
 1. Update and upgrade packages.
 --- demo2 start ---
@@ -74,7 +77,7 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 `(cv) $ apt update`
 `(cv) $ apt upgrade`
 
-# 3. Another: Condensed Method 2
+## 3. Another: Condensed Method 2
 This basically follows this [PyImageSearch Post](https://www.pyimagesearch.com/2015/07/20/install-opencv-3-0-and-python-3-4-on-ubuntu/), but with a few modifications.
 1. Update and upgrade packages.
 `$ apt update`
@@ -109,3 +112,6 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 `(cv) $ pip install imutils`
 `(cv) $ apt update`
 `(cv) $ apt upgrade`
+
+# Mount HDD
+Now that the 

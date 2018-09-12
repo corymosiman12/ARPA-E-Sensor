@@ -18,10 +18,12 @@ class MyClient():
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)
         self.server_ip = self.conf['servers'][self.server_id]
-        self.root = self.conf['img_audio_root']
+        self.root = os.path.join(self.conf['img_audio_root'], self.server_id)
         self.image_dir = os.path.join(self.root, 'img')
+        self.audio_dir = os.path.join(self.root, 'audio')
         self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
+        self.collect_interval = int(self.conf['collect_interval_min'])
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.create_img_dir()
         self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
@@ -42,13 +44,19 @@ class MyClient():
         """
         Check if server directories for images exist.  If they exist, do nothing.
         If they don't exist yet, create.  Image directories will be created like:
-            root/img/S1/datetime
-            ...
-            root/img/Sn/datetime
+            /mnt/vdb/<server_id>/img/<date>/<%H:%M>
         """
-        self.image_dir = os.path.join(self.root, 'img',self.server_id)
         if not os.path.isdir(self.image_dir):
             os.makedirs(self.image_dir)
+
+    def create_audio_dir(self):
+        """
+        Check if server directories for images exist.  If they exist, do nothing.
+        If they don't exist yet, create.  Audio directories will be created like:
+            /mnt/vdb/<server_id>/img/<date>/<%H:%M>
+        """
+        if not os.path.isdir(self.audio_dir):
+            os.makedirs(self.audio_dir)
 
     def create_message(self, to_send):
         """
@@ -140,12 +148,12 @@ class MyClient():
                 "time": r["time"],
                 "fields": {
                     "light_lux": int(r["light_lux"]),
-                    "temp_f": int(r["temp_f"]),
-                    "rh_percent": int(r["rh"]),
-                    "dist_inches": int(r["dist_in"]),
+                    "temp_c": int(r["temp_c"]),
+                    "rh_percent": int(r["rh_percent"]),
+                    "dist_mm": int(r["dist_mm"]),
                     "co2eq_ppm": int(r["co2eq_ppm"]),
                     "tvoc_ppb": int(r["tvoc_ppb"]),
-                    "co2eq_base_ppm": int(r["co2eq_base_ppm"]),
+                    "co2eq_base": int(r["co2eq_base"]),
                     "tvoc_base": int(r["tvoc_base"])
                 }
             })
@@ -191,39 +199,24 @@ class MyClient():
 if __name__ == "__main__":
     """
     The client must be run by specifying a server id. Example:
-        client$ python client.py S1
+        client$ python client.py B_S3
     Client is currently set to ping it's specified server
     every 2 minutes, get data, and write to InfluxDB.
-    
-    TODO: Get camera working as well.
+
     """
     server_id = sys.argv[1]
-
-    # Define directory for saving photos
-    # img_dir = os.path.join(ext_root, server_id, "data", "img")
+    
+    # Instantiate client
     c = MyClient(server_id)
 
     while True:
-        if datetime.now().minute % 2 == 0:
+        if datetime.now().minute % c.collect_interval == 0:
+
+            # Wait two seconds before connecting to server
             time.sleep(2)
+
+            # Get data from sensors and save to influxdb
             c.get_sensors_data()
+
+            # Don't perform twice in one minute
             time.sleep(60)
-    # print(img_dir)
-    # print(stream_type)
-    
-    # vid_even = my_photo.MyPhoto2(img_dir, pi_ip_address, stream_type, 0)
-    # vid_odd = my_photo.MyPhoto2(img_dir, pi_ip_address, stream_type, 1)
-
-
-#####################################################################################
-##################################### LEFTOVERS #####################################
-# Obtain server ip address and external drive root directory for saving data
-# pi_ip_address, ext_root, stream_type, listen_port = import_conf('client.conf', server_id)
-# sudo service uv4l_raspicam restart
-# sudo nano /etc/uv4l/uv4l-raspicam.conf
-# interface eth0
-# static ip_address=192.168.0.3
-# static routers=192.168.0.1
-# static domain_name_servers=192.168.0.1
-
-
