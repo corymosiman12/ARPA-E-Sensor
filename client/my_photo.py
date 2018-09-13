@@ -26,6 +26,7 @@ class MyPhoto2(threading.Thread):
         threading.Thread.__init__(self)
         print("Initializing MyPhoto2 class")
         self.img_root = img_root
+        self.img_root_date = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
         self.pi_ip_address = pi_ip_address
         self.stream_type = stream_type
         self.video_status = False
