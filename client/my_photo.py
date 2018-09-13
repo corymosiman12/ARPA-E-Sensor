@@ -88,24 +88,24 @@ class MyPhoto2(threading.Thread):
             # Only capture a photo if it doesn't already exist
             if not os.path.isfile(f_path) and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
                 print("Creating file: {}".format(f_path))
-                capture_status, img = self.cam.read()
+                img = self.cam.read()
                 
-                if capture_status:
-                    try:
-                        # Convert image to greyscale
-                        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                # if capture_status:
+                try:
+                    # Convert image to greyscale
+                    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-                        # Write to disk
-                        cv2.imwrite(f_path, img)
-                    except Exception as e:
-                        print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
-                        # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
+                    # Write to disk
+                    cv2.imwrite(f_path, img)
+                except Exception as e:
+                    print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
+                    # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
             
-                elif not capture_status:
-                    print("Capture from pi failed")
-                    print("Reconnecting to server")
-                    self.video_status = False
-                    self.connect_to_video()
+                # elif not capture_status:
+                #     print("Capture from pi failed")
+                #     print("Reconnecting to server")
+                #     self.video_status = False
+                #     self.connect_to_video()
 
 
 #####################################################################################
