@@ -209,14 +209,14 @@ if __name__ == "__main__":
     # Instantiate client
     c = MyClient(server_id)
 
-    while True:
-        if datetime.now().minute % c.collect_interval == 0:
+    # while True:
+    #     if datetime.now().minute % c.collect_interval == 0:
 
-            # Wait two seconds before connecting to server
-            time.sleep(2)
+    #         # Wait two seconds before connecting to server
+    #         time.sleep(2)
 
-            # Get data from sensors and save to influxdb
-            c.get_sensors_data()
+    #         # Get data from sensors and save to influxdb
+    #         c.get_sensors_data()
 
-            # Don't perform twice in one minute
-            time.sleep(60)
+    #         # Don't perform twice in one minute
+    #         time.sleep(60)
