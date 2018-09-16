@@ -209,7 +209,8 @@ if __name__ == "__main__":
     # Instantiate client
     c = MyClient(server_id)
 
-    # while True:
+    while True:
+        pass
     #     if datetime.now().minute % c.collect_interval == 0:
 
     #         # Wait two seconds before connecting to server
