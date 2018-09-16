@@ -7,6 +7,8 @@ import Adafruit_DHT
 import threading
 from datetime import datetime
 import time
+import pyaudio
+import wave
 
 class HPD_APDS9301():
     def __init__(self):
@@ -114,7 +116,6 @@ class HPD_DHT22():
 
 
 class Sensors(threading.Thread):
-# class Sensors():
     def __init__(self, read_interval):
         threading.Thread.__init__(self)
         self.gas = HPD_SGP30()
@@ -145,3 +146,15 @@ class Sensors(threading.Thread):
                                                                                                   self.readings[0]["time"],
                                                                                                   self.readings[-1]["time"]))
                 time.sleep(1)
+
+class MyAudio(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.chunk = 16000
+        self.rate = 32000
+        self.tape_length = 20
+        self.format = pyaudio.paInt32
+        self.channels = 1
+
+    def create
+    def run(self):
