@@ -24,6 +24,7 @@ class MyPhoto2(threading.Thread):
     # def __init__(self, img_dir, pi_ip_address, stream_type, sec):
     def __init__(self, img_root, pi_ip_address, stream_type):
         threading.Thread.__init__(self)
+        self.setDaemon(True)
         print("Initializing MyPhoto2 class")
         self.img_root = img_root
         self.img_root_date = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
