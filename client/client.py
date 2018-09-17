@@ -1,4 +1,5 @@
 import my_photo
+import my_audio
 import json
 import socket
 import sys
@@ -27,6 +28,7 @@ class MyClient():
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.create_img_dir()
         self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
+        self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
 
     def import_conf(self, server_id):
         """
