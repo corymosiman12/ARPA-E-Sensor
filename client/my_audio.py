@@ -7,7 +7,8 @@ import time
 class MyAudio(threading.Thread):
     def __init__(self, audio_root, pi_ip_address):
         threading.Thread.__init__(self)
-        self.setDaemon(True)
+        print('Initializing MyAudio')
+        # self.setDaemon(True)
         self.audio_root = audio_root
         self.audio_root_date = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
         self.pi_ip_address = pi_ip_address
@@ -21,11 +22,13 @@ class MyAudio(threading.Thread):
             if not os.path.isdir(date_dir):
                 os.makedirs(date_dir)
                 self.audio_root_date = date_dir
+                print('Created: {}'.format(date_dir))
 
             min_dir = os.path.join(self.audio_root_date, datetime.now().strftime('%H%M'))
             if not os.path.isdir(min_dir):
                 os.makedirs(min_dir)
                 self.audio_dir = min_dir
+                print('Created: {}'.format(min_dir))
 
     def run(self):
         dir_create = threading.Thread(target=self.audio_dir_update)
