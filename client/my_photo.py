@@ -83,7 +83,6 @@ class MyPhoto2(threading.Thread):
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
-        # dir_create.join()
         while 1:
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir,f_name)
