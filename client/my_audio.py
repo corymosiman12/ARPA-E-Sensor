@@ -35,6 +35,7 @@ class MyAudio(threading.Thread):
         dir_create.start()
         dir_create.join()
         while True:
+            print('Entered run while loop')
             if datetime.now().second == 0:
                 time.sleep(10)
                 t = datetime.now() - timedelta(minutes = 1)
