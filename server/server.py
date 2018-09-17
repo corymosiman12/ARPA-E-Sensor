@@ -51,6 +51,7 @@ class Server():
         self.port = int(self.settings['listen_port'])
         self.root = self.settings['root']
         self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']))
+        self.audio = hpd_sensors.MyAudio()
         self.sensors.start()
         self.create_socket()
         
