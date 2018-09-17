@@ -27,13 +27,14 @@ class MyAudio(threading.Thread):
             min_dir = os.path.join(self.audio_root_date, datetime.now().strftime('%H%M'))
             if not os.path.isdir(min_dir):
                 os.makedirs(min_dir)
-                self.audio_dir = min_dir
+                t = datetime.now() - timedelta(minutes = 1)
+                prev_min_dir = os.path.join(self.audio_root_date, t.strftime('%H%M'))
+                self.audio_dir = prev_min_dir
                 print('Created: {}'.format(min_dir))
 
     def run(self):
         dir_create = threading.Thread(target=self.audio_dir_update)
         dir_create.start()
-        # dir_create.join()
         while True:
             if datetime.now().second == 0:
                 time.sleep(10)
