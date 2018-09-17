@@ -9,6 +9,8 @@ from datetime import datetime
 import time
 import pyaudio
 import wave
+import os
+import sys
 
 class HPD_APDS9301():
     def __init__(self):
@@ -155,6 +157,73 @@ class MyAudio(threading.Thread):
         self.tape_length = 20
         self.format = pyaudio.paInt32
         self.channels = 1
-
-    def create
+        self.audio_root = '/home/pi/audio'
+        self.audio_root_date = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
+        self.create_root_audio_dir()
+        self.p = pyaudio.PyAudio()
+        self.frames = []
+        self.stream = False
+        self.start()
+        
+    def start_stream(self):
+        if not self.p:
+            print('No p!')
+            sys.exit()
+            
+        while datetime.now().second % 20 != 0:
+            pass
+        print('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
+        self.stream = self.p.open(format = self.format,
+                                  channels = self.channels,
+                                  rate = self.rate,
+                                  input = True,
+                                  frames_per_buffer = self.chunk)
+        
+    def create_root_audio_dir(self):
+        if not os.path.isdir(self.audio_root):
+            os.makedirs(self.audio_root)
+        
+    def audio_dir_update(self):
+        while 1:
+            date_dir = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
+            if not os.path.isdir(date_dir):
+                os.makedirs(date_dir)
+                print('Created dir: {}'.format(date_dir))
+                self.audio_root_date = date_dir
+                
+            min_dir = os.path.join(self.audio_root_date, datetime.now().strftime('%H%M'))
+            if not os.path.isdir(min_dir):
+                os.makedirs(min_dir)
+                print('Created dir: {}'.format(min_dir))
+                self.audio_dir = min_dir
+    
+    def write_to_file(self, f_path, to_write):
+        wf = wave.open(f_path, 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(self.p.get_sample_size(self.format))
+        wf.setframerate(self.rate)
+        wf.writeframes(b''.join(to_write))
+        wf.close()
+        
+    
     def run(self):
+        dir_create = threading.Thread(target=self.audio_dir_update, daemon=True)
+        dir_create.start()
+        stream_start = threading.Thread(target=self.start_stream, daemon=True)
+        stream_start.start()
+        while not self.stream:
+            pass
+        while True:
+            f_name = datetime.now().strftime('%Y-%m-%d %H%M%S_audio.wav')
+            f_path = os.path.join(self.audio_dir, f_name)
+            self.frames = []
+            
+            for i in range(0, int(self.rate / self.chunk * self.tape_length)):
+                self.frames.append(self.stream.read(self.chunk))
+            
+            writer = threading.Thread(target=self.write_to_file, args = (f_path, self.frames))
+            writer.start()
+            writer.join()
+                
+                
+            
