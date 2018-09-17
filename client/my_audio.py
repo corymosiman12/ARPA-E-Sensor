@@ -13,6 +13,7 @@ class MyAudio(threading.Thread):
         self.pi_ip_address = pi_ip_address
         self.pi_audio_root = '/home/pi/audio'
         self.pi_audio_root_date = os.path.join(self.pi_audio_root, datetime.now().strftime("%Y-%m-%d"))
+        self.start()
 
     def audio_dir_update(self):
         while True:
@@ -35,5 +36,6 @@ class MyAudio(threading.Thread):
                 time.sleep(10)
                 t = datetime.now() - timedelta(minutes = 1)
                 pi_audio_dir = os.path.join(self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                print('Transferring files from: {}\tTo: {}'.format(pi_audio_dir, self.audio_dir))
                 with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
                     sftp.get_d(pi_audio_dir, self.audio_dir, preserve_mtime=True)
