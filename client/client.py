@@ -27,7 +27,7 @@ class MyClient():
         self.collect_interval = int(self.conf['collect_interval_min'])
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.create_img_dir()
-        # self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
+        self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
         self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
 
     def import_conf(self, server_id):
@@ -212,14 +212,14 @@ if __name__ == "__main__":
     c = MyClient(server_id)
 
     while True:
-        pass
-    #     if datetime.now().minute % c.collect_interval == 0:
+        # pass
+        if datetime.now().minute % c.collect_interval == 0:
 
-    #         # Wait two seconds before connecting to server
-    #         time.sleep(2)
+            # Wait two seconds before connecting to server
+            time.sleep(2)
 
-    #         # Get data from sensors and save to influxdb
-    #         c.get_sensors_data()
+            # Get data from sensors and save to influxdb
+            c.get_sensors_data()
 
-    #         # Don't perform twice in one minute
-    #         time.sleep(60)
+            # Don't perform twice in one minute
+            time.sleep(60)
