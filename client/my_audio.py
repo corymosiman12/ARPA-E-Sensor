@@ -33,7 +33,7 @@ class MyAudio(threading.Thread):
     def run(self):
         dir_create = threading.Thread(target=self.audio_dir_update)
         dir_create.start()
-        dir_create.join()
+        # dir_create.join()
         while True:
             print('Entered run while loop')
             if datetime.now().second == 0:
