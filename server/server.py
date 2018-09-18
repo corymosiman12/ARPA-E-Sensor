@@ -83,7 +83,6 @@ class MyGarbageCollector(threading.Thread):
         threading.Thread.__init__(self)
         self.audio_root = audio_root
         self.start()
-        self.join()
 
     def rm_audio_dirs(self):
         ten_min_ago = self.cur_time - timedelta(minutes = 10)

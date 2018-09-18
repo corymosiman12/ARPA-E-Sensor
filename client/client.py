@@ -223,7 +223,8 @@ if __name__ == "__main__":
                 c.get_sensors_data()
             except ConnectionRefusedError as e:
                 print('Connection refused')
-                
+                pass
+
 
             # Don't perform twice in one minute
             time.sleep(60)
