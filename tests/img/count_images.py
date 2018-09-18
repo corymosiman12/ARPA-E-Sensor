@@ -40,10 +40,25 @@ class PhotoChecker():
                 self.all_seconds.pop(ind)
             except:
                 self.duplicates += 1
-                self.duplicates_ts.append(dt)
+                self.duplicates_ts.append(dt.strftime('%Y-%m-%d %H:%M:%S'))
                 # print('Total duplicates: {}\tdt: {}'.format(self.duplicates, dt))
                 pass
-    def writer(self):
+
+    def writer(self, output_dict):
+        if self.write_file:
+            a = os.path.basename(self.conf_file_path).split('_')[0:3]
+            a.append('output.json')
+            b = '_'.join(a)
+            write_file = os.path.join(self.root_dir, b)
+            print('Writing file to: {}'.format(write_file))
+            with open(write_file, 'w+') as f:
+                f.write(json.dumps(output_dict))
+
+    def displayer(self, output_dict):
+        if self.display_output:
+            print(output_dict)
+
+    def configure_output(self):
         if self.write_file:
             missed_seconds = []
 
@@ -62,30 +77,12 @@ class PhotoChecker():
                 'Number of directories w/61 photos and 2x 00 second photos': self.count_61_double_00,
                 'Number of directories w/not 60 OR 61 photos': len(self.count_other),
                 'Non-60 or 61 directories': self.count_other,
-                'Timestamps of not captured photos': missed_seconds
+                'Timestamps of not captured photos': missed_seconds,
+                'Duplicates': self.duplicates_ts
             }
-            a = os.path.basename(self.conf_file_path).split('_')[0:3]
-            a.append('output.json')
-            b = '_'.join(a)
-            write_file = os.path.join(self.root_dir, b)
-            print('Writing file to: {}'.format(write_file))
-            with open(write_file, 'w+') as f:
-                f.write(json.dumps(output_dict))
-    
-    def displayer(self):
-        if self.display_output:
-            print('Expected number of photos: {}'.format(self.expect_num_photos))
-            print('Number of photos counted (including duplicates): {}'.format(self.total_pics))
-            print('Total number of duplicates: {}'.format(self.duplicates))
-            print('Number of not captured photos: {}'.format(len(self.all_seconds)))
-            print('Expected number of directories: {}'.format(self.expect_num_directories))
-            print('Number of directories w/60 photos: {}'.format(len(self.count_60)))
-            print('Number of directories w/61 photos: {}'.format(len(self.count_61)))
-            print('Number of directories w/61 photos and 2x 00 second photos: {}'.format(self.count_61_double_00))
-            print('Number of directories w/not 60 OR 61 photos: {}'.format(len(self.count_other)))
-
-            print('The timestamps of the photos not captured are: ')
-            print(self.all_seconds)
+        else:
+            output_dict = []
+        return output_dict
 
     def main(self):
         for d in self.date_dirs:
@@ -117,23 +114,28 @@ class PhotoChecker():
 
                     else:
                         print('{} is not a dir'.format(temp))
-        self.writer()
-        self.displayer()
+        
+        output_dict = self.configure_output()
+        self.writer(output_dict)
+        self.displayer(output_dict)
         print('All done!')
 
 if __name__ == '__main__':
     """
-    Example of full path: /Users/corymosiman/Github/ARPA-E-Sensor/tests/img/conf/cnt_img_1_final.conf
-                          /Users/corymosiman/Github/ARPA-E-Sensor/tests/img/conf/cnt_img_2_final.conf
+    Example of full path to configuration files:
+        /Users/corymosiman/Github/ARPA-E-Sensor/tests/img/conf/cnt_img_1_final_conf.json
+        /Users/corymosiman/Github/ARPA-E-Sensor/tests/img/conf/cnt_img_2_final_conf.json
+        /Users/corymosiman/Github/ARPA-E-Sensor/tests/img/conf/cnt_img_3_final_conf.json
     """
     path = input('Input full path to configuration file: ')
-    write_file = bool(input('Do you want to write output file (True or False): '))
-    while not type(write_file) == bool:
-        write_file = input('Enter True or False')
+    write_file = input('Do you want to write output file (True or False): ')
+    while not write_file == 'True' or write_file == 'False':
+        write_file = input('Enter True or False: ')
 
-    display_output = bool(input('Do you want to display output (True or False): '))
-    while not type(display_output) == bool:
-        display_output = input('Enter True or False')
+
+    display_output = input('Do you want to display output (True or False): ')
+    while not display_output == 'True' or display_output == 'False':
+        display_output = input('Enter True or False: ')
 
     a = PhotoChecker(path, write_file, display_output)
     a.main()

@@ -1,0 +1,7 @@
+{
+    "begin_dt": "2018-09-18 14:18:00",
+    "end_dt": "2018-09-18 15:17:00",
+    "img_root": "/Users/corymosiman/hpd_mobile/B_S3/img",
+    "date_dirs": ["2018-09-18"],
+    "hr_dirs_to_skip": ["1417"]
+}
