@@ -3,10 +3,11 @@ import threading
 import os
 import sys
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import hpd_sensors
 import time
+import shutil
 
 # Set logging level and format logging entries.
 """
@@ -33,6 +34,7 @@ class Server():
         self.audio_root = self.settings['audio_root']
         self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']))
         self.audio = hpd_sensors.MyAudio(self.audio_root)
+        self.garbage_collector = MyGarbageCollector(self.audio_root)
         self.sensors.start()
         self.create_socket()
         
@@ -58,7 +60,7 @@ class Server():
     def create_socket(self):
         """
         Create a socket, listen, and wait for connections.  Upon acceptance
-        of a new connection, a new thread class (Multiple) is spun off with
+        of a new connection, a new thread class (MyThreadedSocket) is spun off with
         the newly created socket.  The thread closes at the end of execution.
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -71,12 +73,43 @@ class Server():
             # main listening socket.
             (client_socket, client_address) = self.sock.accept()
             if client_socket:
-                thr = Multiple(client_socket, client_address, self.settings, self.sensors)
+                thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors)
                 thr.start()
                 thr.join()
                 print("New connection with: {}".format(client_address))
 
-class Multiple(threading.Thread):
+class MyGarbageCollector(threading.Thread):
+    def __init__(self, audio_root):
+        threading.Thread.__init__(self)
+        self.audio_root = audio_root
+        self.start()
+        self.join()
+
+    def rm_audio_dirs(self):
+        ten_min_ago = self.cur_time - timedelta(minutes = 10)
+        dirs = []
+        for i in range(0,5):
+            t = ten_min_ago + timedelta(minutes = i)
+            d = os.path.join(self.audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+            if os.path.isdir(d):
+                dirs.append(d)
+
+        for d in dirs:
+            try:
+                shutil.rmtree(d)
+                print('Removed dir: {}'.format(d))
+            except:
+                print('Didnt remove dir: {}'.format(d))
+        
+
+    def run(self):
+        while True:
+            self.cur_time = datetime.now()
+            if self.cur_time.minute % 5 == 0:
+                self.rm_audio_dirs()
+
+
+class MyThreadedSocket(threading.Thread):
     """
     Instantiate a new thread to manage socket connection with client.
     A multi-threaded server approach likely is unnecessary, but, it's
