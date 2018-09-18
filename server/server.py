@@ -35,7 +35,7 @@ class Server():
         self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']))
         self.audio = hpd_sensors.MyAudio(self.audio_root)
         self.garbage_collector = MyGarbageCollector(self.audio_root)
-        self.sensors.start()
+        # self.sensors.start()
         self.create_socket()
         
     def import_server_conf(self):

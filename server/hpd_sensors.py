@@ -126,6 +126,7 @@ class Sensors(threading.Thread):
         self.dist = HPD_VL53L1X()
         self.read_interval = read_interval
         self.readings = []
+        self.start()
 
     def run(self):
         while True:
