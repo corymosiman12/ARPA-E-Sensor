@@ -109,6 +109,7 @@ class MyGarbageCollector(threading.Thread):
             self.cur_time = datetime.now()
             if self.cur_time.minute % 5 == 0:
                 self.rm_audio_dirs()
+                time.sleep(60)
 
 
 class MyThreadedSocket(threading.Thread):
