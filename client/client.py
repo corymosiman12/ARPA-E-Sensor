@@ -218,8 +218,12 @@ if __name__ == "__main__":
             # Wait two seconds before connecting to server
             time.sleep(2)
 
-            # Get data from sensors and save to influxdb
-            c.get_sensors_data()
+            try: 
+                # Get data from sensors and save to influxdb
+                c.get_sensors_data()
+            except ConnectionRefusedError as e:
+                print('Connection refused')
+                
 
             # Don't perform twice in one minute
             time.sleep(60)
