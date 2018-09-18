@@ -93,6 +93,8 @@ class MyGarbageCollector(threading.Thread):
             d = os.path.join(self.audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
             if os.path.isdir(d):
                 dirs.append(d)
+            else:
+                print('Not directory: {}'.format(d))
 
         for d in dirs:
             try:
