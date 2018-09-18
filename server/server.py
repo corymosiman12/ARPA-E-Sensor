@@ -13,29 +13,9 @@ import time
 logging.basicConfig(filename = 'server_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
-"""
-def import_server_conf():
-    """
-    This function is used to import the configuration file from the
-    server directory.  The settings are saved as key:value pairs
-    and returned.
-
-    TODO: Format data as json, similar to client.py
-    """
-    try:
-        with open('server.conf', 'r') as f:
-            conf = json.loads(f.read())
-        
-        return conf
-        
-    except:
-        logging.CRITICAL("Unable to read server configuration file")
-        print("Unable to read server configuration file")
-        exit()
-
-                                     
+"""                                  
 class Server():
-    def __init__(self, settings):
+    def __init__(self):
         """
         The server class is the main class, and in this instance, the
         main thread that will be executed.  Once initialized,
@@ -46,15 +26,34 @@ class Server():
                     root document directory,
                     sensor read interval, ....
         """
-        self.settings = settings
+        self.settings = self.import_server_conf()
         self.host = ''
         self.port = int(self.settings['listen_port'])
         self.root = self.settings['root']
+        self.audio_root = self.settings['audio_root']
         self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']))
-        self.audio = hpd_sensors.MyAudio()
+        self.audio = hpd_sensors.MyAudio(self.audio_root)
         self.sensors.start()
         self.create_socket()
         
+    def import_server_conf(self):
+        """
+        This function is used to import the configuration file from the
+        server directory.  The settings are saved as key:value pairs
+        and returned.
+
+        TODO: Format data as json, similar to client.py
+        """
+        try:
+            with open('server.conf', 'r') as f:
+                conf = json.loads(f.read())
+            
+            return conf
+            
+        except:
+            logging.CRITICAL("Unable to read server configuration file")
+            print("Unable to read server configuration file")
+            exit()
 
     def create_socket(self):
         """
@@ -230,9 +229,8 @@ if __name__=='__main__':
     Depending on the data requested, the Server will either send audio
     data or environmental parameters.
     """
-    settings = import_server_conf()
-    try:
-        s = Server(settings)
-    except Exception as e:
-        logging.CRITICAL(e)
+    # try:
+    s = Server()
+    # except Exception as e:
+        # logging.CRITICAL(e)
     

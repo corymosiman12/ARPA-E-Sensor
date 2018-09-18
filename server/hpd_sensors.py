@@ -150,14 +150,14 @@ class Sensors(threading.Thread):
                 time.sleep(1)
 
 class MyAudio(threading.Thread):
-    def __init__(self):
+    def __init__(self, audio_root):
         threading.Thread.__init__(self)
         self.chunk = 16000
         self.rate = 32000
         self.tape_length = 20
         self.format = pyaudio.paInt32
         self.channels = 1
-        self.audio_root = '/home/pi/audio'
+        self.audio_root = audio_root
         self.audio_root_date = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
         self.create_root_audio_dir()
         self.p = pyaudio.PyAudio()
