@@ -37,7 +37,7 @@ class MyClient():
         param: server_id <class 'str'>
         return: <class 'dict'> of configuration parameters
         """
-        with open('client.conf', 'r') as f:
+        with open('client_conf.json', 'r') as f:
             conf = json.loads(f.read())
             
         return conf

@@ -45,7 +45,7 @@ class Server():
         TODO: Format data as json, similar to client.py
         """
         try:
-            with open('server.conf', 'r') as f:
+            with open('server_conf.json', 'r') as f:
                 conf = json.loads(f.read())
             
             return conf
