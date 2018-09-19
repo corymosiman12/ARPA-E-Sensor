@@ -89,10 +89,11 @@ class MyPhoto2(threading.Thread):
             f_path = os.path.join(self.img_dir,f_name)
 
             # Only capture a photo if it doesn't already exist
-            if not os.path.isfile(f_path) or not len(os.listdir(self.img_dir)) >= 60: # and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
+            if not os.path.isfile(f_path) or not len(os.listdir(self.img_dir)) >= 60:
                 
                 img = self.cam.read()
-                print(img)
+                # print(img)
+                print(type(img))
                 if not img:
                     print('Not image')
                     print("Attempting to restart video connection")
