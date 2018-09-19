@@ -83,28 +83,36 @@ class MyPhoto2(threading.Thread):
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
+        img = False
         while 1:
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir,f_name)
 
             # Only capture a photo if it doesn't already exist
             if not os.path.isfile(f_path) or not len(os.listdir(self.img_dir)) >= 60: # and not (datetime.now().second == 59 and datetime.now().microsecond > 10000):
-                print("Creating file: {}".format(f_path))
-                img = self.cam.read()
                 
-                # if capture_status:
-                try:
-                    # Convert image to greyscale
-                    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-                    # Write to disk
-                    cv2.imwrite(f_path, img)
-                except Exception as e:
-                    print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
+                img = self.cam.read()
+                print(img)
+                if not img:
+                    print('Not image')
                     print("Attempting to restart video connection")
                     self.video_status = False
                     self.connect_to_video()
-                    # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
+                # if capture_status:
+                elif img:
+                    try:
+                        # Convert image to greyscale
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+                        # Write to disk
+                        cv2.imwrite(f_path, img)
+                        print("Created file: {}".format(f_path))
+                    except Exception as e:
+                        print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
+                        print("Attempting to restart video connection")
+                        self.video_status = False
+                        self.connect_to_video()
+                        # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
             
                 # elif not capture_status:
                 #     print("Capture from pi failed")
