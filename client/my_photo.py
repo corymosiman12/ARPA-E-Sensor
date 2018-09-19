@@ -101,6 +101,9 @@ class MyPhoto2(threading.Thread):
                     cv2.imwrite(f_path, img)
                 except Exception as e:
                     print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
+                    print("Attempting to restart video connection")
+                    self.video_status = False
+                    self.connect_to_video()
                     # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
             
                 # elif not capture_status:
