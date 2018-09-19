@@ -168,7 +168,7 @@ class MyAudio(threading.Thread):
     
 
     def start_stream(self):
-        while not type(self.p) = pyaudio.PyAudio:
+        while not type(self.p) == pyaudio.PyAudio:
             self.p = pyaudio.PyAudio()
             time.sleep(1)
             
