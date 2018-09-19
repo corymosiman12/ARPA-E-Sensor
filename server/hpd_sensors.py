@@ -1,4 +1,4 @@
-import smbus
+import smbus2 as smbus
 import board
 import busio
 import adafruit_sgp30
