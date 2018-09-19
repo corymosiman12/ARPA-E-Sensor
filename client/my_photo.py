@@ -7,6 +7,7 @@ import time
 import threading
 import imutils
 from imutils.video import WebcamVideoStream
+import numpy as np
 
 # TODO:
 # 1. Add error checking and logging to script
