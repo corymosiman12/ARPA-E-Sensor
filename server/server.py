@@ -47,7 +47,7 @@ class Server():
         TODO: Format data as json, similar to client.py
         """
         try:
-            with open('server_conf.json', 'r') as f:
+            with open('/home/pi/Github/server/server_conf.json', 'r') as f:
                 conf = json.loads(f.read())
             
             return conf
