@@ -27,12 +27,15 @@ class MyRetriever(threading.Thread):
         self.debug = debug
         self.to_retrieve = []
         self.successfully_retrieved = []
+        self.start()
 
     # def anythang_missing(self):
     
     def to_retrieve_updater(self):
         while True:
             if datetime.now().second == 0:
+                if self.debug:
+                    print("Retriever updater running")
                 audio_date_dir = os.path.join(self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
                 img_date_dir = os.path.join(self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
                 if not os.path.isdir(audio_date_dir):
@@ -63,6 +66,8 @@ class MyRetriever(threading.Thread):
 
         while True:
             if datetime.now().second == 0:
+                if self.debug:
+                    print("About to retrieve: {}".format(self.to_retrieve))
                 time.sleep(5)
                 try:
                     with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
