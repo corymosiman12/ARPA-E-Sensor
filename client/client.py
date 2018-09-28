@@ -62,6 +62,27 @@ class MyRetriever(threading.Thread):
                     pi_img_dir = os.path.join(self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
                     self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
     
+    def retrieve_this(self, item):
+        try:
+            with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
+                try:
+                    sftp.get_d(item[0], item[1], preserve_mtime=True)
+                    ind = self.to_retrieve.index(item)
+                    self.successfully_retrieved.append(self.to_retrieve.pop(ind))
+                    logging.info('Successfully retrieved {}'.format(item[0]))
+                    if self.debug:
+                        print('Successfully retrieved {}'.format(item[0]))
+                except FileNotFoundError:
+                    logging.critical('File not found on Server.  No way to retrieve past info.')
+                    if self.debug:
+                        print('File not found on Server.  No way to retrieve past info.')
+                    ind = self.to_retrieve.index(item)
+                    self.to_retrieve.pop(ind)
+        except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
+            logging.warning('Network connection error: {}'.format(conn_error))
+            if self.debug:
+                print('Network connection error: {}'.format(conn_error))
+
     def run(self):
         retriever_updater = threading.Thread(target = self.to_retrieve_updater)
         retriever_updater.start()
@@ -71,28 +92,36 @@ class MyRetriever(threading.Thread):
                 time.sleep(5)
                 if self.debug:
                     print("About to retrieve: {}".format(self.to_retrieve))
-                try:
-                    with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
-                        for item in self.to_retrieve:
-                            try:
-                                sftp.get_d(item[0], item[1], preserve_mtime=True)
-                                ind = self.to_retrieve.index(item)
-                                self.successfully_retrieved.append(self.to_retrieve.pop(ind))
-                                logging.info('Successfully retrieved {}'.format(item[0]))
-                                if self.debug:
-                                    print('Successfully retrieved {}'.format(item[0]))
-                                
-                            except FileNotFoundError:
-                                logging.critical('File not found on Server.  No way to retrieve past info.')
-                                if self.debug:
-                                    print('File not found on Server.  No way to retrieve past info.')
-                                ind = self.to_retrieve.index(item)
-                                self.to_retrieve.pop(ind)
-
-                except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
-                    logging.warning('Network connection error: {}'.format(conn_error))
+                for item in self.to_retrieve:
                     if self.debug:
-                        print('Network connection error: {}'.format(conn_error))
+                        print('Passing: {} to self.retrieve_this'.format(item))
+                    a = threading.Thread(target=self.retrieve_this, args=(item,))
+                    a.start()
+                    a.join()
+                
+                # try:
+                
+                #     with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
+                #         for item in self.to_retrieve:
+                #             try:
+                #                 sftp.get_d(item[0], item[1], preserve_mtime=True)
+                #                 ind = self.to_retrieve.index(item)
+                #                 self.successfully_retrieved.append(self.to_retrieve.pop(ind))
+                #                 logging.info('Successfully retrieved {}'.format(item[0]))
+                #                 if self.debug:
+                #                     print('Successfully retrieved {}'.format(item[0]))
+                                
+                #             except FileNotFoundError:
+                #                 logging.critical('File not found on Server.  No way to retrieve past info.')
+                #                 if self.debug:
+                #                     print('File not found on Server.  No way to retrieve past info.')
+                #                 ind = self.to_retrieve.index(item)
+                #                 self.to_retrieve.pop(ind)
+
+                # except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
+                #     logging.warning('Network connection error: {}'.format(conn_error))
+                #     if self.debug:
+                #         print('Network connection error: {}'.format(conn_error))
 
 class MyClient():
     def __init__(self, server_id, debug):
