@@ -68,6 +68,8 @@ class MyRetriever(threading.Thread):
     
     def retrieve_this(self):
         item = self.to_retrieve.get()
+        if self.debug:
+            print('Thread started to get: {}'.format(item))
         try:
             with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
                 try:
@@ -101,6 +103,8 @@ class MyRetriever(threading.Thread):
             # if datetime.now().second == 0:
             #     time.sleep(5)
             if not self.to_retrieve.empty():
+                if self.debug:
+                    print('Size of queue: {}'.format(self.to_retrieve.qsize()))
                 for i in range(self.num_threads):
                     # if self.debug:
                     #     print('Retrieving: {}'.format(item))
@@ -108,6 +112,7 @@ class MyRetriever(threading.Thread):
                     worker.setDaemon(True)
                     worker.start()
                     # a.join()
+                # time.sleep(1)
                 
                 # try:
                 
