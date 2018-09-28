@@ -317,6 +317,8 @@ class MyPhoto(threading.Thread):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
         
+        # Wait for self.img_dir to exist
+        time.sleep(1)
         while 1:
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir, f_name)
