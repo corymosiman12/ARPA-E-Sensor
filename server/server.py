@@ -77,7 +77,7 @@ class Server():
             # main listening socket.
             (client_socket, client_address) = self.sock.accept()
             if client_socket:
-                thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors)
+                thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors, self.debug)
                 thr.start()
                 thr.join()
                 print("New connection with: {}".format(client_address))
@@ -132,13 +132,14 @@ class MyThreadedSocket(threading.Thread):
             Pointer to master class of sensors.  Allows thread
             to get readings from sensors to send to client.
     """
-    def __init__(self, socket, address, settings, sensors):
+    def __init__(self, socket, address, settings, sensors, debug):
         threading.Thread.__init__(self)
         self.client_socket = socket
         self.client_address = address
         self.stream_size = 4096
         self.settings = settings
         self.sensors = sensors
+        self.debug = debug
     
     def decode_request(self):
         """
@@ -234,7 +235,8 @@ class MyThreadedSocket(threading.Thread):
             self.decode_request()
 
             # self.client_request is now either "success" or "not success"
-            print("Write to influx: {}".format(self.client_request))
+            if self.debug:
+                print("Write to influx: {}".format(self.client_request))
             if self.client_request == "SUCCESS":
                 
                 # clear sensor cache
@@ -249,7 +251,8 @@ class MyThreadedSocket(threading.Thread):
                 # Respond that cache has not been cleared
                 self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
                                             \tself.readings has not been cleared".encode())
-            print("self.readings: {}".format(self.sensors.readings))
+            if self.debug:
+                print("self.readings: {}".format(self.sensors.readings))
 
             # Close socket
             self.client_socket.close()
@@ -274,6 +277,8 @@ class MyThreadedSocket(threading.Thread):
             # followed by the names of the directories on the pi.
             temp = [str(len(deleted))]
             for d in deleted:
+                if self.debug:
+                    print('Deleted: {}'.format(d))
                 temp.append(d)
 
             # Messages always seperated by carriage return, newline
