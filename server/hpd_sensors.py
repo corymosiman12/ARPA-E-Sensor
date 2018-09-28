@@ -11,6 +11,15 @@ import pyaudio
 import wave
 import os
 import sys
+import cv2
+import imutils
+from imutils.video import WebcamVideoStream
+import numpy as np
+import logging
+
+logging.basicConfig(filename = '/home/pi/sensors_logfile.log', level = logging.DEBUG,
+                    format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%d-%m-%Y:%H:%M:%S',)
 
 class HPD_APDS9301():
     def __init__(self):
@@ -118,8 +127,9 @@ class HPD_DHT22():
 
 
 class Sensors(threading.Thread):
-    def __init__(self, read_interval):
+    def __init__(self, read_interval, debug):
         threading.Thread.__init__(self)
+        self.debug = debug
         self.gas = HPD_SGP30()
         self.light = HPD_APDS9301()
         self.temp_humid = HPD_DHT22()
@@ -143,15 +153,15 @@ class Sensors(threading.Thread):
                                       "tvoc_ppb": tvoc,
                                       "co2eq_base": co2_base,
                                       "tvoc_base": tvoc_base})
-
-                if len(self.readings) % 2 == 0:
-                    print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),
-                                                                                                  self.readings[0]["time"],
-                                                                                                  self.readings[-1]["time"]))
+                if self.debug:
+                    if len(self.readings) % 2 == 0:
+                        print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),
+                                                                                                    self.readings[0]["time"],
+                                                                                                    self.readings[-1]["time"]))
                 time.sleep(1)
 
 class MyAudio(threading.Thread):
-    def __init__(self, audio_root):
+    def __init__(self, audio_root, debug):
         threading.Thread.__init__(self)
         self.chunk = 16000
         self.rate = 32000
@@ -159,13 +169,13 @@ class MyAudio(threading.Thread):
         self.format = pyaudio.paInt32
         self.channels = 1
         self.audio_root = audio_root
+        self.debug = debug
         self.audio_root_date = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
         self.create_root_audio_dir()
         self.p = pyaudio.PyAudio()
         self.frames = []
         self.stream = False
         self.start()
-    
 
     def start_stream(self):
         while not type(self.p) == pyaudio.PyAudio:
@@ -175,7 +185,9 @@ class MyAudio(threading.Thread):
         while datetime.now().second % 20 != 0:
             pass
         
-        print('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
+        logging.info('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
+        if self.debug:
+            print('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
         try: 
             self.stream = self.p.open(format = self.format,
                                     channels = self.channels,
@@ -183,7 +195,9 @@ class MyAudio(threading.Thread):
                                     input = True,
                                     frames_per_buffer = self.chunk)
         except:
-            print('pyaudio.PyAudio() could not be opened.')
+            logging.info('pyaudio.PyAudio() could not be opened.')
+            if self.debug:
+                print('pyaudio.PyAudio() could not be opened.')
             self.stream = False
             self.start_stream()
         
@@ -196,13 +210,15 @@ class MyAudio(threading.Thread):
             date_dir = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
             if not os.path.isdir(date_dir):
                 os.makedirs(date_dir)
-                print('Created dir: {}'.format(date_dir))
+                if self.debug:
+                    print('Created dir: {}'.format(date_dir))
                 self.audio_root_date = date_dir
                 
             min_dir = os.path.join(self.audio_root_date, datetime.now().strftime('%H%M'))
             if not os.path.isdir(min_dir):
                 os.makedirs(min_dir)
-                print('Created dir: {}'.format(min_dir))
+                if self.debug:
+                    print('Created dir: {}'.format(min_dir))
                 self.audio_dir = min_dir
     
     def write_to_file(self, f_path, to_write):
@@ -212,6 +228,8 @@ class MyAudio(threading.Thread):
         wf.setframerate(self.rate)
         wf.writeframes(b''.join(to_write))
         wf.close()
+        if self.debug:
+            print('Attempted to write: {}'.format(f_path))
         
     
     def run(self):
@@ -235,5 +253,101 @@ class MyAudio(threading.Thread):
             writer.start()
             writer.join()
                 
-                
+
+class MyPhoto(threading.Thread):
+    def __init__(self, img_root, stream_type, debug):
+        threading.Thread.__init__(self)
+        # self.setDaemon(True)
+        print("Initializing MyPhoto class")
+        self.img_root = img_root
+        self.debug = debug
+        self.img_root_date = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
+        self.pi_ip_address = 'localhost'
+        self.stream_type = stream_type
+        self.video_status = False
+        self.create_root_img_dir()
+        self.connect_to_video()
+        self.start()
+
+    def create_root_img_dir(self):
+        if not os.path.isdir(self.img_root):
+            os.makedirs(self.img_root)
+
+    def connect_to_video(self):
+        # Select the stream type based on that specified in server.conf
+        if self.stream_type == "mjpeg":
+            stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.mjpeg"
+        elif self.stream_type == "h264":
+            stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.h264"
+        elif self.stream_type == "jpeg":
+            stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.jpeg"
+        
+        # Attempt to start the video stream
+        self.cam = WebcamVideoStream(stream_path).start()
+
+        # Keep attempting to open the video stream until it is opened
+        while not self.cam.stream.isOpened():
+            self.cam = WebcamVideoStream(stream_path).start()
+            self.video_status = False
+            logging.warning("Unable to connect to video")
+            if self.debug:
+                print('Unable to connect to video')
+            time.sleep(1)
+        
+        # Set the video status to true
+        self.video_status = True
+        logging.info("Connected to video stream")
+        if self.debug:
+            print('Connected to video stream')
+
+    def img_dir_update(self):
+        # This function is run in a separate thread to continuously create a new directory for each day, and for each minute.
+        while 1:
+            date_dir = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
+            if not os.path.isdir(date_dir):
+                os.makedirs(date_dir)
+                self.img_root_date = date_dir
             
+            min_dir = os.path.join(self.img_root_date, datetime.now().strftime("%H%M"))
+            if not os.path.isdir(min_dir):
+                os.makedirs(min_dir)
+                self.img_dir = min_dir
+
+    def run(self):
+        dir_create = threading.Thread(target=self.img_dir_update)
+        dir_create.start()
+        
+        while 1:
+            f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
+            f_path = os.path.join(self.img_dir, f_name)
+
+            # Only capture a photo if it doesn't already exist
+            if not os.path.isfile(f_path):
+                if not len(os.listdir(self.img_dir)) >= 60:
+                    img = False
+                    img = self.cam.read()
+                    if type(img) is not np.ndarray:
+                        logging.warning('Camera read did not return image.  Attempting to restart video connection')
+                        if self.debug:
+                            print('Camera read did not return image.  Attempting to restart video connection')
+                        self.video_status = False
+                        self.connect_to_video()
+
+                    elif type(img) is np.ndarray:
+                        try:
+                            # Convert image to greyscale
+                            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+                            # Write to disk
+                            cv2.imwrite(f_path, img)
+                            if datetime.now().minute == 0:
+                                logging.info("Created file: {}".format(f_path))
+
+                        except Exception as e:
+                            logging.warning("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}\tAttempting to restart video connection".format(e, f_name))
+                            if self.debug:
+                                print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}\tAttempting to restart video connection".format(e, f_name))
+                            # logging.info("Attempting to restart video connection")
+                            self.video_status = False
+                            self.connect_to_video()
+                            # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))

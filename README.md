@@ -1,5 +1,5 @@
 # Introduction
-This repository contains both the client and server side code for the ARPA-E-Sensor project HPDMobile, along with setup guides for configuring the Antsle 'antlets' (basically VM's).  Each server is a raspberry pi with the following peripherals:
+This repository contains both the client and server side code for the ARPA-E-Sensor project HPDMobile, along with setup guides for configuring the Antsle 'antlets' (VM's).  Each server is a raspberry pi with the following peripherals:
 - Raspberry pi camera (photos)
 - SPG30 Gas Sensor (TVOC and eCO2)
 - DHT22 Sensor (Temp and RH)
@@ -10,29 +10,12 @@ This repository contains both the client and server side code for the ARPA-E-Sen
 ## Glossary
 1. antlet: For our understanding, this is essentially a virtual machine which is running on the Antsle.  We have multiple antlets with different functionalities, used to isolate applications.
 2. env_params: All data besides photos and sound (TVOC, eCO2, temp, RH, distance, light levels)
-3. server = Raspberry pi: since each raspberry pi will be running a streaming video server (UV4L) and web server, it is also referred to as a server throughout
+3. server = Raspberry pi: since each raspberry pi will be running a streaming video server (UV4L) and server to transfer the env_params, audio, and photos to the Antsle for central storage, it is referred to as a server throughout this project.
 4. client: An antlet whose purpose is to connect to one of the servers, capture data points, and store locally on the antsle.  There will be a client antlet for each server.
 
 # Server
 Raspberry pi must be running Stretch OS.  Both the camera and I2C must be enabled.  The UV4L Streaming Server module must be running, follow steps [here](https://github.com/corymosiman12/ARPA-E-Sensor/wiki/Setting-up-the-Pi's). Additionally, see the README in the server directory for more details.  The servers will collect env_params at a specified `read_interval` (server.conf), timestamp the data, and store it in memory.  They listen on a specific port `listen_port`, waiting for the client to request data.  Upon request, data will be transferred over a TCP socket.  If the client successfully receives and writes the data to the InfluxDB, the server will clear those readings from memory and begin collecting for the next interval.
 
-+---------------+------------------------+------------------------+
-|               | hpdblack               | hpdgold                |
-+---------------+------------------------+------------------------+
-| ip_address    | server_MAC | server_id | server_MAC | server_id |
-+---------------+------------+-----------+------------+-----------+
-| 192.168.1.101 |            | B_S1      |            | G_S1      |
-+---------------+------------+-----------+------------+-----------+
-| 192.168.1.102 |            | B_S2      |            | G_S2      |
-+---------------+------------+-----------+------------+-----------+
-| 192.168.1.103 |            | B_S3      |            | G_S3      |
-+---------------+------------+-----------+------------+-----------+
-| 192.168.1.104 |            | B_S4      |            | G_S4      |
-+---------------+------------+-----------+------------+-----------+
-| 192.168.1.105 |            | B_S5      |            | G_S5      |
-+---------------+------------+-----------+------------+-----------+
-| 192.168.1.106 |            | B_S6      |            | G_S6      |
-+---------------+------------+-----------+------------+-----------+
 
 # Antsle
 The Antsle will contain multiple antlets with different functions:
@@ -53,18 +36,20 @@ All env_params from the clients are being written to the hpd_mobile database run
 The client antlets will write env_params to the Influxdb Antlet.  They will additionally write photos and audio data to a virtual drive mounted at `/mnt/vdb/` (as specified by the client.conf `img_audio_root` parameter).  400 GB HDD has been allocated for the images and audio 
 
 ### Images
-Images will be saved under `/mnt/vdb/<server_id>/img/<date>/<%H:%M>`.  The server id will correspond to the table above, also defined in the client.conf file.  There should be 1,440 directories in the `/date` directory (one for every minute of the day).  60 photos should reside inside each of the `/<%H:%M>` directories, one for each second.
+Images will be saved under `/mnt/vdb/<server_id>/img/<date>/<%H:%M>`.  The server id will correspond to the id defined in the client.conf file.  There should be 1,440 directories in the `/date` directory (one for every minute of the day).  60 photos should reside inside each of the `/<%H:%M>` directories, one for each second.
 
 ### Audio
-Audio will be saved under `/mnt/vdb/<server_id>/audio/<date>/<%H>`.  The server id will correspond to the table above, also defined in the client.conf file.  There should be 60 wav files in each `<%H>` directories, one for each minute.
+Audio will be saved under `/mnt/vdb/<server_id>/audio/<date>/<%H:M>`.  The server id will correspond to the id defined in the client.conf file.  There should be 3 wav files in each `<%H:%M>` directories, one for each minute.
 
 ## USRP Antlet
 
-# Test run
-Before testing, you must:
-- Have an influxdb running locally on port 8086 with an `hpd_mobile` table
-- Check the client.conf file and change the `root` setting to a spot on your localhost to save images and audio.
-    - Dev root: `/Users/corymosiman/hpd_mobile`
-    - Prod root: `/mnt/vdb/`
+
+# Archive
+    # Test run
+    Before testing, you must:
+    - Have an influxdb running locally on port 8086 with an `hpd_mobile` table
+    - Check the client.conf file and change the `root` setting to a spot on your localhost to save images and audio.
+        - Dev root: `/Users/corymosiman/hpd_mobile`
+        - Prod root: `/mnt/vdb/`
 
 

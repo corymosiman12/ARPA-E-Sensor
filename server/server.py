@@ -10,13 +10,13 @@ import time
 import shutil
 
 # Set logging level and format logging entries.
-"""
-logging.basicConfig(filename = 'server_logfile.log', level = logging.DEBUG,
+
+logging.basicConfig(filename = '/home/pi/server_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
-"""                                  
+                               
 class Server():
-    def __init__(self):
+    def __init__(self, debug):
         """
         The server class is the main class, and in this instance, the
         main thread that will be executed.  Once initialized,
@@ -27,14 +27,18 @@ class Server():
                     root document directory,
                     sensor read interval, ....
         """
+        self.debug = debug
         self.settings = self.import_server_conf()
         self.host = ''
         self.port = int(self.settings['listen_port'])
         self.root = self.settings['root']
         self.audio_root = self.settings['audio_root']
-        self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']))
-        self.audio = hpd_sensors.MyAudio(self.audio_root)
-        self.garbage_collector = MyGarbageCollector(self.audio_root)
+        self.img_root = self.settings['img_root']
+        self.stream_type = self.settings['stream_type']
+        self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']), self.debug)
+        self.audio = hpd_sensors.MyAudio(self.audio_root, self.debug)
+        self.photo = hpd_sensors.MyPhoto(self.img_root, self.stream_type, self.debug)
+        # self.garbage_collector = MyGarbageCollector(self.audio_root)
         # self.sensors.start()
         self.create_socket()
         
@@ -53,8 +57,8 @@ class Server():
             return conf
             
         except:
-            logging.CRITICAL("Unable to read server configuration file")
-            print("Unable to read server configuration file")
+            logging.critical("Unable to read server configuration file")
+            # print("Unable to read server configuration file")
             exit()
 
     def create_socket(self):
@@ -78,37 +82,37 @@ class Server():
                 thr.join()
                 print("New connection with: {}".format(client_address))
 
-class MyGarbageCollector(threading.Thread):
-    def __init__(self, audio_root):
-        threading.Thread.__init__(self)
-        self.audio_root = audio_root
-        self.start()
+# class MyGarbageCollector(threading.Thread):
+#     def __init__(self, audio_root):
+#         threading.Thread.__init__(self)
+#         self.audio_root = audio_root
+#         self.start()
 
-    def rm_audio_dirs(self):
-        ten_min_ago = self.cur_time - timedelta(minutes = 10)
-        dirs = []
-        for i in range(0,5):
-            t = ten_min_ago + timedelta(minutes = i)
-            d = os.path.join(self.audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-            if os.path.isdir(d):
-                dirs.append(d)
-            else:
-                print('Not directory: {}'.format(d))
+#     def rm_audio_dirs(self):
+#         ten_min_ago = self.cur_time - timedelta(minutes = 10)
+#         dirs = []
+#         for i in range(0,5):
+#             t = ten_min_ago + timedelta(minutes = i)
+#             d = os.path.join(self.audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+#             if os.path.isdir(d):
+#                 dirs.append(d)
+#             else:
+#                 print('Not directory: {}'.format(d))
 
-        for d in dirs:
-            try:
-                shutil.rmtree(d)
-                print('Removed dir: {}'.format(d))
-            except:
-                print('Didnt remove dir: {}'.format(d))
+#         for d in dirs:
+#             try:
+#                 shutil.rmtree(d)
+#                 print('Removed dir: {}'.format(d))
+#             except:
+#                 print('Didnt remove dir: {}'.format(d))
         
 
-    def run(self):
-        while True:
-            self.cur_time = datetime.now()
-            if self.cur_time.minute % 5 == 0:
-                self.rm_audio_dirs()
-                time.sleep(60)
+#     def run(self):
+#         while True:
+#             self.cur_time = datetime.now()
+#             if self.cur_time.minute % 5 == 0:
+#                 self.rm_audio_dirs()
+#                 time.sleep(60)
 
 
 class MyThreadedSocket(threading.Thread):
@@ -141,11 +145,14 @@ class MyThreadedSocket(threading.Thread):
         Each line in the client message is separated by a
         carriage return and newline. The first line is 
         the time the request is sent from the client side.  Additional
-        lines specify if client wants env_params or audio data.
+        lines specify if client wants env_params, audio directories, or photo
+        directories.
         """
         decoded = self.request.split('\r\n')
         self.client_request_time = decoded[0]
         self.client_request = decoded[1]
+        if len(decoded) > 2:
+            self.dirs_to_delete = decoded[2:]
         
     def send_sensors(self):
         """
@@ -247,14 +254,39 @@ class MyThreadedSocket(threading.Thread):
             # Close socket
             self.client_socket.close()
             
-        elif self.client_request == "audio":
-            print("audio")
+        elif self.client_request == "to_remove":
+            deleted = []
+
+            # self.dirs_to_delete is updated in self.decode_request
+            for d in self.dirs_to_delete:
+                if os.path.isdir(d):
+                    try:
+                        shutil.rmtree(d)
+                    except:
+                        logging.info('Unable to remove dir: {}'.format(d))
+                
+                # Regardless of whether or not it was a directory, if it doesn't exist,
+                # then it is identified as 'deleted'
+                if not os.path.isdir(d):
+                    deleted.append(d)
+            
+            # Respond to client with the number of directories removed,
+            # followed by the names of the directories on the pi.
+            temp = [str(len(deleted))]
+            for d in deleted:
+                temp.append(d)
+
+            # Messages always seperated by carriage return, newline
+            message = '\r\n'.join(temp)
+
+            # Respond to clien
+            self.client_socket.sendall(message)
+
+            # Close socket
+            self.client_socket.close()
         
         # Make sure socket is closed
         self.client_socket.close()
-
-
-
 
 if __name__=='__main__':
     """
@@ -264,8 +296,9 @@ if __name__=='__main__':
     Depending on the data requested, the Server will either send audio
     data or environmental parameters.
     """
+    debug = True
     # try:
-    s = Server()
+    s = Server(debug)
     # except Exception as e:
         # logging.CRITICAL(e)
     
