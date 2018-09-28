@@ -109,7 +109,7 @@ class MyClient():
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.create_img_dir()
         self.create_audio_dir()
-        self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.debug)
+        # self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.debug)
         # self.photos = my_photo.MyPhoto3(self.image_dir, self.server_ip, self.server_img_audio_root)
         # self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
 
@@ -249,39 +249,50 @@ class MyClient():
         Connect to server and get data.  This is currently specific to
         all data excluding the microphone and camera.
         """
-        # Instantiate IPV4 TCP socket class
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # Create a socket connection to the server at the specified port
-        s.connect((self.server_ip, self.listen_port))
-
-        # Send message over socket connection, requesting aforementioned data
-        s.sendall(self.create_message(["env_params"]))
-
-        # Receive all data from server.  Load as dictionary
-        self.get_sensors_response = json.loads(self.my_recv_all(s))
-        
-        # Attempt to write to InfluxDB.  Relay success/not to server
-        # Upon success, server removes data from cache
         try:
-            # influx_write() returns 'bool'
-            successful_write = self.influx_write()
-            if successful_write:
-                s.sendall(self.create_message(["SUCCESS"]))
-                logging.info('Successful write')
-            else:
+            # Instantiate IPV4 TCP socket class
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Create a socket connection to the server at the specified port
+            s.connect((self.server_ip, self.listen_port))
+
+            # Send message over socket connection, requesting aforementioned data
+            s.sendall(self.create_message(["env_params"]))
+
+            # Receive all data from server.  Load as dictionary
+            self.get_sensors_response = json.loads(self.my_recv_all(s))
+            
+            # Attempt to write to InfluxDB.  Relay success/not to server
+            # Upon success, server removes data from cache
+            try:
+                # influx_write() returns 'bool'
+                successful_write = self.influx_write()
+                if successful_write:
+                    s.sendall(self.create_message(["SUCCESS"]))
+                    logging.info('Successful write')
+                else:
+                    s.sendall(self.create_message(["NOT SUCCESS"]))
+                    logging.warning('Unsuccessful write to influxdb')
+            except:
                 s.sendall(self.create_message(["NOT SUCCESS"]))
                 logging.warning('Unsuccessful write to influxdb')
-        except:
-            s.sendall(self.create_message(["NOT SUCCESS"]))
-            logging.warning('Unsuccessful write to influxdb')
 
-        # Check that server received message correctly
-        self.validation = self.my_recv_all(s)
-        logging.info("Validation: {}".format(self.validation))
+            # Check that server received message correctly
+            self.validation = self.my_recv_all(s)
+            logging.info("Validation: {}".format(self.validation))
 
-        # Close socket
-        s.close()
+            # Close socket
+            s.close()
+        except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as e:
+            logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
+            if self.debug:
+                print('Unable to connect and get_sensors_data. Error: {}'.format(e))
+            
+            try:
+                if s:
+                    s.close()
+            except:
+                pass
     
     def server_delete(self):
         to_remove = ['to_remove']
@@ -292,41 +303,53 @@ class MyClient():
             pass
 
         else:
-            # Instantiate IPV4 TCP socket class
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                # Instantiate IPV4 TCP socket class
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-            # Create a socket connection to the server at the specified port
-            s.connect((self.server_ip, self.listen_port))
+                # Create a socket connection to the server at the specified port
+                s.connect((self.server_ip, self.listen_port))
 
-            # Send message over socket connection, requesting aforementioned data
-            s.sendall(self.create_message(to_remove))
+                # Send message over socket connection, requesting aforementioned data
+                s.sendall(self.create_message(to_remove))
 
-            # Receive all data from server.
-            self.delete_response = self.my_recv_all(s).split('\r\n')
-            self.num_dirs_deleted = self.delete_response[0]
-            if self.debug:
-                print('{} dirs deleted'.format(self.num_dirs_deleted))
-
-            if len(self.delete_response) > 1:
-                self.dirs_deleted = self.delete_response[1:]
-                removed_from_queue = 0
-
-                for d in self.dirs_deleted:
-                    for a in self.retriever.successfully_retrieved:
-                        if a[0] == d:
-                            ind = self.retriever.successfully_retrieved.index(a)
-                            self.retriever.successfully_retrieved.pop(ind)
-                            removed_from_queue += 1
-
-                logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
-                logging.info('{} directories removed from queue'.format(removed_from_queue))
-
+                # Receive all data from server.
+                self.delete_response = self.my_recv_all(s).split('\r\n')
+                self.num_dirs_deleted = self.delete_response[0]
                 if self.debug:
-                    print('{} directories deleted from server'.format(self.num_dirs_deleted))
-                    print('{} directories removed from queue'.format(removed_from_queue))
+                    print('{} dirs deleted'.format(self.num_dirs_deleted))
 
-            # Close socket
-            s.close()
+                if len(self.delete_response) > 1:
+                    self.dirs_deleted = self.delete_response[1:]
+                    removed_from_queue = 0
+
+                    for d in self.dirs_deleted:
+                        for a in self.retriever.successfully_retrieved:
+                            if a[0] == d:
+                                ind = self.retriever.successfully_retrieved.index(a)
+                                self.retriever.successfully_retrieved.pop(ind)
+                                removed_from_queue += 1
+
+                    logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
+                    logging.info('{} directories removed from queue'.format(removed_from_queue))
+
+                    if self.debug:
+                        print('{} directories deleted from server'.format(self.num_dirs_deleted))
+                        print('{} directories removed from queue'.format(removed_from_queue))
+
+                # Close socket
+                s.close()
+
+            except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as e:
+                logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
+                if self.debug:
+                    print('Unable to connect and get_sensors_data. Error: {}'.format(e))
+                
+                try:
+                    if s:
+                        s.close()
+                except:
+                    pass
 
 if __name__ == "__main__":
     """
@@ -349,18 +372,18 @@ if __name__ == "__main__":
             # Wait two seconds before connecting to server
             time.sleep(2)
 
-            try: 
-                # Get data from sensors and save to influxdb
-                c.get_sensors_data()
-            except ConnectionRefusedError as e:
-                logging.warning('Connection refused')
-                if debug:
-                    print('Connection refused')
-                pass
+            # Get data from sensors and save to influxdb
+            c.get_sensors_data()
+
+            # except ConnectionRefusedError as e:
+            #     logging.warning('Connection refused')
+            #     if debug:
+            #         print('Connection refused')
+            #     pass
 
         # Perform directory delete operations every five minutes
-        if datetime.now().minute % 5 == 0:
-            c.server_delete()
+        # if datetime.now().minute % 5 == 0:
+        #     c.server_delete()
 
-            # Don't perform twice in one minute
-            time.sleep(60)
+        #     # Don't perform twice in one minute
+        #     time.sleep(60)
