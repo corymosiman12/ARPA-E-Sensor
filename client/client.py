@@ -67,9 +67,9 @@ class MyRetriever(threading.Thread):
 
         while True:
             if datetime.now().second == 0:
+                time.sleep(5)
                 if self.debug:
                     print("About to retrieve: {}".format(self.to_retrieve))
-                time.sleep(5)
                 try:
                     with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
                         for item in self.to_retrieve:
