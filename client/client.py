@@ -1,5 +1,3 @@
-# import my_photo
-# import my_audio
 import json
 import socket
 import sys
@@ -43,11 +41,11 @@ class MyRetriever(threading.Thread):
                 img_date_dir = os.path.join(self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
                 if not os.path.isdir(audio_date_dir):
                     os.makedirs(audio_date_dir)
-                    self.my_audio_root_date = audio_date_dir
+                self.my_audio_root_date = audio_date_dir
 
                 if not os.path.isdir(img_date_dir):
                     os.makedirs(img_date_dir)
-                    self.my_img_root_date = img_date_dir
+                self.my_img_root_date = img_date_dir
 
                 t = datetime.now() - timedelta(minutes = 1)
                 prev_min_audio_dir = os.path.join(self.my_audio_root_date, t.strftime('%H%M'))
