@@ -9,6 +9,7 @@ import time
 import influxdb
 import pysftp
 import paramiko
+from queue import Queue
 
 logging.basicConfig(filename = '/root/client_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -24,7 +25,8 @@ class MyRetriever(threading.Thread):
         self.pi_audio_root = os.path.join(pi_img_audio_root, 'audio')
         self.pi_img_root = os.path.join(pi_img_audio_root, 'img')
         self.debug = debug
-        self.to_retrieve = []
+        self.to_retrieve = Queue(maxsize=0)
+        self.num_threads = 5
         self.successfully_retrieved = []
         self.start()
 
@@ -55,29 +57,34 @@ class MyRetriever(threading.Thread):
                 if not os.path.isdir(prev_min_audio_dir):
                     os.makedirs(prev_min_audio_dir)
                     pi_audio_dir = os.path.join(self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-                    self.to_retrieve.append((pi_audio_dir, prev_min_audio_dir))
+                    # self.to_retrieve.append((pi_audio_dir, prev_min_audio_dir))
+                    self.to_retrieve.put((pi_audio_dir, prev_min_audio_dir))
 
                 if not os.path.isdir(prev_min_img_dir):
                     os.makedirs(prev_min_img_dir)
                     pi_img_dir = os.path.join(self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-                    self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
+                    # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
+                    self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
     
-    def retrieve_this(self, item):
+    def retrieve_this(self):
+        item = self.to_retrieve.get()
         try:
             with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
                 try:
                     sftp.get_d(item[0], item[1], preserve_mtime=True)
-                    ind = self.to_retrieve.index(item)
-                    self.successfully_retrieved.append(self.to_retrieve.pop(ind))
+                    # ind = self.to_retrieve.index(item)
+                    self.successfully_retrieved.append(item)
                     logging.info('Successfully retrieved {}'.format(item[0]))
+                    self.to_retrieve.task_done()
                     if self.debug:
                         print('Successfully retrieved {}'.format(item[0]))
                 except FileNotFoundError:
                     logging.critical('File not found on Server.  No way to retrieve past info.')
                     if self.debug:
                         print('File not found on Server.  No way to retrieve past info.')
-                    ind = self.to_retrieve.index(item)
-                    self.to_retrieve.pop(ind)
+                    # ind = self.to_retrieve.index(item)
+                    # self.to_retrieve.pop(ind)
+                    self.to_retrieve.task_done()
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning('Network connection error: {}'.format(conn_error))
             if self.debug:
@@ -88,15 +95,17 @@ class MyRetriever(threading.Thread):
         retriever_updater.start()
 
         while True:
-            if len(self.to_retrieve) > 0:
+            # if len(self.to_retrieve) > 0:
             # if datetime.now().second == 0:
             #     time.sleep(5)
-                for item in self.to_retrieve:
-                    if self.debug:
-                        print('Retrieving: {}'.format(item))
-                    a = threading.Thread(target=self.retrieve_this, args=(item,))
-                    a.start()
-                    a.join()
+            if not self.to_retrieve.empty():
+                for i in range(self.num_threads):
+                    # if self.debug:
+                    #     print('Retrieving: {}'.format(item))
+                    worker = threading.Thread(target=self.retrieve_this)
+                    worker.setDaemon(True)
+                    worker.start()
+                    # a.join()
                 
                 # try:
                 
