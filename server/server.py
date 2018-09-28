@@ -285,7 +285,7 @@ class MyThreadedSocket(threading.Thread):
             message = '\r\n'.join(temp)
 
             # Respond to clien
-            self.client_socket.sendall(message)
+            self.client_socket.sendall(message.encode())
 
             # Close socket
             self.client_socket.close()

@@ -34,8 +34,11 @@ class MyRetriever(threading.Thread):
     def to_retrieve_updater(self):
         while True:
             if datetime.now().second == 0:
-                if self.debug:
+                time.sleep(1)
+                p = True
+                if self.debug and p:
                     print("Retriever updater running")
+                    p = False
                 audio_date_dir = os.path.join(self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
                 img_date_dir = os.path.join(self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
                 if not os.path.isdir(audio_date_dir):
