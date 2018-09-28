@@ -89,6 +89,8 @@ class MyRetriever(threading.Thread):
             logging.warning('Network connection error: {}'.format(conn_error))
             if self.debug:
                 print('Network connection error: {}'.format(conn_error))
+            self.to_retrieve.task_done()
+            self.to_retrieve.put(item)
 
     def run(self):
         retriever_updater = threading.Thread(target = self.to_retrieve_updater)
