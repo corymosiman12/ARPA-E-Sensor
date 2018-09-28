@@ -94,8 +94,8 @@ class MyClient():
         self.conf = self.import_conf(self.server_id)
         self.server_ip = self.conf['servers'][self.server_id]
         self.my_root = os.path.join(self.conf['img_audio_root'], self.server_id)
-        # self.image_dir = os.path.join(self.root, 'img')
-        # self.audio_dir = os.path.join(self.root, 'audio')
+        self.image_dir = os.path.join(self.root, 'img')
+        self.audio_dir = os.path.join(self.root, 'audio')
         # self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
