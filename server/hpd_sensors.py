@@ -218,20 +218,24 @@ class MyAudio(threading.Thread):
             date_dir = os.path.join(self.audio_root, datetime.now().strftime('%Y-%m-%d'))
             if not os.path.isdir(date_dir):
                 os.makedirs(date_dir)
-                if self.debug:
-                    print('Created dir: {}'.format(date_dir))
-                self.audio_root_date = date_dir
+
+                # if self.debug:
+                #     print('Created dir: {}'.format(date_dir))
+            self.audio_root_date = date_dir
                 
             min_dir = os.path.join(self.audio_root_date, datetime.now().strftime('%H%M'))
             if not os.path.isdir(min_dir):
-                self.audio_dir = min_dir
-                try:
-                    os.makedirs(min_dir)
-                    if self.debug:
-                        print('Created dir: {}'.format(min_dir))
-                except PermissionError as e:
-                    if self.debug:
-                        print(e)
+                os.makedirs(min_dir)
+            
+            self.audio_dir = min_dir
+            
+                # try:
+                #     os.makedirs(min_dir)
+                #     if self.debug:
+                #         print('Created dir: {}'.format(min_dir))
+                # except PermissionError as e:
+                #     if self.debug:
+                #         print(e)
                 # self.audio_dir = min_dir
     
     def write_to_file(self, f_path, to_write):
@@ -323,12 +327,12 @@ class MyPhoto(threading.Thread):
             date_dir = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
             if not os.path.isdir(date_dir):
                 os.makedirs(date_dir)
-                self.img_root_date = date_dir
+            self.img_root_date = date_dir
             
             min_dir = os.path.join(self.img_root_date, datetime.now().strftime("%H%M"))
             if not os.path.isdir(min_dir):
                 os.makedirs(min_dir)
-                self.img_dir = min_dir
+            self.img_dir = min_dir
 
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
