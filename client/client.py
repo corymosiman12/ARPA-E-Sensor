@@ -293,6 +293,8 @@ class MyClient():
                     s.close()
             except:
                 pass
+
+        time.sleep(60)
     
     def server_delete(self):
         to_remove = ['to_remove']
@@ -350,6 +352,8 @@ class MyClient():
                         s.close()
                 except:
                     pass
+        
+        time.sleep(60)
 
 if __name__ == "__main__":
     """
@@ -373,7 +377,9 @@ if __name__ == "__main__":
             time.sleep(2)
 
             # Get data from sensors and save to influxdb
-            c.get_sensors_data()
+            get_data = threading.Thread(target=c.get_sensors_data())
+            get_data.start()
+            get_data.join()
 
             # except ConnectionRefusedError as e:
             #     logging.warning('Connection refused')
@@ -382,8 +388,11 @@ if __name__ == "__main__":
             #     pass
 
         # Perform directory delete operations every five minutes
-        # if datetime.now().minute % 5 == 0:
-        #     c.server_delete()
+        if datetime.now().minute % 5 == 0:
+            
+            time.sleep(2)
+            delete_dirs = threading.Thread(target=c.server_delete())
+            delete_dirs.start()
+            delete_dirs.join()
 
-        #     # Don't perform twice in one minute
-        #     time.sleep(60)
+
