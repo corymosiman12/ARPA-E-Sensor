@@ -17,12 +17,11 @@ import numpy as np
 # and port number specified below.  The path: /stream/video.mjpeg can be found in the 
 # pi's 192.168.0.4:8080/info
 
-# logging.basicConfig(filename = 'client_logfile.log', level = logging.DEBUG,
-#                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-#                     datefmt='%d-%m-%Y:%H:%M:%S',)
+logging.basicConfig(filename = 'MyPhoto2_logfile.log', level = logging.DEBUG,
+                    format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%d-%m-%Y:%H:%M:%S',)
 
 class MyPhoto2(threading.Thread):
-    # def __init__(self, img_dir, pi_ip_address, stream_type, sec):
     def __init__(self, img_root, pi_ip_address, stream_type):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -52,15 +51,14 @@ class MyPhoto2(threading.Thread):
         while not self.cam.stream.isOpened():
             self.cam = WebcamVideoStream(stream_path).start()
             self.video_status = False
-            print("Unable to connect to video")
+            logging.warning("Unable to connect to video")
             time.sleep(1)
         
         # Set the video status to true
         self.video_status = True
-        print("Connected to video stream")
+        logging.info("Connected to video stream")
 
     def create_dir(self, new_dir):
-        print("")
         if not os.path.isdir(new_dir):
             os.makedirs(new_dir)
             self.img_dir = new_dir
@@ -95,8 +93,7 @@ class MyPhoto2(threading.Thread):
                     img = False
                     img = self.cam.read()
                     if type(img) is not np.ndarray:
-                        print('Not image')
-                        print("Attempting to restart video connection")
+                        logging.warning('Camera read did not return image.  Attempting to restart video connection')
                         self.video_status = False
                         self.connect_to_video()
                     # if capture_status:
@@ -107,10 +104,12 @@ class MyPhoto2(threading.Thread):
 
                             # Write to disk
                             cv2.imwrite(f_path, img)
-                            print("Created file: {}".format(f_path))
+                            if datetime.now().minute == 0:
+                                logging.info("Created file: {}".format(f_path))
+
                         except Exception as e:
-                            print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, f_name))
-                            print("Attempting to restart video connection")
+                            logging.warning("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}\tAttempting to restart video connection".format(e, f_name))
+                            # logging.info("Attempting to restart video connection")
                             self.video_status = False
                             self.connect_to_video()
                             # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))

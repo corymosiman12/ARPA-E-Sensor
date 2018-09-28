@@ -1,34 +1,111 @@
-import my_photo
-import my_audio
+# import my_photo
+# import my_audio
 import json
 import socket
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 import logging
 import time
 import influxdb
+import pysftp
 
-logging.basicConfig(filename = 'client_logfile.log', level = logging.DEBUG,
+logging.basicConfig(filename = '/root/client_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%d-%m-%Y:%H:%M:%S',)
+                    datefmt='%Y-%m-%d %H:%M:%S',)
+
+class MyRetriever(threading.Thread):
+    def __init__(self, my_root, pi_ip_address, pi_img_audio_root, debug):
+        threading.Thread.__init__(self)
+        logging.info('Initializing MyRetriever')
+        self.my_audio_root = os.path.join(my_root, 'audio')
+        self.my_img_root = os.path.join(my_root, 'img')
+        self.pi_ip_address = pi_ip_address
+        self.pi_audio_root = os.path.join(pi_img_audio_root, 'audio')
+        self.pi_img_root = os.path.join(pi_img_audio_root, 'img')
+        self.debug = debug
+        self.to_retrieve = []
+        self.successfully_retrieved = []
+
+    # def anythang_missing(self):
+    
+    def to_retrieve_updater(self):
+        while True:
+            if datetime.now().second == 0:
+                audio_date_dir = os.path.join(self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
+                img_date_dir = os.path.join(self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
+                if not os.path.isdir(audio_date_dir):
+                    os.makedirs(audio_date_dir)
+                    self.my_audio_root_date = audio_date_dir
+
+                if not os.path.isdir(img_date_dir):
+                    os.makedirs(img_date_dir)
+                    self.my_img_root_date = img_date_dir
+
+                t = datetime.now() - timedelta(minutes = 1)
+                prev_min_audio_dir = os.path.join(self.my_audio_root_date, t.strftime('%H%M'))
+                prev_min_img_dir = os.path.join(self.my_img_root_date, t.strftime('%H%M'))
+
+                if not os.path.isdir(prev_min_audio_dir):
+                    os.makedirs(prev_min_audio_dir)
+                    pi_audio_dir = os.path.join(self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                    self.to_retrieve.append((pi_audio_dir, prev_min_audio_dir))
+
+                if not os.path.isdir(prev_min_img_dir):
+                    os.makedirs(prev_min_img_dir)
+                    pi_img_dir = os.path.join(self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                    self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
+    
+    def run(self):
+        retriever_updater = threading.Thread(target = self.to_retrieve_updater)
+        retriever_updater.start()
+
+        while True:
+            if datetime.now().second == 0:
+                time.sleep(5)
+                try:
+                    with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
+                        for item in self.to_retrieve:
+                            try:
+                                sftp.get_d(item[0], item[1], preserve_mtime=True)
+                                ind = self.to_retrieve.index(item)
+                                self.successfully_retrieved.append(self.to_retrieve.pop(ind))
+                                logging.info('Successfully retrieved {}'.format(item[0]))
+                                if self.debug:
+                                    print('Successfully retrieved {}'.format(item[0]))
+                                
+                            except FileNotFoundError:
+                                logging.critical('File not found on Server.  No way to retrieve past info.')
+                                if self.debug:
+                                    print('File not found on Server.  No way to retrieve past info.')
+                                ind = self.to_retrieve.index(item)
+                                self.to_retrieve.pop(ind)
+
+                except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as conn_error:
+                    logging.warning('Network connection error: {}'.format(conn_error))
+                    if self.debug:
+                        print('Network connection error: {}'.format(conn_error))
 
 class MyClient():
-    def __init__(self, server_id):
+    def __init__(self, server_id, debug):
+        self.debug = debug
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)
         self.server_ip = self.conf['servers'][self.server_id]
-        self.root = os.path.join(self.conf['img_audio_root'], self.server_id)
-        self.image_dir = os.path.join(self.root, 'img')
-        self.audio_dir = os.path.join(self.root, 'audio')
-        self.stream_type = self.conf['stream_type']
+        self.my_root = os.path.join(self.conf['img_audio_root'], self.server_id)
+        # self.image_dir = os.path.join(self.root, 'img')
+        # self.audio_dir = os.path.join(self.root, 'audio')
+        # self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
+        self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.create_img_dir()
-        self.photos = my_photo.MyPhoto2(self.image_dir, self.server_ip, self.stream_type)
-        self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
+        self.create_audio_dir()
+        self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.debug)
+        # self.photos = my_photo.MyPhoto3(self.image_dir, self.server_ip, self.server_img_audio_root)
+        # self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
 
     def import_conf(self, server_id):
         """
@@ -44,9 +121,9 @@ class MyClient():
     
     def create_img_dir(self):
         """
-        Check if server directories for images exist.  If they exist, do nothing.
-        If they don't exist yet, create.  Image directories will be created like:
-            /mnt/vdb/<server_id>/img/<date>/<%H:%M>
+        Check if main server directory for images exist.  If they exist, do nothing.
+        If they don't exist yet, create.  This directory will be:
+            /mnt/vdb/<server_id>/img/
         """
         if not os.path.isdir(self.image_dir):
             os.makedirs(self.image_dir)
@@ -54,8 +131,8 @@ class MyClient():
     def create_audio_dir(self):
         """
         Check if server directories for images exist.  If they exist, do nothing.
-        If they don't exist yet, create.  Audio directories will be created like:
-            /mnt/vdb/<server_id>/img/<date>/<%H:%M>
+        If they don't exist yet, create.  This directory will be:
+            /mnt/vdb/<server_id>/audio
         """
         if not os.path.isdir(self.audio_dir):
             os.makedirs(self.audio_dir)
@@ -77,7 +154,7 @@ class MyClient():
             dt_str.append(item)
         
         message = '\r\n'.join(dt_str)
-        print("Sending Message: \n{}".format(message))
+        logging.info("Sending Message: \n{}".format(message))
         return message.encode()
 
     def my_recv_all(self, s, timeout=2):
@@ -185,18 +262,63 @@ class MyClient():
             successful_write = self.influx_write()
             if successful_write:
                 s.sendall(self.create_message(["SUCCESS"]))
+                logging.info('Successful write')
             else:
                 s.sendall(self.create_message(["NOT SUCCESS"]))
+                logging.warning('Unsuccessful write to influxdb')
         except:
             s.sendall(self.create_message(["NOT SUCCESS"]))
+            logging.warning('Unsuccessful write to influxdb')
 
         # Check that server received message correctly
         self.validation = self.my_recv_all(s)
-        print("Validation: {}".format(self.validation))
+        logging.info("Validation: {}".format(self.validation))
 
         # Close socket
         s.close()
+    
+    def server_delete(self):
+        to_remove = ['to_remove']
+        for item in self.retriever.successfully_retrieved:
+            to_remove.append(item[0])
+        
+        if len(to_remove) <= 1:
+            pass
 
+        else:
+            # Instantiate IPV4 TCP socket class
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Create a socket connection to the server at the specified port
+            s.connect((self.server_ip, self.listen_port))
+
+            # Send message over socket connection, requesting aforementioned data
+            s.sendall(self.create_message(to_remove))
+
+            # Receive all data from server.
+            self.response = self.my_recv_all(s).split('\r\n')
+            self.num_dirs_deleted = self.response[0]
+
+            if len(self.response) > 1:
+                self.dirs_deleted = self.response[1:]
+                removed_from_queue = 0
+
+                for d in self.dirs_deleted:
+                    for a in self.retriever.successfully_retrieved:
+                        if a[0] == d:
+                            ind = self.retriever.successfully_retrieved.index(a)
+                            self.retriever.successfully_retrieved.pop(ind)
+                            removed_from_queue += 1
+
+                logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
+                logging.info('{} directories removed from queue'.format(removed_from_queue))
+
+                if self.debug:
+                    print('{} directories deleted from server'.format(self.num_dirs_deleted))
+                    print('{} directories removed from queue'.format(removed_from_queue))
+
+            # Close socket
+            s.close()
 
 if __name__ == "__main__":
     """
@@ -207,9 +329,10 @@ if __name__ == "__main__":
 
     """
     server_id = sys.argv[1]
-    
+    debug = True
+
     # Instantiate client
-    c = MyClient(server_id)
+    c = MyClient(server_id, debug)
 
     while True:
         # pass
@@ -222,9 +345,14 @@ if __name__ == "__main__":
                 # Get data from sensors and save to influxdb
                 c.get_sensors_data()
             except ConnectionRefusedError as e:
-                print('Connection refused')
+                logging.warning('Connection refused')
+                if debug:
+                    print('Connection refused')
                 pass
 
+        # Perform directory delete operations every five minutes
+        if datetime.now().minute % 5 == 0:
+            c.server_delete()
 
             # Don't perform twice in one minute
             time.sleep(60)
