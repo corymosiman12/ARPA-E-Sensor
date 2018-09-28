@@ -8,6 +8,7 @@ import logging
 import time
 import influxdb
 import pysftp
+import paramiko
 
 logging.basicConfig(filename = '/root/client_logfile.log', level = logging.DEBUG,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -88,7 +89,7 @@ class MyRetriever(threading.Thread):
                                 ind = self.to_retrieve.index(item)
                                 self.to_retrieve.pop(ind)
 
-                except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as conn_error:
+                except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
                     logging.warning('Network connection error: {}'.format(conn_error))
                     if self.debug:
                         print('Network connection error: {}'.format(conn_error))
