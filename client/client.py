@@ -88,13 +88,12 @@ class MyRetriever(threading.Thread):
         retriever_updater.start()
 
         while True:
-            if datetime.now().second == 0:
-                time.sleep(5)
-                if self.debug:
-                    print("About to retrieve: {}".format(self.to_retrieve))
+            if len(self.to_retrieve) > 0:
+            # if datetime.now().second == 0:
+            #     time.sleep(5)
                 for item in self.to_retrieve:
                     if self.debug:
-                        print('Passing: {} to self.retrieve_this'.format(item))
+                        print('Retrieving: {}'.format(item))
                     a = threading.Thread(target=self.retrieve_this, args=(item,))
                     a.start()
                     a.join()
