@@ -181,6 +181,8 @@ class MyAudio(threading.Thread):
         while not type(self.p) == pyaudio.PyAudio:
             self.p = pyaudio.PyAudio()
             time.sleep(1)
+            if self.debug:
+                print('type(self.p) != pyaudio.PyAudio')
             
         while datetime.now().second % 20 != 0:
             pass
@@ -188,18 +190,24 @@ class MyAudio(threading.Thread):
         logging.info('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
         if self.debug:
             print('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
-        try: 
+        
+        # try: 
+        if not self.stream:
+            if self.debug:
+                print('not self.stream')
             self.stream = self.p.open(format = self.format,
                                     channels = self.channels,
                                     rate = self.rate,
                                     input = True,
                                     frames_per_buffer = self.chunk)
-        except:
-            logging.info('pyaudio.PyAudio() could not be opened.')
+        # except:
             if self.debug:
                 print('pyaudio.PyAudio() could not be opened.')
-            self.stream = False
-            self.start_stream()
+            if not self.stream:
+                logging.info('pyaudio.PyAudio() could not be opened.')
+                if self.debug:
+                    print('pyaudio.PyAudio() could not be opened.')
+                self.start_stream()
         
     def create_root_audio_dir(self):
         if not os.path.isdir(self.audio_root):
