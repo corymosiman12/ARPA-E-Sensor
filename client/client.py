@@ -109,7 +109,7 @@ class MyClient():
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.create_img_dir()
         self.create_audio_dir()
-        # self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.debug)
+        self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.debug)
         # self.photos = my_photo.MyPhoto3(self.image_dir, self.server_ip, self.server_img_audio_root)
         # self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
 
@@ -389,7 +389,7 @@ if __name__ == "__main__":
 
         # Perform directory delete operations every five minutes
         if datetime.now().minute % 5 == 0:
-            
+
             time.sleep(2)
             delete_dirs = threading.Thread(target=c.server_delete())
             delete_dirs.start()
