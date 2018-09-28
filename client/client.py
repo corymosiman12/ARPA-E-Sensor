@@ -221,14 +221,14 @@ class MyClient():
                 is returned for further processing.
         """
         json_body = []
-        for r in self.response["Readings"]:
+        for r in self.get_sensors_response["Readings"]:
             json_body.append({
                 "measurement": "env_params",
                 "tags": {
                     "server_id": self.server_id,
                     "server_ip": self.server_ip,
-                    "client_request_time": self.response["Client_Request_Time"],
-                    "server_response_time": self.response["Server_Response_Time"]
+                    "client_request_time": self.get_sensors_response["Client_Request_Time"],
+                    "server_response_time": self.get_sensors_response["Server_Response_Time"]
                 },
                 "time": r["time"],
                 "fields": {
@@ -259,7 +259,7 @@ class MyClient():
         s.sendall(self.create_message(["env_params"]))
 
         # Receive all data from server.  Load as dictionary
-        self.response = json.loads(self.my_recv_all(s))
+        self.get_sensors_response = json.loads(self.my_recv_all(s))
         
         # Attempt to write to InfluxDB.  Relay success/not to server
         # Upon success, server removes data from cache
@@ -302,11 +302,13 @@ class MyClient():
             s.sendall(self.create_message(to_remove))
 
             # Receive all data from server.
-            self.response = self.my_recv_all(s).split('\r\n')
-            self.num_dirs_deleted = self.response[0]
+            self.delete_response = self.my_recv_all(s).split('\r\n')
+            self.num_dirs_deleted = self.delete_response[0]
+            if self.debug:
+                print('{} dirs deleted'.format(self.num_dirs_deleted))
 
-            if len(self.response) > 1:
-                self.dirs_deleted = self.response[1:]
+            if len(self.delete_response) > 1:
+                self.dirs_deleted = self.delete_response[1:]
                 removed_from_queue = 0
 
                 for d in self.dirs_deleted:
