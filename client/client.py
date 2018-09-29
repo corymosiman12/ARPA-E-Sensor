@@ -102,7 +102,7 @@ class MyRetriever(threading.Thread):
         d, hr = local_dir.split('/')[-2:]
         if 'audio' in local_dir:
             should_have_files = [os.path.join(local_dir, '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
-            has_files = [f for f in os.listdir(local_dir) if f.endswith('.wav')]
+            has_files = [os.path.join(local_dir, f) for f in os.listdir(local_dir) if f.endswith('.wav')]
             missing = list(set(should_have_files) - set(has_files))
             if self.debug:
                 print('audio missing: {} files'.format(len(missing)))
@@ -112,7 +112,7 @@ class MyRetriever(threading.Thread):
 
         elif 'img' in local_dir:
             should_have_files = [os.path.join(local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
-            has_files = [f for f in os.listdir(local_dir) if f.endswith('.png')]
+            has_files = [os.path.join(local_dir, f) for f in os.listdir(local_dir) if f.endswith('.png')]
             missing = list(set(should_have_files) - set(has_files))
             if self.debug:
                 print('img missing: {} files'.format(len(missing)))
@@ -154,7 +154,7 @@ class MyRetriever(threading.Thread):
 
                     if self.debug:
                         print('Successfully retrieved {}'.format(item[0]))
-                        
+
                 except FileNotFoundError:
                     logging.critical('File not found on Server.  No way to retrieve past info.')
                     if self.debug:
