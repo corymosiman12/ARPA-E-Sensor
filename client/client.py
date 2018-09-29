@@ -376,7 +376,7 @@ class MyClient():
         """
         json_body = []
         count_points = 0
-        times: []
+        times= []
         for r in self.get_sensors_response["Readings"]:
             count_points += 1
             json_body.append({
