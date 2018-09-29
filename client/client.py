@@ -16,7 +16,7 @@ logging.basicConfig(filename = '/root/client_logfile.log', level = logging.DEBUG
                     datefmt='%Y-%m-%d %H:%M:%S',)
 
 class MyRetriever(threading.Thread):
-    def __init__(self, my_root, pi_ip_address, pi_img_audio_root, debug):
+    def __init__(self, my_root, pi_ip_address, pi_img_audio_root, listen_port, debug):
         threading.Thread.__init__(self)
         logging.info('Initializing MyRetriever')
         self.my_audio_root = os.path.join(my_root, 'audio')
@@ -24,13 +24,16 @@ class MyRetriever(threading.Thread):
         self.pi_ip_address = pi_ip_address
         self.pi_audio_root = os.path.join(pi_img_audio_root, 'audio')
         self.pi_img_root = os.path.join(pi_img_audio_root, 'img')
+        self.listen_port = listen_port
         self.debug = debug
         self.to_retrieve = Queue(maxsize=0)
         self.num_threads = 5
         self.successfully_retrieved = []
+        self.audio_seconds = [str(x).zfill(2) for x in range(0,60,20)]
+        self.img_seconds = [str(x).zfill(2) for x in range(0,60)]
+        self.bad_audio_transfers = 0
+        self.bad_img_transfers = 0
         self.start()
-
-    # def anythang_missing(self):
     
     def to_retrieve_updater(self):
         while True:
@@ -66,8 +69,65 @@ class MyRetriever(threading.Thread):
                     # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
                     self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
     
+    def restart_dat_pi(self):
+        r = ['restart']
+        try:
+            # Instantiate IPV4 TCP socket class
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Create a socket connection to the server at the specified port
+            s.connect((self.pi_ip_address, self.listen_port))
+
+            # Send message over socket connection, requesting aforementioned data
+            s.sendall(self.create_message(r))
+        
+            logging.warning('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+            if self.debug:
+                print('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+
+            # Receive all data from server.
+            self.restart_response = self.my_recv_all(s).split('\r\n')
+
+            self.first_audio_dir = True
+            self.first_img_dir = True
+
+        except:
+            logging.warning('Attempted to restart pi, appears unsuccessful')
+            if self.debug:
+                print('Attempted to restart pi, appears unsuccessful')
+
+    def has_correct_files(self, item):
+        missing = []
+        local_dir = item[1]
+        d, hr = local_dir.split('/')[-2:]
+        if 'audio' in local_dir:
+            should_have_files = [os.path.join(local_dir, '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
+            has_files = [f for f in os.listdir(local_dir) if f.endswith('.wav')]
+            missing = list(set(should_have_files) - set(has_files))
+            if self.debug:
+                print('audio missing: {} files'.format(len(missing)))
+                print('specifically these files: {}'.format(missing))
+            if len(missing) >=1:
+                self.bad_audio_transfers += 1
+
+        elif 'img' in local_dir:
+            should_have_files = [os.path.join(local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+            has_files = [f for f in os.listdir(local_dir) if f.endswith('.png')]
+            missing = list(set(should_have_files) - set(has_files))
+            if self.debug:
+                print('img missing: {} files'.format(len(missing)))
+                print('specifically these files: {}'.format(missing))
+            if len(missing) >=1:
+                self.bad_img_transfers += 1
+        
+        if self.bad_audio_transfers >= 3 or self.bad_img_transfers >= 3:
+            self.restart_dat_pi()
+            self.bad_audio_transfers = 0
+            self.bad_img_transfers = 0
+
     def retrieve_this(self):
         item = self.to_retrieve.get()
+        typ = 'audio' if 'audio' in item[0] else 'img'
         if self.debug:
             print('Thread started to get: {}'.format(item))
         try:
@@ -76,10 +136,25 @@ class MyRetriever(threading.Thread):
                     sftp.get_d(item[0], item[1], preserve_mtime=True)
                     # ind = self.to_retrieve.index(item)
                     self.successfully_retrieved.append(item)
-                    logging.info('Successfully retrieved {}'.format(item[0]))
-                    self.to_retrieve.task_done()
                     if self.debug:
                         print('Successfully retrieved {}'.format(item[0]))
+                    logging.info('Successfully retrieved {}'.format(item[0]))
+                    
+                    self.to_retrieve.task_done()
+                    # if typ == 'audio' and self.first_audio_dir:
+                    #     self.first_audio_dir = False
+                    #     if self.debug:
+                    #         print('Moved first audio dir')
+                    # elif typ == 'img' and self.first_img_dir:
+                    #     self.first_img_dir = False
+                    #     if self.debug:
+                    #         print('Moved first img dir')
+                    # else:
+                    self.has_correct_files(item)
+
+                    if self.debug:
+                        print('Successfully retrieved {}'.format(item[0]))
+                        
                 except FileNotFoundError:
                     logging.critical('File not found on Server.  No way to retrieve past info.')
                     if self.debug:
@@ -87,6 +162,7 @@ class MyRetriever(threading.Thread):
                     # ind = self.to_retrieve.index(item)
                     # self.to_retrieve.pop(ind)
                     self.to_retrieve.task_done()
+
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning('Network connection error: {}'.format(conn_error))
             if self.debug:
@@ -94,14 +170,76 @@ class MyRetriever(threading.Thread):
             self.to_retrieve.task_done()
             self.to_retrieve.put(item)
 
+    def create_message(self, to_send):
+        """
+        Configure the message to send to the server.
+        Elements are separated by a carriage return and newline.
+        The first line is always the datetime of client request.
+
+        param: to_send <class 'list'>
+                List of elements to send to server.
+
+        return: <class 'bytes'> a byte string (b''), ready to 
+                send over a socket connection
+        """
+        dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
+        for item in to_send:
+            dt_str.append(item)
+        
+        message = '\r\n'.join(dt_str)
+        logging.info("Sending Message: \n{}".format(message))
+        return message.encode()
+
+    def my_recv_all(self, s, timeout=2):
+        """
+        Regardless of message size, ensure that entire message is received
+        from server.  Timeout specifies time to wait for additional socket
+        stream.
+
+        param: s <class 'socket.socket'>
+                A socket connection to server.
+        return: <class 'str'>
+                A string containing all info sent.
+        """
+        #make socket non blocking
+        s.setblocking(0)
+        
+        #total data partwise in an array
+        total_data=[]
+        data=''
+        
+        #beginning time
+        begin=time.time()
+        while 1:
+            #if you got some data, then break after timeout
+            if total_data and time.time()-begin > timeout:
+                break
+            
+            #if you got no data at all, wait a little longer, twice the timeout
+            elif time.time()-begin > timeout*2:
+                break
+            
+            #recv something
+            try:
+                data = s.recv(8192).decode()
+                if data:
+                    total_data.append(data)
+                    #change the beginning time for measurement
+                    begin = time.time()
+                else:
+                    #sleep for sometime to indicate a gap
+                    time.sleep(0.1)
+            except:
+                pass
+        
+        #join all parts to make final string
+        return ''.join(total_data)
+
     def run(self):
         retriever_updater = threading.Thread(target = self.to_retrieve_updater)
         retriever_updater.start()
 
         while True:
-            # if len(self.to_retrieve) > 0:
-            # if datetime.now().second == 0:
-            #     time.sleep(5)
             if not self.to_retrieve.empty():
                 if self.debug:
                     print('Size of queue: {}'.format(self.to_retrieve.qsize()))
@@ -111,32 +249,6 @@ class MyRetriever(threading.Thread):
                     worker = threading.Thread(target=self.retrieve_this)
                     worker.setDaemon(True)
                     worker.start()
-                    # a.join()
-                # time.sleep(1)
-                
-                # try:
-                
-                #     with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
-                #         for item in self.to_retrieve:
-                #             try:
-                #                 sftp.get_d(item[0], item[1], preserve_mtime=True)
-                #                 ind = self.to_retrieve.index(item)
-                #                 self.successfully_retrieved.append(self.to_retrieve.pop(ind))
-                #                 logging.info('Successfully retrieved {}'.format(item[0]))
-                #                 if self.debug:
-                #                     print('Successfully retrieved {}'.format(item[0]))
-                                
-                #             except FileNotFoundError:
-                #                 logging.critical('File not found on Server.  No way to retrieve past info.')
-                #                 if self.debug:
-                #                     print('File not found on Server.  No way to retrieve past info.')
-                #                 ind = self.to_retrieve.index(item)
-                #                 self.to_retrieve.pop(ind)
-
-                # except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
-                #     logging.warning('Network connection error: {}'.format(conn_error))
-                #     if self.debug:
-                #         print('Network connection error: {}'.format(conn_error))
 
 class MyClient():
     def __init__(self, server_id, debug):
@@ -147,16 +259,13 @@ class MyClient():
         self.my_root = os.path.join(self.conf['img_audio_root'], self.server_id)
         self.image_dir = os.path.join(self.my_root, 'img')
         self.audio_dir = os.path.join(self.my_root, 'audio')
-        # self.stream_type = self.conf['stream_type']
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.create_img_dir()
         self.create_audio_dir()
-        self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.debug)
-        # self.photos = my_photo.MyPhoto3(self.image_dir, self.server_ip, self.server_img_audio_root)
-        # self.audio = my_audio.MyAudio(self.audio_dir, self.server_ip)
+        self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.listen_port, self.debug)
 
     def import_conf(self, server_id):
         """
@@ -328,6 +437,7 @@ class MyClient():
 
             # Close socket
             s.close()
+
         except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as e:
             logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
             if self.debug:
@@ -425,12 +535,6 @@ if __name__ == "__main__":
             get_data = threading.Thread(target=c.get_sensors_data())
             get_data.start()
             get_data.join()
-
-            # except ConnectionRefusedError as e:
-            #     logging.warning('Connection refused')
-            #     if debug:
-            #         print('Connection refused')
-            #     pass
 
         # Perform directory delete operations every five minutes
         if datetime.now().minute % 5 == 0:

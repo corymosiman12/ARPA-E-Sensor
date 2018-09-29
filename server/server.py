@@ -8,6 +8,7 @@ import json
 import hpd_sensors
 import time
 import shutil
+import subprocess
 
 # Set logging level and format logging entries.
 
@@ -81,38 +82,6 @@ class Server():
                 thr.start()
                 thr.join()
                 print("New connection with: {}".format(client_address))
-
-# class MyGarbageCollector(threading.Thread):
-#     def __init__(self, audio_root):
-#         threading.Thread.__init__(self)
-#         self.audio_root = audio_root
-#         self.start()
-
-#     def rm_audio_dirs(self):
-#         ten_min_ago = self.cur_time - timedelta(minutes = 10)
-#         dirs = []
-#         for i in range(0,5):
-#             t = ten_min_ago + timedelta(minutes = i)
-#             d = os.path.join(self.audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-#             if os.path.isdir(d):
-#                 dirs.append(d)
-#             else:
-#                 print('Not directory: {}'.format(d))
-
-#         for d in dirs:
-#             try:
-#                 shutil.rmtree(d)
-#                 print('Removed dir: {}'.format(d))
-#             except:
-#                 print('Didnt remove dir: {}'.format(d))
-        
-
-#     def run(self):
-#         while True:
-#             self.cur_time = datetime.now()
-#             if self.cur_time.minute % 5 == 0:
-#                 self.rm_audio_dirs()
-#                 time.sleep(60)
 
 
 class MyThreadedSocket(threading.Thread):
@@ -290,6 +259,17 @@ class MyThreadedSocket(threading.Thread):
             # Close socket
             self.client_socket.close()
         
+        elif self.client_request == 'restart':
+            dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            r = ['Pi to reboot.  Time is: {}'.format(dt)]
+            message = '\r\n'.join(r)
+            self.client_socket.sendall(message.encode())
+            self.client_socket.close()
+
+            time.sleep(10)
+            subprocess.run("sudo reboot", shell = True)
+
+
         # Make sure socket is closed
         self.client_socket.close()
 
