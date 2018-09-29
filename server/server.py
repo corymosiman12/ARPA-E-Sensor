@@ -261,13 +261,13 @@ class MyThreadedSocket(threading.Thread):
         
         elif self.client_request == 'restart':
             dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            r = ['Pi to reboot.  Time is: {}'.format(dt)]
+            r = ['Pi to restart service.  Time is: {}'.format(dt)]
             message = '\r\n'.join(r)
             self.client_socket.sendall(message.encode())
             self.client_socket.close()
 
             time.sleep(10)
-            subprocess.run("sudo reboot", shell = True)
+            subprocess.run("sudo systemctl restart hpd_mobile.service", shell = True)
 
 
         # Make sure socket is closed

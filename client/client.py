@@ -69,7 +69,7 @@ class MyRetriever(threading.Thread):
                     # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
                     self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
     
-    def restart_dat_pi(self):
+    def restart_dat_service(self):
         r = ['restart']
         try:
             # Instantiate IPV4 TCP socket class
@@ -120,8 +120,8 @@ class MyRetriever(threading.Thread):
             if len(missing) >=1:
                 self.bad_img_transfers += 1
         
-        if self.bad_audio_transfers >= 3 or self.bad_img_transfers >= 3:
-            self.restart_dat_pi()
+        if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
+            self.restart_dat_service()
             self.bad_audio_transfers = 0
             self.bad_img_transfers = 0
 
@@ -375,7 +375,10 @@ class MyClient():
                 is returned for further processing.
         """
         json_body = []
+        count_points = 0
+        times: []
         for r in self.get_sensors_response["Readings"]:
+            count_points += 1
             json_body.append({
                 "measurement": "env_params",
                 "tags": {
@@ -396,6 +399,10 @@ class MyClient():
                     "tvoc_base": int(r["tvoc_base"])
                 }
             })
+            times.append(r["time"])
+        if self.debug:
+            print('{} points to insert into influxdb')
+            print('Times of sensor readings: {}'.format(times))
         return(self.influx_client.write_points(json_body))
 
     def get_sensors_data(self):
@@ -424,6 +431,8 @@ class MyClient():
                 if successful_write:
                     s.sendall(self.create_message(["SUCCESS"]))
                     logging.info('Successful write')
+                    if self.debug:
+                        print('Successful write to Influx')
                 else:
                     s.sendall(self.create_message(["NOT SUCCESS"]))
                     logging.warning('Unsuccessful write to influxdb')
