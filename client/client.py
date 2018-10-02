@@ -539,6 +539,8 @@ class MyClient():
     
     def server_delete(self):
         logging.info('Starting server_delete Thread')
+        if self.debug:
+            print('Starting server_delete Thread')
         while True:
             if datetime.now().minute % 5 == 0 and datetime.now().second == 30:
                 to_remove = ['to_remove']
