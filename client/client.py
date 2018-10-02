@@ -543,6 +543,7 @@ class MyClient():
             print('Starting server_delete Thread')
         while True:
             if datetime.now().minute % 5 == 0 and datetime.now().second == 30:
+                logging.info('00:30 or 05:30')
                 to_remove = ['to_remove']
                 for item in self.retriever.successfully_retrieved:
                     to_remove.append(item[0])
