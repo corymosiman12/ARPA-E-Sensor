@@ -301,6 +301,8 @@ class MyClient():
         self.collect_interval = int(self.conf['collect_interval_min'])
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
+        self.server_delete_thread = threading.Thread(target = self.server_delete)
+        self.server_delete_thread.start()
         self.create_img_dir()
         self.create_audio_dir()
         self.retriever = MyRetriever(self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
@@ -536,64 +538,66 @@ class MyClient():
         time.sleep(60)
     
     def server_delete(self):
-        to_remove = ['to_remove']
-        for item in self.retriever.successfully_retrieved:
-            to_remove.append(item[0])
-        
-        if len(to_remove) <= 1:
-            pass
-
-        else:
-            try:
-                # Instantiate IPV4 TCP socket class
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-                # Create a socket connection to the server at the specified port
-                s.connect((self.pi_ip_address, self.listen_port))
-
-                # Send message over socket connection, requesting aforementioned data
-                s.sendall(self.create_message(to_remove))
-
-                # Receive all data from server.
-                self.delete_response = self.my_recv_all(s).split('\r\n')
-                self.num_dirs_deleted = self.delete_response[0]
-                if self.debug:
-                    print('{} dirs deleted'.format(self.num_dirs_deleted))
-
-                if len(self.delete_response) > 1:
-                    self.dirs_deleted = self.delete_response[1:]
-                    removed_from_queue = 0
-
-                    for d in self.dirs_deleted:
-                        for a in self.retriever.successfully_retrieved:
-                            if a[0] == d:
-                                ind = self.retriever.successfully_retrieved.index(a)
-                                self.retriever.successfully_retrieved.pop(ind)
-                                removed_from_queue += 1
-
-                    logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
-                    logging.info('{} directories removed from queue'.format(removed_from_queue))
-                    logging.info('Dirs deleted: {}'.format(self.dirs_deleted))
-
-                    if self.debug:
-                        print('{} directories deleted from server'.format(self.num_dirs_deleted))
-                        print('{} directories removed from queue'.format(removed_from_queue))
-
-                # Close socket
-                s.close()
-
-            except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
-                logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
-                if self.debug:
-                    print('Unable to connect and get_sensors_data. Error: {}'.format(e))
+        while True:
+            if datetime.now().minute % 5 == 0 and datetime.now().second == 30:
+                to_remove = ['to_remove']
+                for item in self.retriever.successfully_retrieved:
+                    to_remove.append(item[0])
                 
-                try:
-                    if s:
-                        s.close()
-                except:
+                if len(to_remove) <= 1:
                     pass
-        
-        time.sleep(60)
+
+                else:
+                    try:
+                        # Instantiate IPV4 TCP socket class
+                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                        # Create a socket connection to the server at the specified port
+                        s.connect((self.pi_ip_address, self.listen_port))
+
+                        # Send message over socket connection, requesting aforementioned data
+                        s.sendall(self.create_message(to_remove))
+
+                        # Receive all data from server.
+                        self.delete_response = self.my_recv_all(s).split('\r\n')
+                        self.num_dirs_deleted = self.delete_response[0]
+                        if self.debug:
+                            print('{} dirs deleted'.format(self.num_dirs_deleted))
+
+                        if len(self.delete_response) > 1:
+                            self.dirs_deleted = self.delete_response[1:]
+                            removed_from_queue = 0
+
+                            for d in self.dirs_deleted:
+                                for a in self.retriever.successfully_retrieved:
+                                    if a[0] == d:
+                                        ind = self.retriever.successfully_retrieved.index(a)
+                                        self.retriever.successfully_retrieved.pop(ind)
+                                        removed_from_queue += 1
+
+                            logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
+                            logging.info('{} directories removed from queue'.format(removed_from_queue))
+                            logging.info('Dirs deleted: {}'.format(self.dirs_deleted))
+
+                            if self.debug:
+                                print('{} directories deleted from server'.format(self.num_dirs_deleted))
+                                print('{} directories removed from queue'.format(removed_from_queue))
+
+                        # Close socket
+                        s.close()
+
+                    except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
+                        logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
+                        if self.debug:
+                            print('Unable to connect and get_sensors_data. Error: {}'.format(e))
+                        
+                        try:
+                            if s:
+                                s.close()
+                        except:
+                            pass
+            
+            time.sleep(30)
 
 if __name__ == "__main__":
     """
@@ -621,12 +625,5 @@ if __name__ == "__main__":
             get_data.start()
             get_data.join()
 
-        # Perform directory delete operations every five minutes
-        if datetime.now().minute % 5 == 0:
-
-            time.sleep(2)
-            delete_dirs = threading.Thread(target=c.server_delete())
-            delete_dirs.start()
-            delete_dirs.join()
 
 
