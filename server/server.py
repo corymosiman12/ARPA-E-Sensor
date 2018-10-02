@@ -251,6 +251,7 @@ class MyThreadedSocket(threading.Thread):
                 temp.append(d)
 
             logging.info('Deleted {} dirs'.format(len(deleted)))
+            logging.info('Dirs deleted: {}'.format(deleted))
 
             # Messages always seperated by carriage return, newline
             message = '\r\n'.join(temp)

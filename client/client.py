@@ -508,6 +508,7 @@ class MyClient():
 
                     logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
                     logging.info('{} directories removed from queue'.format(removed_from_queue))
+                    logging.info('Dirs deleted: {}'.format(self.dirs_deleted))
 
                     if self.debug:
                         print('{} directories deleted from server'.format(self.num_dirs_deleted))
