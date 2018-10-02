@@ -115,6 +115,7 @@ class MyRetriever(threading.Thread):
             if len(missing) >=1:
                 self.bad_audio_transfers += 1
                 logging.warning('audio missing: {} files'.format(len(missing)))
+                logging.warning('specifically these files: {}'.format(missing))
 
         elif 'img' in local_dir:
             should_have_files = [os.path.join(local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
@@ -126,6 +127,7 @@ class MyRetriever(threading.Thread):
             if len(missing) >=1:
                 self.bad_img_transfers += 1
                 logging.warning('img missing: {} files'.format(len(missing)))
+                logging.warning('specifically these files: {}'.format(missing))
         
         if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
             self.restart_dat_service()
