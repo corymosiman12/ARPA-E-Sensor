@@ -101,6 +101,38 @@ class MyRetriever(threading.Thread):
             except:
                 pass
 
+    def restart_dat_img(self):
+        r = ['restart_img']
+        try:
+            # Instantiate IPV4 TCP socket class
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Create a socket connection to the server at the specified port
+            s.connect((self.pi_ip_address, self.listen_port))
+
+            # Send message over socket connection, requesting aforementioned data
+            s.sendall(self.create_message(r))
+            
+            # Receive all data from server.
+            self.restart_response = self.my_recv_all(s).split('\r\n')
+
+            logging.warning('Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+            if self.debug:
+                print('Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+
+            # Close socket
+            s.close()
+
+        except Exception as e:
+            logging.warning('Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
+            if self.debug:
+                print('Attempted to restart UV4L, appears unsuccessful')
+        if s:
+            try:
+                s.close()
+            except:
+                pass
+
     def has_correct_files(self, item):
         missing = []
         local_dir = item[1]
@@ -131,6 +163,8 @@ class MyRetriever(threading.Thread):
         
         if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
             self.restart_dat_service()
+            time.sleep(5)
+            self.restart_dat_img()
             self.bad_audio_transfers = 0
             self.bad_img_transfers = 0
 
@@ -169,7 +203,7 @@ class MyRetriever(threading.Thread):
                     # ind = self.to_retrieve.index(item)
                     # self.to_retrieve.pop(ind)
                     self.to_retrieve.task_done()
-                    self.restart_dat_service()
+                    self.restart_dat_img()
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning('Network connection error: {}'.format(conn_error))

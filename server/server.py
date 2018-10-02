@@ -272,6 +272,16 @@ class MyThreadedSocket(threading.Thread):
             time.sleep(10)
             subprocess.run("sudo service hpd_mobile restart", shell = True)
 
+        elif self.client_request == 'restart_img':
+            dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            r = ['Pi to restart UV4L.  Time is: {}'.format(dt)]
+            message = '\r\n'.join(r)
+            self.client_socket.sendall(message.encode())
+            self.client_socket.close()
+
+            time.sleep(10)
+            subprocess.run("sudo service uv4l_raspicam restart", shell = True)            
+
 
         # Make sure socket is closed
         self.client_socket.close()
