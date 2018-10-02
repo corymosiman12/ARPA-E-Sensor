@@ -602,7 +602,7 @@ class MyClient():
                         except:
                             pass
             
-            time.sleep(30)
+                time.sleep(30)
 
 if __name__ == "__main__":
     """
