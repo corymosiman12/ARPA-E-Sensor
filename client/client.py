@@ -169,6 +169,7 @@ class MyRetriever(threading.Thread):
                     # ind = self.to_retrieve.index(item)
                     # self.to_retrieve.pop(ind)
                     self.to_retrieve.task_done()
+                    self.restart_dat_service()
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning('Network connection error: {}'.format(conn_error))
