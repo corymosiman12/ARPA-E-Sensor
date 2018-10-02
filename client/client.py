@@ -11,7 +11,7 @@ import pysftp
 import paramiko
 from queue import Queue
 
-logging.basicConfig(filename = '/root/client_logfile.log', level = logging.DEBUG,
+logging.basicConfig(filename = '/root/client_logfile.log', level = logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',)
 
@@ -80,21 +80,26 @@ class MyRetriever(threading.Thread):
 
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(r))
-        
+            
+            # Receive all data from server.
+            self.restart_response = self.my_recv_all(s).split('\r\n')
+
             logging.warning('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
             if self.debug:
                 print('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
 
-            # Receive all data from server.
-            self.restart_response = self.my_recv_all(s).split('\r\n')
+            # Close socket
+            s.close()
 
-            self.first_audio_dir = True
-            self.first_img_dir = True
-
-        except:
-            logging.warning('Attempted to restart pi, appears unsuccessful')
+        except Exception as e:
+            logging.warning('Exception occured when telling pi to restart.  Exception: {}'.format(e))
             if self.debug:
                 print('Attempted to restart pi, appears unsuccessful')
+        if s:
+            try:
+                s.close()
+            except:
+                pass
 
     def has_correct_files(self, item):
         missing = []
@@ -109,6 +114,7 @@ class MyRetriever(threading.Thread):
                 print('specifically these files: {}'.format(missing))
             if len(missing) >=1:
                 self.bad_audio_transfers += 1
+                logging.warning('audio missing: {} files'.format(len(missing)))
 
         elif 'img' in local_dir:
             should_have_files = [os.path.join(local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
@@ -119,6 +125,7 @@ class MyRetriever(threading.Thread):
                 print('specifically these files: {}'.format(missing))
             if len(missing) >=1:
                 self.bad_img_transfers += 1
+                logging.warning('img missing: {} files'.format(len(missing)))
         
         if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
             self.restart_dat_service()
@@ -136,8 +143,6 @@ class MyRetriever(threading.Thread):
                     sftp.get_d(item[0], item[1], preserve_mtime=True)
                     # ind = self.to_retrieve.index(item)
                     self.successfully_retrieved.append(item)
-                    if self.debug:
-                        print('Successfully retrieved {}'.format(item[0]))
                     logging.info('Successfully retrieved {}'.format(item[0]))
                     
                     self.to_retrieve.task_done()
@@ -401,8 +406,10 @@ class MyClient():
             })
             times.append(r["time"])
         if self.debug:
-            print('{} points to insert into influxdb')
+            print('{} points to insert into influxdb'.format(count_points))
             print('Times of sensor readings: {}'.format(times))
+        if count_points != 12:
+            logging.warning('Only {} points to insert into influxdb.'.format(count_points))
         return(self.influx_client.write_points(json_body))
 
     def get_sensors_data(self):
@@ -447,7 +454,7 @@ class MyClient():
             # Close socket
             s.close()
 
-        except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as e:
+        except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
             logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
             if self.debug:
                 print('Unable to connect and get_sensors_data. Error: {}'.format(e))
@@ -506,7 +513,7 @@ class MyClient():
                 # Close socket
                 s.close()
 
-            except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError) as e:
+            except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
                 logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
                 if self.debug:
                     print('Unable to connect and get_sensors_data. Error: {}'.format(e))

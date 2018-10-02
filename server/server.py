@@ -12,7 +12,7 @@ import subprocess
 
 # Set logging level and format logging entries.
 
-logging.basicConfig(filename = '/home/pi/server_logfile.log', level = logging.DEBUG,
+logging.basicConfig(filename = '/home/pi/server_logfile.log', level = logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
                                
@@ -249,6 +249,8 @@ class MyThreadedSocket(threading.Thread):
                 if self.debug:
                     print('Deleted: {}'.format(d))
                 temp.append(d)
+
+            logging.info('Deleted {} dirs'.format(len(deleted)))
 
             # Messages always seperated by carriage return, newline
             message = '\r\n'.join(temp)

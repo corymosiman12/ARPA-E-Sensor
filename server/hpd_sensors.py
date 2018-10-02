@@ -16,8 +16,9 @@ import imutils
 from imutils.video import WebcamVideoStream
 import numpy as np
 import logging
+import subprocess
 
-logging.basicConfig(filename = '/home/pi/sensors_logfile.log', level = logging.DEBUG,
+logging.basicConfig(filename = '/home/pi/sensors_logfile.log', level = logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
 
@@ -183,6 +184,7 @@ class MyAudio(threading.Thread):
             time.sleep(1)
             if self.debug:
                 print('type(self.p) != pyaudio.PyAudio')
+                logging.info('type(self.p) != pyaudio.PyAudio')
             
         while datetime.now().second % 20 != 0:
             pass
@@ -306,15 +308,22 @@ class MyPhoto(threading.Thread):
         # Attempt to start the video stream
         self.cam = WebcamVideoStream(stream_path).start()
 
+        self.img_restart_attempts = 0
         # Keep attempting to open the video stream until it is opened
         while not self.cam.stream.isOpened():
             self.cam = WebcamVideoStream(stream_path).start()
             self.video_status = False
+            self.img_restart_attempts += 1
             logging.warning("Unable to connect to video")
             if self.debug:
                 print('Unable to connect to video')
+            if self.img_restart_attempts >= 5:
+                subprocess.run("sudo service uv4l_raspicam restart", shell = True)
+                time.sleep(5)
+                self.img_restart_attempts = 0
+
             time.sleep(1)
-        
+
         # Set the video status to true
         self.video_status = True
         logging.info("Connected to video stream")
@@ -363,7 +372,7 @@ class MyPhoto(threading.Thread):
 
                             # Write to disk
                             cv2.imwrite(f_path, img)
-                            if datetime.now().minute == 0:
+                            if datetime.now().second == 0:
                                 logging.info("Created file: {}".format(f_path))
 
                         except Exception as e:
