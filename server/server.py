@@ -269,7 +269,7 @@ class MyThreadedSocket(threading.Thread):
             self.client_socket.close()
 
             time.sleep(10)
-            subprocess.run("sudo systemctl restart hpd_mobile.service", shell = True)
+            subprocess.run("sudo service hpd_mobile restart", shell = True)
 
 
         # Make sure socket is closed

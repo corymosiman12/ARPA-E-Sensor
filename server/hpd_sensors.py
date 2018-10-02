@@ -321,6 +321,7 @@ class MyPhoto(threading.Thread):
                 subprocess.run("sudo service uv4l_raspicam restart", shell = True)
                 time.sleep(5)
                 self.img_restart_attempts = 0
+                subprocess.run("sudo service hpd_mobile restart", shell = True)
 
             time.sleep(1)
 
