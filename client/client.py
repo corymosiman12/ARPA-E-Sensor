@@ -283,11 +283,7 @@ class MyRetriever(threading.Thread):
 
         while True:
             if not self.to_retrieve.empty():
-                if self.debug:
-                    print('Size of queue: {}'.format(self.to_retrieve.qsize()))
                 for i in range(self.num_threads):
-                    # if self.debug:
-                    #     print('Retrieving: {}'.format(item))
                     worker = threading.Thread(target=self.retrieve_this)
                     worker.setDaemon(True)
                     worker.start()
@@ -297,7 +293,7 @@ class MyClient():
         self.debug = debug
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)
-        self.server_ip = self.conf['servers'][self.server_id]
+        self.pi_ip_address = self.conf['servers'][self.server_id]
         self.my_root = os.path.join(self.conf['img_audio_root'], self.server_id)
         self.image_dir = os.path.join(self.my_root, 'img')
         self.audio_dir = os.path.join(self.my_root, 'audio')
@@ -307,7 +303,7 @@ class MyClient():
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.create_img_dir()
         self.create_audio_dir()
-        self.retriever = MyRetriever(self.my_root, self.server_ip, self.pi_img_audio_root, self.listen_port, self.debug)
+        self.retriever = MyRetriever(self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
 
     def import_conf(self, server_id):
         """
@@ -425,7 +421,7 @@ class MyClient():
                 "measurement": "env_params",
                 "tags": {
                     "server_id": self.server_id,
-                    "server_ip": self.server_ip,
+                    "pi_ip_address": self.pi_ip_address,
                     "client_request_time": self.get_sensors_response["Client_Request_Time"],
                     "server_response_time": self.get_sensors_response["Server_Response_Time"]
                 },
@@ -452,6 +448,38 @@ class MyClient():
             logging.info('{} points inserted'.format(count_points))
         return(self.influx_client.write_points(json_body))
 
+    def restart_dat_service(self):
+        r = ['restart']
+        try:
+            # Instantiate IPV4 TCP socket class
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Create a socket connection to the server at the specified port
+            s.connect((self.pi_ip_address, self.listen_port))
+
+            # Send message over socket connection, requesting aforementioned data
+            s.sendall(self.create_message(r))
+            
+            # Receive all data from server.
+            self.restart_response = self.my_recv_all(s).split('\r\n')
+
+            logging.warning('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+            if self.debug:
+                print('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+
+            # Close socket
+            s.close()
+
+        except Exception as e:
+            logging.warning('Exception occured when telling pi to restart.  Exception: {}'.format(e))
+            if self.debug:
+                print('Attempted to restart pi, appears unsuccessful')
+        if s:
+            try:
+                s.close()
+            except:
+                pass
+
     def get_sensors_data(self):
         """
         Connect to server and get data.  This is currently specific to
@@ -462,7 +490,7 @@ class MyClient():
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             # Create a socket connection to the server at the specified port
-            s.connect((self.server_ip, self.listen_port))
+            s.connect((self.pi_ip_address, self.listen_port))
 
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(["env_params"]))
@@ -521,7 +549,7 @@ class MyClient():
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                 # Create a socket connection to the server at the specified port
-                s.connect((self.server_ip, self.listen_port))
+                s.connect((self.pi_ip_address, self.listen_port))
 
                 # Send message over socket connection, requesting aforementioned data
                 s.sendall(self.create_message(to_remove))
