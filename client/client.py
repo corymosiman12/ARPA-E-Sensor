@@ -301,7 +301,7 @@ class MyClient():
         self.collect_interval = int(self.conf['collect_interval_min'])
         self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
-        self.server_delete_thread = threading.Thread(target = self.server_delete)
+        self.server_delete_thread = threading.Thread(target = self.server_delete, daemon=True)
         self.server_delete_thread.start()
         self.create_img_dir()
         self.create_audio_dir()
@@ -538,6 +538,7 @@ class MyClient():
         time.sleep(60)
     
     def server_delete(self):
+        logging.info('Starting server_delete Thread')
         while True:
             if datetime.now().minute % 5 == 0 and datetime.now().second == 30:
                 to_remove = ['to_remove']
@@ -545,6 +546,7 @@ class MyClient():
                     to_remove.append(item[0])
                 
                 if len(to_remove) <= 1:
+                    logging.info('Nothing to remove from self.retriever.successfully_retrieved...')
                     pass
 
                 else:
@@ -587,9 +589,9 @@ class MyClient():
                         s.close()
 
                     except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
-                        logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
+                        logging.info('Unable to connect and server_delete. Error: {}'.format(e))
                         if self.debug:
-                            print('Unable to connect and get_sensors_data. Error: {}'.format(e))
+                            print('Unable to connect and server_delete. Error: {}'.format(e))
                         
                         try:
                             if s:
