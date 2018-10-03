@@ -189,9 +189,9 @@ class MyAudio(threading.Thread):
         while datetime.now().second % 20 != 0:
             pass
         
-        logging.info('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
+        logging.info('Starting audio stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
         if self.debug:
-            print('Starting stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
+            print('Starting audio stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
         
         # try: 
         if not self.stream:

@@ -69,6 +69,7 @@ class Server():
         the newly created socket.  The thread closes at the end of execution.
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.host, self.port))
         sock.listen(5)
         print("Listen socket created on port: {}".format(self.port))
