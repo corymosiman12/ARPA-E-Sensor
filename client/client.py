@@ -71,10 +71,9 @@ class MyRetriever(threading.Thread):
     
     def restart_dat_service(self):
         r = ['restart']
+        # Instantiate IPV4 TCP socket class
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            # Instantiate IPV4 TCP socket class
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
             # Create a socket connection to the server at the specified port
             s.connect((self.pi_ip_address, self.listen_port))
 
@@ -95,6 +94,11 @@ class MyRetriever(threading.Thread):
             logging.warning('Exception occured when telling pi to restart.  Exception: {}'.format(e))
             if self.debug:
                 print('Attempted to restart pi, appears unsuccessful')
+            if s:
+                try:
+                    s.close()
+                except:
+                    pass
         if s:
             try:
                 s.close()
@@ -103,10 +107,9 @@ class MyRetriever(threading.Thread):
 
     def restart_dat_img(self):
         r = ['restart_img']
+        # Instantiate IPV4 TCP socket class
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            # Instantiate IPV4 TCP socket class
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
             # Create a socket connection to the server at the specified port
             s.connect((self.pi_ip_address, self.listen_port))
 
@@ -127,6 +130,11 @@ class MyRetriever(threading.Thread):
             logging.warning('Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
             if self.debug:
                 print('Attempted to restart UV4L, appears unsuccessful')
+            if s:
+                try:
+                    s.close()
+                except:
+                    pass
         if s:
             try:
                 s.close()
@@ -182,15 +190,6 @@ class MyRetriever(threading.Thread):
                     logging.info('Successfully retrieved {}'.format(item[0]))
                     
                     self.to_retrieve.task_done()
-                    # if typ == 'audio' and self.first_audio_dir:
-                    #     self.first_audio_dir = False
-                    #     if self.debug:
-                    #         print('Moved first audio dir')
-                    # elif typ == 'img' and self.first_img_dir:
-                    #     self.first_img_dir = False
-                    #     if self.debug:
-                    #         print('Moved first img dir')
-                    # else:
                     self.has_correct_files(item)
 
                     if self.debug:
@@ -200,8 +199,6 @@ class MyRetriever(threading.Thread):
                     logging.critical('File not found on Server.  No way to retrieve past info.')
                     if self.debug:
                         print('File not found on Server.  No way to retrieve past info.')
-                    # ind = self.to_retrieve.index(item)
-                    # self.to_retrieve.pop(ind)
                     self.to_retrieve.task_done()
                     self.restart_dat_img()
 
@@ -243,39 +240,50 @@ class MyRetriever(threading.Thread):
         return: <class 'str'>
                 A string containing all info sent.
         """
+        try:
         #make socket non blocking
-        s.setblocking(0)
-        
-        #total data partwise in an array
-        total_data=[]
-        data=''
-        
-        #beginning time
-        begin=time.time()
-        while 1:
-            #if you got some data, then break after timeout
-            if total_data and time.time()-begin > timeout:
-                break
+            s.setblocking(0)
             
-            #if you got no data at all, wait a little longer, twice the timeout
-            elif time.time()-begin > timeout*2:
-                break
+            #total data partwise in an array
+            total_data=[]
+            data=''
             
-            #recv something
+            #beginning time
+            begin=time.time()
+            while 1:
+                #if you got some data, then break after timeout
+                if total_data and time.time()-begin > timeout:
+                    break
+                
+                #if you got no data at all, wait a little longer, twice the timeout
+                elif time.time()-begin > timeout*2:
+                    break
+                
+                #recv something
+                try:
+                    data = s.recv(8192).decode()
+                    if data:
+                        total_data.append(data)
+                        #change the beginning time for measurement
+                        begin = time.time()
+                    else:
+                        #sleep for sometime to indicate a gap
+                        time.sleep(0.1)
+                except Exception as e:
+                    logging.warning('Exception occured in my_recv_all inner.  Exception: {}'.format(e))
+                    try:
+                        s.close()
+                    except:
+                        pass
+            
+            #join all parts to make final string
+            return ''.join(total_data)
+        except Exception as e:
+            logging.warning('Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
             try:
-                data = s.recv(8192).decode()
-                if data:
-                    total_data.append(data)
-                    #change the beginning time for measurement
-                    begin = time.time()
-                else:
-                    #sleep for sometime to indicate a gap
-                    time.sleep(0.1)
+                s.close()
             except:
                 pass
-        
-        #join all parts to make final string
-        return ''.join(total_data)
 
     def run(self):
         retriever_updater = threading.Thread(target = self.to_retrieve_updater)
@@ -368,39 +376,50 @@ class MyClient():
         return: <class 'str'>
                 A string containing all info sent.
         """
-        #make socket non blocking
-        s.setblocking(0)
-        
-        #total data partwise in an array
-        total_data=[]
-        data=''
-        
-        #beginning time
-        begin=time.time()
-        while 1:
-            #if you got some data, then break after timeout
-            if total_data and time.time()-begin > timeout:
-                break
+        try:
+            #make socket non blocking
+            s.setblocking(0)
             
-            #if you got no data at all, wait a little longer, twice the timeout
-            elif time.time()-begin > timeout*2:
-                break
+            #total data partwise in an array
+            total_data=[]
+            data=''
             
-            #recv something
+            #beginning time
+            begin=time.time()
+            while 1:
+                #if you got some data, then break after timeout
+                if total_data and time.time()-begin > timeout:
+                    break
+                
+                #if you got no data at all, wait a little longer, twice the timeout
+                elif time.time()-begin > timeout*2:
+                    break
+                
+                #recv something
+                try:
+                    data = s.recv(8192).decode()
+                    if data:
+                        total_data.append(data)
+                        #change the beginning time for measurement
+                        begin = time.time()
+                    else:
+                        #sleep for sometime to indicate a gap
+                        time.sleep(0.1)
+                except Exception as e:
+                    logging.warning('Exception occured in my_recv_all inner.  Exception: {}'.format(e))
+                    try:
+                        s.close()
+                    except:
+                        pass
+            
+            #join all parts to make final string
+            return ''.join(total_data)
+        except Exception as e:
+            logging.warning('Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
             try:
-                data = s.recv(8192).decode()
-                if data:
-                    total_data.append(data)
-                    #change the beginning time for measurement
-                    begin = time.time()
-                else:
-                    #sleep for sometime to indicate a gap
-                    time.sleep(0.1)
+                s.close()
             except:
                 pass
-        
-        #join all parts to make final string
-        return ''.join(total_data)
 
     def influx_write(self):
         """
@@ -452,10 +471,9 @@ class MyClient():
 
     def restart_dat_service(self):
         r = ['restart']
+        # Instantiate IPV4 TCP socket class
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            # Instantiate IPV4 TCP socket class
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
             # Create a socket connection to the server at the specified port
             s.connect((self.pi_ip_address, self.listen_port))
 
@@ -475,7 +493,12 @@ class MyClient():
         except Exception as e:
             logging.warning('Exception occured when telling pi to restart.  Exception: {}'.format(e))
             if self.debug:
-                print('Attempted to restart pi, appears unsuccessful')
+                print('Attempted to restart, appears unsuccessful')
+            if s:
+                try:
+                    s.close()
+                except:
+                    pass
         if s:
             try:
                 s.close()
@@ -487,10 +510,9 @@ class MyClient():
         Connect to server and get data.  This is currently specific to
         all data excluding the microphone and camera.
         """
+        # Instantiate IPV4 TCP socket class
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            # Instantiate IPV4 TCP socket class
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
             # Create a socket connection to the server at the specified port
             s.connect((self.pi_ip_address, self.listen_port))
 
@@ -534,6 +556,11 @@ class MyClient():
                     s.close()
             except:
                 pass
+        if s:
+            try:
+                s.close()
+            except:
+                pass
 
         time.sleep(60)
     
@@ -553,10 +580,9 @@ class MyClient():
                     pass
 
                 else:
+                    # Instantiate IPV4 TCP socket class
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     try:
-                        # Instantiate IPV4 TCP socket class
-                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
                         # Create a socket connection to the server at the specified port
                         s.connect((self.pi_ip_address, self.listen_port))
 
@@ -595,7 +621,6 @@ class MyClient():
                         logging.info('Unable to connect and server_delete. Error: {}'.format(e))
                         if self.debug:
                             print('Unable to connect and server_delete. Error: {}'.format(e))
-                        
                         try:
                             if s:
                                 s.close()
