@@ -364,6 +364,10 @@ class MyPhoto(threading.Thread):
                         if self.debug:
                             print('Camera read did not return image.  Attempting to restart video connection')
                         self.video_status = False
+                        try:
+                            self.cam.close()
+                        except Exception as e:
+                            logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
                         self.connect_to_video()
 
                     elif type(img) is np.ndarray:
@@ -382,5 +386,9 @@ class MyPhoto(threading.Thread):
                                 print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}\tAttempting to restart video connection".format(e, f_name))
                             # logging.info("Attempting to restart video connection")
                             self.video_status = False
+                            try:
+                                self.cam.close()
+                            except Exception as e:
+                                logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
                             self.connect_to_video()
                             # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
