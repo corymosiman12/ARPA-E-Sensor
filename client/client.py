@@ -519,9 +519,12 @@ class MyClient():
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(["env_params"]))
 
-            # Receive all data from server.  Load as dictionary
-            self.get_sensors_response = json.loads(self.my_recv_all(s))
-            
+            try:
+                # Receive all data from server.  Load as dictionary
+                self.get_sensors_response = json.loads(self.my_recv_all(s))
+            except json.decoder.JSONDecodeError as e:
+                logging.warning('Unable to decode JSON from server.  Exception: {}'.format(e))
+                
             # Attempt to write to InfluxDB.  Relay success/not to server
             # Upon success, server removes data from cache
             try:
