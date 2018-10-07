@@ -309,7 +309,8 @@ class MyThreadedSocket(threading.Thread):
                 self.client_socket.close()
 
                 time.sleep(10)
-                subprocess.run("sudo service hpd_mobile restart", shell = True)
+                subprocess.run("sudo reboot", shell = True)
+                # subprocess.run("sudo service hpd_mobile restart", shell = True)
             except Exception as e:
                 logging.warning('restart excepted.  Exception: {}'.format(e))
                 if self.client_socket:
@@ -327,7 +328,8 @@ class MyThreadedSocket(threading.Thread):
                 self.client_socket.close()
 
                 time.sleep(10)
-                subprocess.run("sudo service uv4l_raspicam restart", shell = True)
+                subprocess.run("sudo reboot")
+                # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
             except Exception as e:
                 logging.warning('restart_img excepted.  Exception: {}'.format(e))
                 if self.client_socket:

@@ -11,14 +11,15 @@ import pysftp
 import paramiko
 from queue import Queue
 
-logging.basicConfig(filename = '/root/client_logfile.log', level = logging.INFO,
+logging.basicConfig(filename='/root/client_logfile.log', level=25,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',)
+
 
 class MyRetriever(threading.Thread):
     def __init__(self, my_root, pi_ip_address, pi_img_audio_root, listen_port, debug):
         threading.Thread.__init__(self)
-        logging.info('Initializing MyRetriever')
+        logging.log(25, 'Initializing MyRetriever')
         self.my_audio_root = os.path.join(my_root, 'audio')
         self.my_img_root = os.path.join(my_root, 'img')
         self.pi_ip_address = pi_ip_address
@@ -29,12 +30,12 @@ class MyRetriever(threading.Thread):
         self.to_retrieve = Queue(maxsize=0)
         self.num_threads = 5
         self.successfully_retrieved = []
-        self.audio_seconds = [str(x).zfill(2) for x in range(0,60,20)]
-        self.img_seconds = [str(x).zfill(2) for x in range(0,60)]
+        self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, 20)]
+        self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
         self.bad_audio_transfers = 0
         self.bad_img_transfers = 0
         self.start()
-    
+
     def to_retrieve_updater(self):
         while True:
             if datetime.now().second == 0:
@@ -43,8 +44,10 @@ class MyRetriever(threading.Thread):
                 if self.debug and p:
                     print("Retriever updater running")
                     p = False
-                audio_date_dir = os.path.join(self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
-                img_date_dir = os.path.join(self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
+                audio_date_dir = os.path.join(
+                    self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
+                img_date_dir = os.path.join(
+                    self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
                 if not os.path.isdir(audio_date_dir):
                     os.makedirs(audio_date_dir)
                 self.my_audio_root_date = audio_date_dir
@@ -53,22 +56,26 @@ class MyRetriever(threading.Thread):
                     os.makedirs(img_date_dir)
                 self.my_img_root_date = img_date_dir
 
-                t = datetime.now() - timedelta(minutes = 1)
-                prev_min_audio_dir = os.path.join(self.my_audio_root_date, t.strftime('%H%M'))
-                prev_min_img_dir = os.path.join(self.my_img_root_date, t.strftime('%H%M'))
+                t = datetime.now() - timedelta(minutes=1)
+                prev_min_audio_dir = os.path.join(
+                    self.my_audio_root_date, t.strftime('%H%M'))
+                prev_min_img_dir = os.path.join(
+                    self.my_img_root_date, t.strftime('%H%M'))
 
                 if not os.path.isdir(prev_min_audio_dir):
                     os.makedirs(prev_min_audio_dir)
-                    pi_audio_dir = os.path.join(self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                    pi_audio_dir = os.path.join(
+                        self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
                     # self.to_retrieve.append((pi_audio_dir, prev_min_audio_dir))
                     self.to_retrieve.put((pi_audio_dir, prev_min_audio_dir))
 
                 if not os.path.isdir(prev_min_img_dir):
                     os.makedirs(prev_min_img_dir)
-                    pi_img_dir = os.path.join(self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                    pi_img_dir = os.path.join(
+                        self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
                     # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
                     self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
-    
+
     def restart_dat_service(self):
         r = ['restart']
         # Instantiate IPV4 TCP socket class
@@ -79,19 +86,22 @@ class MyRetriever(threading.Thread):
 
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(r))
-            
+
             # Receive all data from server.
             self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+            logging.warning(
+                'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
             if self.debug:
-                print('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+                print(
+                    'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
 
             # Close socket
             s.close()
 
         except Exception as e:
-            logging.warning('Exception occured when telling pi to restart.  Exception: {}'.format(e))
+            logging.warning(
+                'Exception occured when telling pi to restart.  Exception: {}'.format(e))
             if self.debug:
                 print('Attempted to restart pi, appears unsuccessful')
             if s:
@@ -115,19 +125,22 @@ class MyRetriever(threading.Thread):
 
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(r))
-            
+
             # Receive all data from server.
             self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning('Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+            logging.warning(
+                'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
             if self.debug:
-                print('Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+                print(
+                    'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
 
             # Close socket
             s.close()
 
         except Exception as e:
-            logging.warning('Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
+            logging.warning(
+                'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
             if self.debug:
                 print('Attempted to restart UV4L, appears unsuccessful')
             if s:
@@ -146,29 +159,33 @@ class MyRetriever(threading.Thread):
         local_dir = item[1]
         d, hr = local_dir.split('/')[-2:]
         if 'audio' in local_dir:
-            should_have_files = [os.path.join(local_dir, '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
-            has_files = [os.path.join(local_dir, f) for f in os.listdir(local_dir) if f.endswith('.wav')]
+            should_have_files = [os.path.join(
+                local_dir, '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
+            has_files = [os.path.join(local_dir, f) for f in os.listdir(
+                local_dir) if f.endswith('.wav')]
             missing = list(set(should_have_files) - set(has_files))
             if self.debug:
                 print('audio missing: {} files'.format(len(missing)))
                 print('specifically these files: {}'.format(missing))
-            if len(missing) >=1:
+            if len(missing) >= 1:
                 self.bad_audio_transfers += 1
                 logging.warning('audio missing: {} files'.format(len(missing)))
                 logging.warning('specifically these files: {}'.format(missing))
 
         elif 'img' in local_dir:
-            should_have_files = [os.path.join(local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
-            has_files = [os.path.join(local_dir, f) for f in os.listdir(local_dir) if f.endswith('.png')]
+            should_have_files = [os.path.join(
+                local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+            has_files = [os.path.join(local_dir, f) for f in os.listdir(
+                local_dir) if f.endswith('.png')]
             missing = list(set(should_have_files) - set(has_files))
             if self.debug:
                 print('img missing: {} files'.format(len(missing)))
                 print('specifically these files: {}'.format(missing))
-            if len(missing) >=1:
+            if len(missing) >= 1:
                 self.bad_img_transfers += 1
                 logging.warning('img missing: {} files'.format(len(missing)))
                 logging.warning('specifically these files: {}'.format(missing))
-        
+
         if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
             self.restart_dat_service()
             time.sleep(5)
@@ -188,7 +205,7 @@ class MyRetriever(threading.Thread):
                     # ind = self.to_retrieve.index(item)
                     self.successfully_retrieved.append(item)
                     logging.info('Successfully retrieved {}'.format(item[0]))
-                    
+
                     self.to_retrieve.task_done()
                     self.has_correct_files(item)
 
@@ -196,9 +213,11 @@ class MyRetriever(threading.Thread):
                         print('Successfully retrieved {}'.format(item[0]))
 
                 except FileNotFoundError:
-                    logging.critical('File not found on Server.  No way to retrieve past info.')
+                    logging.critical(
+                        'File not found on Server.  No way to retrieve past info.')
                     if self.debug:
-                        print('File not found on Server.  No way to retrieve past info.')
+                        print(
+                            'File not found on Server.  No way to retrieve past info.')
                     self.to_retrieve.task_done()
                     self.restart_dat_img()
 
@@ -224,9 +243,9 @@ class MyRetriever(threading.Thread):
         dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
         for item in to_send:
             dt_str.append(item)
-        
+
         message = '\r\n'.join(dt_str)
-        logging.info("Sending Message: \n{}".format(message))
+        logging.log(25, "Sending Message: \n{}".format(message))
         return message.encode()
 
     def my_recv_all(self, s, timeout=2):
@@ -241,52 +260,54 @@ class MyRetriever(threading.Thread):
                 A string containing all info sent.
         """
         try:
-        #make socket non blocking
+            # make socket non blocking
             s.setblocking(0)
-            
-            #total data partwise in an array
-            total_data=[]
-            data=''
-            
-            #beginning time
-            begin=time.time()
+
+            # total data partwise in an array
+            total_data = []
+            data = ''
+
+            # beginning time
+            begin = time.time()
             while 1:
-                #if you got some data, then break after timeout
+                # if you got some data, then break after timeout
                 if total_data and time.time()-begin > timeout:
                     break
-                
-                #if you got no data at all, wait a little longer, twice the timeout
+
+                # if you got no data at all, wait a little longer, twice the timeout
                 elif time.time()-begin > timeout*2:
                     break
-                
-                #recv something
+
+                # recv something
                 try:
                     data = s.recv(8192).decode()
                     if data:
                         total_data.append(data)
-                        #change the beginning time for measurement
+                        # change the beginning time for measurement
                         begin = time.time()
                     else:
-                        #sleep for sometime to indicate a gap
+                        # sleep for sometime to indicate a gap
                         time.sleep(0.1)
                 except Exception as e:
-                    logging.warning('Exception occured in my_recv_all inner.  Exception: {}'.format(e))
+                    logging.warning(
+                        'Exception occured in my_recv_all inner.  Exception: {}'.format(e))
                     try:
                         s.close()
                     except:
                         pass
-            
-            #join all parts to make final string
+
+            # join all parts to make final string
             return ''.join(total_data)
         except Exception as e:
-            logging.warning('Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
+            logging.warning(
+                'Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
             try:
                 s.close()
             except:
                 pass
 
     def run(self):
-        retriever_updater = threading.Thread(target = self.to_retrieve_updater)
+        retriever_updater = threading.Thread(target=self.to_retrieve_updater)
         retriever_updater.start()
 
         while True:
@@ -296,24 +317,33 @@ class MyRetriever(threading.Thread):
                     worker.setDaemon(True)
                     worker.start()
 
+
 class MyClient():
     def __init__(self, server_id, debug):
         self.debug = debug
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)
         self.pi_ip_address = self.conf['servers'][self.server_id]
-        self.my_root = os.path.join(self.conf['img_audio_root'], self.server_id)
+        self.my_root = os.path.join(
+            self.conf['img_audio_root'], self.server_id)
         self.image_dir = os.path.join(self.my_root, 'img')
         self.audio_dir = os.path.join(self.my_root, 'audio')
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
-        self.influx_client = influxdb.InfluxDBClient(self.conf['influx_ip'], 8086, database='hpd_mobile')
+        self.influx_client = influxdb.InfluxDBClient(
+            self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
-        self.server_delete_thread = threading.Thread(target = self.server_delete, daemon=True)
+        self.bad_writes = 0
+        self.start_time = datetime.now()
+        self.readings_inserted = 0
+        self.should_have_readings = 0
+        self.server_delete_thread = threading.Thread(
+            target=self.server_delete, daemon=True)
         self.server_delete_thread.start()
         self.create_img_dir()
         self.create_audio_dir()
-        self.retriever = MyRetriever(self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
+        self.retriever = MyRetriever(
+            self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
 
     def import_conf(self, server_id):
         """
@@ -324,9 +354,13 @@ class MyClient():
         """
         with open('client_conf.json', 'r') as f:
             conf = json.loads(f.read())
-            
+
         return conf
-    
+
+    def calc_should_have_readings(self):
+        run_time = datetime.now() - self.start_time
+        self.should_have_readings = run_time.seconds / self.collect_interval
+
     def create_img_dir(self):
         """
         Check if main server directory for images exist.  If they exist, do nothing.
@@ -360,7 +394,7 @@ class MyClient():
         dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
         for item in to_send:
             dt_str.append(item)
-        
+
         message = '\r\n'.join(dt_str)
         logging.info("Sending Message: \n{}".format(message))
         return message.encode()
@@ -377,45 +411,47 @@ class MyClient():
                 A string containing all info sent.
         """
         try:
-            #make socket non blocking
+            # make socket non blocking
             s.setblocking(0)
-            
-            #total data partwise in an array
-            total_data=[]
-            data=''
-            
-            #beginning time
-            begin=time.time()
+
+            # total data partwise in an array
+            total_data = []
+            data = ''
+
+            # beginning time
+            begin = time.time()
             while 1:
-                #if you got some data, then break after timeout
+                # if you got some data, then break after timeout
                 if total_data and time.time()-begin > timeout:
                     break
-                
-                #if you got no data at all, wait a little longer, twice the timeout
+
+                # if you got no data at all, wait a little longer, twice the timeout
                 elif time.time()-begin > timeout*2:
                     break
-                
-                #recv something
+
+                # recv something
                 try:
                     data = s.recv(8192).decode()
                     if data:
                         total_data.append(data)
-                        #change the beginning time for measurement
+                        # change the beginning time for measurement
                         begin = time.time()
                     else:
-                        #sleep for sometime to indicate a gap
+                        # sleep for sometime to indicate a gap
                         time.sleep(0.1)
                 except Exception as e:
-                    logging.warning('Exception occured in my_recv_all inner.  Exception: {}'.format(e))
+                    logging.warning(
+                        'Exception occured in my_recv_all inner.  Exception: {}'.format(e))
                     try:
                         s.close()
                     except:
                         pass
-            
-            #join all parts to make final string
+
+            # join all parts to make final string
             return ''.join(total_data)
         except Exception as e:
-            logging.warning('Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
+            logging.warning(
+                'Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
             try:
                 s.close()
             except:
@@ -435,7 +471,7 @@ class MyClient():
         """
         json_body = []
         count_points = 0
-        times= []
+        times = []
         for r in self.get_sensors_response["Readings"]:
             count_points += 1
             json_body.append({
@@ -462,12 +498,23 @@ class MyClient():
         if self.debug:
             print('{} points to insert into influxdb'.format(count_points))
             print('Times of sensor readings: {}'.format(times))
-        if count_points != 12:
-            logging.warning('Only {} points to insert into influxdb.'.format(count_points))
-            logging.warning('Timestamps of sensor readings: {}'.format(times))
+        # if count_points != 12:
+        #     logging.warning('Only {} points to insert into influxdb.'.format(count_points))
+        #     logging.warning('Timestamps of sensor readings: {}'.format(times))
+        # else:
+        #     logging.info('{} points inserted'.format(count_points))
+        successful_write = self.influx_client.write_points(json_body)
+        if successful_write:
+            self.readings_inserted += count_points
         else:
-            logging.info('{} points inserted'.format(count_points))
-        return(self.influx_client.write_points(json_body))
+            self.bad_writes += 1
+
+        diff = abs(self.readings_inserted - self.should_have_readings)
+        if diff >= 5:
+            logging.warning('Should be about {} readings.  Only {} readings actually inserted.  Diff = {}'.format(self.should_have_readings,
+                                                                                                                  self.readings_inserted, diff))
+            logging.warning('{} total bad writes'.format(self.bad_writes))
+        return(successful_write)
 
     def restart_dat_service(self):
         r = ['restart']
@@ -479,19 +526,22 @@ class MyClient():
 
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(r))
-            
+
             # Receive all data from server.
             self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+            logging.warning(
+                'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
             if self.debug:
-                print('Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+                print(
+                    'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
 
             # Close socket
             s.close()
 
         except Exception as e:
-            logging.warning('Exception occured when telling pi to restart.  Exception: {}'.format(e))
+            logging.warning(
+                'Exception occured when telling pi to restart.  Exception: {}'.format(e))
             if self.debug:
                 print('Attempted to restart, appears unsuccessful')
             if s:
@@ -519,17 +569,20 @@ class MyClient():
             # Send message over socket connection, requesting aforementioned data
             s.sendall(self.create_message(["env_params"]))
 
+            # Update the number of readings that should have been recorded
+            self.calc_should_have_readings()
             try:
                 # Receive all data from server.  Load as dictionary
                 self.get_sensors_response = json.loads(self.my_recv_all(s))
             except json.decoder.JSONDecodeError as e:
-                logging.warning('Unable to decode JSON from server.  Exception: {}'.format(e))
-                
+                logging.warning(
+                    'Unable to decode JSON from server.  Exception: {}'.format(e))
+
             # Attempt to write to InfluxDB.  Relay success/not to server
             # Upon success, server removes data from cache
+            # influx_write() returns 'bool'
+            successful_write = self.influx_write()
             try:
-                # influx_write() returns 'bool'
-                successful_write = self.influx_write()
                 if successful_write:
                     s.sendall(self.create_message(["SUCCESS"]))
                     logging.info('Successful write')
@@ -549,11 +602,15 @@ class MyClient():
             # Close socket
             s.close()
 
+            if not successful_write and self.bad_writes >= 5:
+                self.restart_dat_service()
+
         except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
-            logging.info('Unable to connect and get_sensors_data. Error: {}'.format(e))
+            logging.warning(
+                'Unable to connect and get_sensors_data. Error: {}'.format(e))
             if self.debug:
                 print('Unable to connect and get_sensors_data. Error: {}'.format(e))
-            
+
             try:
                 if s:
                     s.close()
@@ -566,9 +623,9 @@ class MyClient():
                 pass
 
         time.sleep(60)
-    
+
     def server_delete(self):
-        logging.info('Starting server_delete Thread')
+        logging.log(25,'Starting server_delete Thread')
         if self.debug:
             print('Starting server_delete Thread')
         while True:
@@ -577,9 +634,10 @@ class MyClient():
                 to_remove = ['to_remove']
                 for item in self.retriever.successfully_retrieved:
                     to_remove.append(item[0])
-                
+
                 if len(to_remove) <= 1:
-                    logging.info('Nothing to remove from self.retriever.successfully_retrieved...')
+                    logging.log(25,
+                        'Nothing to remove from self.retriever.successfully_retrieved...')
                     pass
 
                 else:
@@ -593,10 +651,12 @@ class MyClient():
                         s.sendall(self.create_message(to_remove))
 
                         # Receive all data from server.
-                        self.delete_response = self.my_recv_all(s).split('\r\n')
+                        self.delete_response = self.my_recv_all(
+                            s).split('\r\n')
                         self.num_dirs_deleted = self.delete_response[0]
                         if self.debug:
-                            print('{} dirs deleted'.format(self.num_dirs_deleted))
+                            print('{} dirs deleted'.format(
+                                self.num_dirs_deleted))
 
                         if len(self.delete_response) > 1:
                             self.dirs_deleted = self.delete_response[1:]
@@ -605,32 +665,42 @@ class MyClient():
                             for d in self.dirs_deleted:
                                 for a in self.retriever.successfully_retrieved:
                                     if a[0] == d:
-                                        ind = self.retriever.successfully_retrieved.index(a)
-                                        self.retriever.successfully_retrieved.pop(ind)
+                                        ind = self.retriever.successfully_retrieved.index(
+                                            a)
+                                        self.retriever.successfully_retrieved.pop(
+                                            ind)
                                         removed_from_queue += 1
 
-                            logging.info('{} directories deleted from server'.format(self.num_dirs_deleted))
-                            logging.info('{} directories removed from queue'.format(removed_from_queue))
-                            logging.info('Dirs deleted: {}'.format(self.dirs_deleted))
+                            logging.log(25,'{} directories deleted from server'.format(
+                                self.num_dirs_deleted))
+                            logging.info('{} directories removed from queue'.format(
+                                removed_from_queue))
+                            logging.log(25,
+                                'Dirs deleted: {}'.format(self.dirs_deleted))
 
                             if self.debug:
-                                print('{} directories deleted from server'.format(self.num_dirs_deleted))
-                                print('{} directories removed from queue'.format(removed_from_queue))
+                                print('{} directories deleted from server'.format(
+                                    self.num_dirs_deleted))
+                                print('{} directories removed from queue'.format(
+                                    removed_from_queue))
 
                         # Close socket
                         s.close()
 
                     except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
-                        logging.info('Unable to connect and server_delete. Error: {}'.format(e))
+                        logging.warning(
+                            'Unable to connect and server_delete. Error: {}'.format(e))
                         if self.debug:
-                            print('Unable to connect and server_delete. Error: {}'.format(e))
+                            print(
+                                'Unable to connect and server_delete. Error: {}'.format(e))
                         try:
                             if s:
                                 s.close()
                         except:
                             pass
-            
+
                 time.sleep(30)
+
 
 if __name__ == "__main__":
     """
@@ -657,6 +727,3 @@ if __name__ == "__main__":
             get_data = threading.Thread(target=c.get_sensors_data())
             get_data.start()
             get_data.join()
-
-
-

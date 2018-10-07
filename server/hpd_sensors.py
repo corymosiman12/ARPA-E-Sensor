@@ -318,10 +318,11 @@ class MyPhoto(threading.Thread):
             if self.debug:
                 print('Unable to connect to video')
             if self.img_restart_attempts >= 5:
-                subprocess.run("sudo service uv4l_raspicam restart", shell = True)
-                time.sleep(5)
-                self.img_restart_attempts = 0
-                subprocess.run("sudo service hpd_mobile restart", shell = True)
+                subprocess.run("sudo reboot", shell = True)
+                # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
+                # time.sleep(5)
+                # self.img_restart_attempts = 0
+                # subprocess.run("sudo service hpd_mobile restart", shell = True)
 
             time.sleep(1)
 
