@@ -159,47 +159,49 @@ class MyThreadedSocket(threading.Thread):
         return: <class 'str'>
                 A string containing all info sent.
         """
-        try:
-            #make socket non blocking
-            self.client_socket.setblocking(0)
+        # try:
+        #make socket non blocking
+        self.client_socket.setblocking(0)
+        
+        #total data partwise in an array
+        total_data=[]
+        data=''
+        
+        #beginning time
+        begin=time.time()
+        while 1:
+            #if you got some data, then break after timeout
+            if total_data and time.time()-begin > timeout:
+                break
             
-            #total data partwise in an array
-            total_data=[]
-            data=''
+            #if you got no data at all, wait a little longer, twice the timeout
+            elif time.time()-begin > timeout*2:
+                break
             
-            #beginning time
-            begin=time.time()
-            while 1:
-                #if you got some data, then break after timeout
-                if total_data and time.time()-begin > timeout:
-                    break
-                
-                #if you got no data at all, wait a little longer, twice the timeout
-                elif time.time()-begin > timeout*2:
-                    break
-                
-                #recv something
-                try:
-                    data = self.client_socket.recv(8192).decode()
-                    if data:
-                        total_data.append(data)
-                        #change the beginning time for measurement
-                        begin = time.time()
-                    else:
-                        #sleep for sometime to indicate a gap
-                        time.sleep(0.1)
-                except Exception as e:
-                    logging.warning('Exception occured in my_recv_all inner.  Exception: {}'.format(e))
-                    try:
-                        self.client_socket.close()
-                    except:
-                        pass
-        except Exception as e:
-            logging.warning('Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
+            #recv something
             try:
-                self.client_socket.close()
+                data = self.client_socket.recv(8192).decode()
+                if data:
+                    total_data.append(data)
+                    #change the beginning time for measurement
+                    begin = time.time()
+                else:
+                    #sleep for sometime to indicate a gap
+                    time.sleep(0.1)
             except:
                 pass
+            # except Exception as e:
+            #     logging.warning('Exception occured in my_recv_all inner.  Exception: {}'.format(e))
+            #     try:
+            #         self.client_socket.close()
+            #     except:
+            #         pass
+        # except Exception as e:
+        #     logging.warning('Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
+        #     try:
+        #         self.client_socket.close()
+        #     except:
+        #         pass
         
         #join all parts to make final string
         return ''.join(total_data)
