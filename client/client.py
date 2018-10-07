@@ -333,6 +333,7 @@ class MyClient():
         self.influx_client = influxdb.InfluxDBClient(
             self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
+        self.env_params_read_interval = self.conf['env_params_read_interval_sec']
         self.bad_writes = 0
         self.good_sensor_responses = 0
         self.bad_sensor_responses = 0
@@ -361,7 +362,7 @@ class MyClient():
 
     def calc_should_have_readings(self):
         run_time = datetime.now() - self.start_time
-        self.should_have_readings = run_time.seconds / self.collect_interval
+        self.should_have_readings = run_time.seconds / self.env_params_read_interval
 
     def create_img_dir(self):
         """
