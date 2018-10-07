@@ -333,7 +333,7 @@ class MyClient():
         self.influx_client = influxdb.InfluxDBClient(
             self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
-        self.env_params_read_interval = self.conf['env_params_read_interval_sec']
+        self.env_params_read_interval = int(self.conf['env_params_read_interval_sec'])
         self.bad_writes = 0
         self.good_sensor_responses = 0
         self.bad_sensor_responses = 0
