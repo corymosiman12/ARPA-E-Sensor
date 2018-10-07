@@ -305,12 +305,13 @@ class MyThreadedSocket(threading.Thread):
         elif self.client_request == 'restart':
             try:
                 dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                r = ['Pi to restart service.  Time is: {}'.format(dt)]
+                r = ['Pi to restart.  Time is: {}'.format(dt)]
                 message = '\r\n'.join(r)
                 self.client_socket.sendall(message.encode())
                 self.client_socket.close()
 
-                time.sleep(10)
+                # time.sleep(10)
+                logging.warning("self.client_request = restart.  Time is: {}".format(dt))
                 subprocess.run("sudo reboot", shell = True)
                 # subprocess.run("sudo service hpd_mobile restart", shell = True)
             except Exception as e:
@@ -330,6 +331,8 @@ class MyThreadedSocket(threading.Thread):
                 self.client_socket.close()
 
                 # time.sleep(10)
+
+                logging.warning("self.client_request = restart_img.  Time is: {}".format(dt))
                 subprocess.run("sudo reboot", shell = True)
                 # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
             except Exception as e:
