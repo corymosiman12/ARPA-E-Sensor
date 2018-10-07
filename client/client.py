@@ -334,6 +334,8 @@ class MyClient():
             self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.bad_writes = 0
+        self.good_sensor_responses = 0
+        self.bad_sensor_responses = 0
         self.start_time = datetime.now()
         self.readings_inserted = 0
         self.should_have_readings = 0
@@ -510,10 +512,12 @@ class MyClient():
             self.bad_writes += 1
 
         diff = abs(self.readings_inserted - self.should_have_readings)
+        
         if diff >= 5:
             logging.warning('Should be about {} readings.  Only {} readings actually inserted.  Diff = {}'.format(self.should_have_readings,
                                                                                                                   self.readings_inserted, diff))
             logging.warning('{} total bad writes'.format(self.bad_writes))
+
         return(successful_write)
 
     def restart_dat_service(self):
@@ -571,39 +575,45 @@ class MyClient():
 
             # Update the number of readings that should have been recorded
             self.calc_should_have_readings()
+            self.get_sensors_response = {}
             try:
                 # Receive all data from server.  Load as dictionary
                 self.get_sensors_response = json.loads(self.my_recv_all(s))
+                self.good_sensor_responses += 1
             except json.decoder.JSONDecodeError as e:
                 logging.warning(
                     'Unable to decode JSON from server.  Exception: {}'.format(e))
+                self.get_sensors_response = False
+                self.bad_sensor_responses += 1
+                logging.warning('{} bad responses. {} good responses'.format(self.bad_sensor_responses, self.good_sensor_responses))
 
             # Attempt to write to InfluxDB.  Relay success/not to server
             # Upon success, server removes data from cache
             # influx_write() returns 'bool'
-            successful_write = self.influx_write()
-            try:
-                if successful_write:
-                    s.sendall(self.create_message(["SUCCESS"]))
-                    logging.info('Successful write')
-                    if self.debug:
-                        print('Successful write to Influx')
-                else:
+            if self.get_sensors_response:
+                successful_write = self.influx_write()
+                try:
+                    if successful_write:
+                        s.sendall(self.create_message(["SUCCESS"]))
+                        logging.info('Successful write')
+                        if self.debug:
+                            print('Successful write to Influx')
+                    else:
+                        s.sendall(self.create_message(["NOT SUCCESS"]))
+                        logging.warning('Unsuccessful write to influxdb')
+                except:
                     s.sendall(self.create_message(["NOT SUCCESS"]))
                     logging.warning('Unsuccessful write to influxdb')
-            except:
-                s.sendall(self.create_message(["NOT SUCCESS"]))
-                logging.warning('Unsuccessful write to influxdb')
 
-            # Check that server received message correctly
-            self.validation = self.my_recv_all(s)
-            logging.info("Validation: {}".format(self.validation))
+                # Check that server received message correctly
+                self.validation = self.my_recv_all(s)
+                logging.info("Validation: {}".format(self.validation))
 
-            # Close socket
-            s.close()
+                # Close socket
+                s.close()
 
-            if not successful_write and self.bad_writes >= 5:
-                self.restart_dat_service()
+                if not successful_write and self.bad_writes >= 5:
+                    self.restart_dat_service()
 
         except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
             logging.warning(
