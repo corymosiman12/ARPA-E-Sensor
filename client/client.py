@@ -188,8 +188,8 @@ class MyRetriever(threading.Thread):
 
         if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
             self.restart_dat_service()
-            time.sleep(5)
-            self.restart_dat_img()
+            # time.sleep(5)
+            # self.restart_dat_img()
             self.bad_audio_transfers = 0
             self.bad_img_transfers = 0
 
@@ -219,7 +219,8 @@ class MyRetriever(threading.Thread):
                         print(
                             'File not found on Server.  No way to retrieve past info.')
                     self.to_retrieve.task_done()
-                    self.restart_dat_img()
+                    self.bad_img_transfers += 1
+                    # self.restart_dat_img()
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning('Network connection error: {}'.format(conn_error))
