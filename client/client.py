@@ -9,7 +9,11 @@ import time
 import influxdb
 import pysftp
 import paramiko
+import cv2
+import imutils
+from imutils.video import WebcamVideoStream
 from queue import Queue
+import numpy as np
 
 logging.basicConfig(filename='/root/client_logfile.log', level=25,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -21,19 +25,19 @@ class MyRetriever(threading.Thread):
         threading.Thread.__init__(self)
         logging.log(25, 'Initializing MyRetriever')
         self.my_audio_root = os.path.join(my_root, 'audio')
-        self.my_img_root = os.path.join(my_root, 'img')
+        # self.my_img_root = os.path.join(my_root, 'img')
         self.pi_ip_address = pi_ip_address
         self.pi_audio_root = os.path.join(pi_img_audio_root, 'audio')
-        self.pi_img_root = os.path.join(pi_img_audio_root, 'img')
+        # self.pi_img_root = os.path.join(pi_img_audio_root, 'img')
         self.listen_port = listen_port
         self.debug = debug
         self.to_retrieve = Queue(maxsize=0)
         self.num_threads = 5
         self.successfully_retrieved = []
         self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, 20)]
-        self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
+        # self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
         self.bad_audio_transfers = 0
-        self.bad_img_transfers = 0
+        # self.bad_img_transfers = 0
         self.start()
 
     def to_retrieve_updater(self):
@@ -44,37 +48,41 @@ class MyRetriever(threading.Thread):
                 if self.debug and p:
                     print("Retriever updater running")
                     p = False
+
+                ''' Image Retriever '''
                 audio_date_dir = os.path.join(
                     self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
-                img_date_dir = os.path.join(
-                    self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
                 if not os.path.isdir(audio_date_dir):
                     os.makedirs(audio_date_dir)
                 self.my_audio_root_date = audio_date_dir
 
-                if not os.path.isdir(img_date_dir):
-                    os.makedirs(img_date_dir)
-                self.my_img_root_date = img_date_dir
-
                 t = datetime.now() - timedelta(minutes=1)
                 prev_min_audio_dir = os.path.join(
                     self.my_audio_root_date, t.strftime('%H%M'))
-                prev_min_img_dir = os.path.join(
-                    self.my_img_root_date, t.strftime('%H%M'))
 
                 if not os.path.isdir(prev_min_audio_dir):
                     os.makedirs(prev_min_audio_dir)
                     pi_audio_dir = os.path.join(
                         self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-                    # self.to_retrieve.append((pi_audio_dir, prev_min_audio_dir))
                     self.to_retrieve.put((pi_audio_dir, prev_min_audio_dir))
 
-                if not os.path.isdir(prev_min_img_dir):
-                    os.makedirs(prev_min_img_dir)
-                    pi_img_dir = os.path.join(
-                        self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-                    # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
-                    self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
+                ''' Photo Retriever '''
+                # img_date_dir = os.path.join(
+                #     self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
+
+                # if not os.path.isdir(img_date_dir):
+                #     os.makedirs(img_date_dir)
+                # self.my_img_root_date = img_date_dir
+
+                # prev_min_img_dir = os.path.join(
+                #     self.my_img_root_date, t.strftime('%H%M'))
+
+                # if not os.path.isdir(prev_min_img_dir):
+                #     os.makedirs(prev_min_img_dir)
+                #     pi_img_dir = os.path.join(
+                #         self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                #     # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
+                #     self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
 
     def restart_dat_service(self):
         r = ['restart']
@@ -115,49 +123,51 @@ class MyRetriever(threading.Thread):
             except:
                 pass
 
-    def restart_dat_img(self):
-        r = ['restart_img']
-        # Instantiate IPV4 TCP socket class
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            # Create a socket connection to the server at the specified port
-            s.connect((self.pi_ip_address, self.listen_port))
+    # def restart_dat_img(self):
+    #     r = ['restart_img']
+    #     # Instantiate IPV4 TCP socket class
+    #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #     try:
+    #         # Create a socket connection to the server at the specified port
+    #         s.connect((self.pi_ip_address, self.listen_port))
 
-            # Send message over socket connection, requesting aforementioned data
-            s.sendall(self.create_message(r))
+    #         # Send message over socket connection, requesting aforementioned data
+    #         s.sendall(self.create_message(r))
 
-            # Receive all data from server.
-            self.restart_response = self.my_recv_all(s).split('\r\n')
+    #         # Receive all data from server.
+    #         self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning(
-                'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
-            if self.debug:
-                print(
-                    'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         logging.warning(
+    #             'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         if self.debug:
+    #             print(
+    #                 'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
 
-            # Close socket
-            s.close()
+    #         # Close socket
+    #         s.close()
 
-        except Exception as e:
-            logging.warning(
-                'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
-            if self.debug:
-                print('Attempted to restart UV4L, appears unsuccessful')
-            if s:
-                try:
-                    s.close()
-                except:
-                    pass
-        if s:
-            try:
-                s.close()
-            except:
-                pass
+    #     except Exception as e:
+    #         logging.warning(
+    #             'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
+    #         if self.debug:
+    #             print('Attempted to restart UV4L, appears unsuccessful')
+    #         if s:
+    #             try:
+    #                 s.close()
+    #             except:
+    #                 pass
+    #     if s:
+    #         try:
+    #             s.close()
+    #         except:
+    #             pass
 
     def has_correct_files(self, item):
         missing = []
         local_dir = item[1]
         d, hr = local_dir.split('/')[-2:]
+
+        '''Audio Check Files'''
         if 'audio' in local_dir:
             should_have_files = [os.path.join(
                 local_dir, '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
@@ -172,26 +182,28 @@ class MyRetriever(threading.Thread):
                 logging.warning('audio missing: {} files'.format(len(missing)))
                 logging.warning('specifically these files: {}'.format(missing))
 
-        elif 'img' in local_dir:
-            should_have_files = [os.path.join(
-                local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
-            has_files = [os.path.join(local_dir, f) for f in os.listdir(
-                local_dir) if f.endswith('.png')]
-            missing = list(set(should_have_files) - set(has_files))
-            if self.debug:
-                print('img missing: {} files'.format(len(missing)))
-                print('specifically these files: {}'.format(missing))
-            if len(missing) >= 1:
-                self.bad_img_transfers += 1
-                logging.warning('img missing: {} files'.format(len(missing)))
-                logging.warning('specifically these files: {}'.format(missing))
+        ''' Image Check Files'''
+        # elif 'img' in local_dir:
+        #     should_have_files = [os.path.join(
+        #         local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+        #     has_files = [os.path.join(local_dir, f) for f in os.listdir(
+        #         local_dir) if f.endswith('.png')]
+        #     missing = list(set(should_have_files) - set(has_files))
+        #     if self.debug:
+        #         print('img missing: {} files'.format(len(missing)))
+        #         print('specifically these files: {}'.format(missing))
+        #     if len(missing) >= 1:
+        #         self.bad_img_transfers += 1
+        #         logging.warning('img missing: {} files'.format(len(missing)))
+        #         logging.warning('specifically these files: {}'.format(missing))
 
-        if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
+        # if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
+        if self.bad_audio_transfers >= 5:
             self.restart_dat_service()
             # time.sleep(5)
             # self.restart_dat_img()
             self.bad_audio_transfers = 0
-            self.bad_img_transfers = 0
+            # self.bad_img_transfers = 0
 
     def retrieve_this(self):
         item = self.to_retrieve.get()
@@ -291,23 +303,10 @@ class MyRetriever(threading.Thread):
                     time.sleep(0.1)
             except:
                 pass
-            # except Exception as e:
-            #     logging.warning(
-            #         'Exception occured in my_recv_all inner.  Exception: {}'.format(e))
-            #     try:
-            #         s.close()
-            #     except:
-            #         pass
 
         # join all parts to make final string
         return ''.join(total_data)
-        # except Exception as e:
-        #     logging.warning(
-        #         'Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
-        #     try:
-        #         s.close()
-        #     except:
-        #         pass
+
 
     def run(self):
         retriever_updater = threading.Thread(target=self.to_retrieve_updater)
@@ -320,6 +319,265 @@ class MyRetriever(threading.Thread):
                     worker.setDaemon(True)
                     worker.start()
 
+class MyPhoto(threading.Thread):
+    def __init__(self, img_root, stream_type, pi_ip_address, listen_port, debug):
+        threading.Thread.__init__(self)
+        print("Initializing MyPhoto class")
+        self.img_root = img_root
+        self.debug = debug
+        self.img_root_date = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
+        self.pi_ip_address = pi_ip_address
+        self.listen_port = listen_port
+        self.bad_img_transfers = 0
+        self.stream_type = stream_type
+        self.video_status = False
+        self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
+        self.create_root_img_dir()
+        self.connect_to_video()
+        self.start()
+
+    def restart_dat_img(self):
+        r = ['restart_img']
+        # Instantiate IPV4 TCP socket class
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            # Create a socket connection to the server at the specified port
+            s.connect((self.pi_ip_address, self.listen_port))
+
+            # Send message over socket connection, requesting aforementioned data
+            s.sendall(self.create_message(r))
+
+            # Receive all data from server.
+            self.restart_response = self.my_recv_all(s).split('\r\n')
+
+            logging.warning(
+                'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+            if self.debug:
+                print(
+                    'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+
+            # Close socket
+            s.close()
+
+        except Exception as e:
+            logging.warning(
+                'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
+            if self.debug:
+                print('Attempted to restart UV4L, appears unsuccessful')
+            if s:
+                try:
+                    s.close()
+                except:
+                    pass
+        if s:
+            try:
+                s.close()
+            except:
+                pass
+
+    def create_message(self, to_send):
+        """
+        Configure the message to send to the server.
+        Elements are separated by a carriage return and newline.
+        The first line is always the datetime of client request.
+
+        param: to_send <class 'list'>
+                List of elements to send to server.
+
+        return: <class 'bytes'> a byte string (b''), ready to 
+                send over a socket connection
+        """
+        dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
+        for item in to_send:
+            dt_str.append(item)
+
+        message = '\r\n'.join(dt_str)
+        logging.log(25, "Sending Message: \n{}".format(message))
+        return message.encode()
+
+    def my_recv_all(self, s, timeout=2):
+        """
+        Regardless of message size, ensure that entire message is received
+        from server.  Timeout specifies time to wait for additional socket
+        stream.
+
+        param: s <class 'socket.socket'>
+                A socket connection to server.
+        return: <class 'str'>
+                A string containing all info sent.
+        """
+        # try:
+        # make socket non blocking
+        s.setblocking(0)
+
+        # total data partwise in an array
+        total_data = []
+        data = ''
+
+        # beginning time
+        begin = time.time()
+        while 1:
+            # if you got some data, then break after timeout
+            if total_data and time.time()-begin > timeout:
+                break
+
+            # if you got no data at all, wait a little longer, twice the timeout
+            elif time.time()-begin > timeout*2:
+                break
+
+            # recv something
+            try:
+                data = s.recv(8192).decode()
+                if data:
+                    total_data.append(data)
+                    # change the beginning time for measurement
+                    begin = time.time()
+                else:
+                    # sleep for sometime to indicate a gap
+                    time.sleep(0.1)
+            except:
+                pass
+
+        # join all parts to make final string
+        return ''.join(total_data)
+
+    def has_correct_files(self):
+        ''' Image Check Files'''
+        t = datetime.now() - timedelta(minutes=1)
+        d = t.strftime("%Y-%m-%d")
+        h = t.strftime("%H%M")
+
+        self.prev_min_img_dir = os.path.join(self.img_root_date, t.strftime("%H%M"))
+        should_have_files = [os.path.join(
+            self.prev_min_img_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+        has_files = [os.path.join(self.prev_min_img_dir, f) for f in os.listdir(
+            self.prev_min_img_dir) if f.endswith('.png')]
+
+        missing = list(set(should_have_files) - set(has_files))
+        if self.debug:
+            print('img missing: {} files'.format(len(missing)))
+            print('specifically these files: {}'.format(missing))
+
+        if len(missing) >= 1:
+            self.bad_img_transfers += 1
+            logging.warning('img missing: {} files'.format(len(missing)))
+            logging.warning('specifically these files: {}'.format(missing))
+
+        time.sleep(2)
+
+    def create_root_img_dir(self):
+        if not os.path.isdir(self.img_root):
+            os.makedirs(self.img_root)
+
+    def connect_to_video(self):
+        self.video_status = False
+        # Select the stream type based on that specified in server.conf
+        if self.stream_type == "mjpeg":
+            stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.mjpeg"
+        elif self.stream_type == "h264":
+            stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.h264"
+        elif self.stream_type == "jpeg":
+            stream_path = "http://" + self.pi_ip_address + ":8080/stream/video.jpeg"
+        
+        # Attempt to start the video stream
+        self.cam = WebcamVideoStream(stream_path).start()
+
+        self.img_restart_attempts = 0
+        # Keep attempting to open the video stream until it is opened
+        while not self.cam.stream.isOpened():
+            self.cam = WebcamVideoStream(stream_path).start()
+            self.video_status = False
+            self.img_restart_attempts += 1
+            logging.warning("Unable to connect to video")
+            if self.debug:
+                print('Unable to connect to video')
+            if self.img_restart_attempts >= 5:
+                self.restart_dat_img()
+                # subprocess.run("sudo reboot", shell = True)
+                # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
+                # time.sleep(5)
+                self.img_restart_attempts = 0
+                # subprocess.run("sudo service hpd_mobile restart", shell = True)
+
+            time.sleep(10)
+
+        # Set the video status to true
+        self.video_status = True
+        logging.info("Connected to video stream")
+        if self.debug:
+            print('Connected to video stream')
+
+    def img_dir_update(self):
+        # This function is run in a separate thread to continuously create a new directory for each day, and for each minute.
+        while 1:
+            date_dir = os.path.join(self.img_root, datetime.now().strftime("%Y-%m-%d"))
+            if not os.path.isdir(date_dir):
+                os.makedirs(date_dir)
+            self.img_root_date = date_dir
+            
+            min_dir = os.path.join(self.img_root_date, datetime.now().strftime("%H%M"))
+            if not os.path.isdir(min_dir):
+                os.makedirs(min_dir)
+            self.img_dir = min_dir
+
+    def run(self):
+        dir_create = threading.Thread(target=self.img_dir_update)
+        dir_create.start()
+        
+        # Wait for self.img_dir to exist
+        time.sleep(1)
+        while 1:
+            if self.bad_img_transfers >= 5:
+                try:
+                    self.cam.close()
+                except Exception as e:
+                    logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
+                self.bad_img_transfers = 0
+                self.connect_to_video() 
+            t = datetime.now()
+            if t.second == 1:
+                file_checker = threading.Thread(target=self.has_correct_files)
+                file_checker.start()
+            f_name = t.strftime("%Y-%m-%d %H%M%S_photo.png")
+            f_path = os.path.join(self.img_dir, f_name)
+
+            # Only capture a photo if it doesn't already exist
+            if not os.path.isfile(f_path):
+                if not len(os.listdir(self.img_dir)) >= 60:
+                    img = False
+                    img = self.cam.read()
+                    if type(img) is not np.ndarray:
+                        logging.warning('Camera read did not return image.  Attempting to restart video connection')
+                        if self.debug:
+                            print('Camera read did not return image.  Attempting to restart video connection')
+                        try:
+                            self.cam.close()
+                        except Exception as e:
+                            logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
+                        self.connect_to_video()
+
+                    elif type(img) is np.ndarray:
+                        try:
+                            # Convert image to greyscale
+                            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+                            # Write to disk
+                            # This is closing the image file???
+                            # look into /var/log/messages grep for oom killer
+                            cv2.imwrite(f_path, img)
+                            if datetime.now().second == 0:
+                                logging.info("Created file: {}".format(f_path))
+
+                        except Exception as e:
+                            logging.warning("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}\tAttempting to restart video connection".format(e, f_name))
+                            if self.debug:
+                                print("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}\tAttempting to restart video connection".format(e, f_name))
+                            try:
+                                self.cam.close()
+                            except Exception as e:
+                                logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
+                            self.connect_to_video()
+                            # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
 
 class MyClient():
     def __init__(self, server_id, debug):
@@ -337,6 +595,7 @@ class MyClient():
             self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.env_params_read_interval = int(self.conf['env_params_read_interval_sec'])
+        self.stream_type = self.conf['stream_type']
         self.bad_writes = 0
         self.good_sensor_responses = 0
         self.bad_sensor_responses = 0
@@ -348,6 +607,7 @@ class MyClient():
         self.server_delete_thread.start()
         self.create_img_dir()
         self.create_audio_dir()
+        self.photos = MyPhoto(self.image_dir, self.stream_type, self.pi_ip_address, self.listen_port, self.debug)
         self.retriever = MyRetriever(
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
 
