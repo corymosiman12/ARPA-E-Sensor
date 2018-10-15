@@ -10,7 +10,13 @@ import time
 import shutil
 import subprocess
 
-# Set logging level and format logging entries.
+# TODO:
+# 1. create class to log system performance (RAM, CPU, disk space)
+# 2. Create another class to observe main python process, and count threads
+# 3. Check out the OOM killer /var/log/messages
+# ^^ Find python libraries for this ^^
+
+# Alpine as potential option for 
 
 logging.basicConfig(filename = '/home/pi/server_logfile.log', level = logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -84,7 +90,7 @@ class Server():
                 (client_socket, client_address) = self.sock.accept()
                 try:
                     if client_socket:
-                        thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors, self.debug)
+                        thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors, self.debug, self.audio, self.photo)
                         thr.start()
                         thr.join()
                         print("New connection with: {}".format(client_address))
@@ -113,7 +119,7 @@ class MyThreadedSocket(threading.Thread):
             Pointer to master class of sensors.  Allows thread
             to get readings from sensors to send to client.
     """
-    def __init__(self, socket, address, settings, sensors, debug):
+    def __init__(self, socket, address, settings, sensors, debug, audio, photo):
         threading.Thread.__init__(self)
         self.client_socket = socket
         self.client_address = address
@@ -121,6 +127,8 @@ class MyThreadedSocket(threading.Thread):
         self.settings = settings
         self.sensors = sensors
         self.debug = debug
+        self.audio = audio
+        self.photo = photo
     
     def decode_request(self):
         """
@@ -312,7 +320,7 @@ class MyThreadedSocket(threading.Thread):
 
                 # time.sleep(10)
                 logging.warning("self.client_request = restart.  Time is: {}".format(dt))
-                subprocess.run("sudo reboot", shell = True)
+                self.subprocess.run("sudo reboot", shell = True)
                 # subprocess.run("sudo service hpd_mobile restart", shell = True)
             except Exception as e:
                 logging.warning('restart excepted.  Exception: {}'.format(e))

@@ -377,6 +377,8 @@ class MyPhoto(threading.Thread):
                             img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
                             # Write to disk
+                            # This is closing the image file???
+                            # look into /var/log/messages grep for oom killer
                             cv2.imwrite(f_path, img)
                             if datetime.now().second == 0:
                                 logging.info("Created file: {}".format(f_path))
