@@ -445,7 +445,7 @@ class MyPhoto(threading.Thread):
         ''' Image Check Files'''
         t = datetime.now() - timedelta(minutes=1)
         d = t.strftime("%Y-%m-%d")
-        h = t.strftime("%H%M")
+        hr = t.strftime("%H%M")
 
         self.prev_min_img_dir = os.path.join(self.img_root_date, t.strftime("%H%M"))
         should_have_files = [os.path.join(
