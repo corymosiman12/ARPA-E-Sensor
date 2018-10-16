@@ -231,7 +231,7 @@ class MyRetriever(threading.Thread):
                         print(
                             'File not found on Server.  No way to retrieve past info.')
                     self.to_retrieve.task_done()
-                    self.bad_img_transfers += 1
+                    # self.bad_img_transfers += 1
                     # self.restart_dat_img()
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
@@ -331,6 +331,7 @@ class MyPhoto(threading.Thread):
         self.bad_img_transfers = 0
         self.stream_type = stream_type
         self.video_status = False
+        self.img_checked = False
         self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
         self.create_root_img_dir()
         self.connect_to_video()
@@ -535,9 +536,12 @@ class MyPhoto(threading.Thread):
                 self.bad_img_transfers = 0
                 self.connect_to_video() 
             t = datetime.now()
-            if t.second == 1:
+            if t.second == 1 and not self.img_checked:
                 file_checker = threading.Thread(target=self.has_correct_files)
                 file_checker.start()
+                self.img_checked = True
+            if t.second != 1:
+                self.img_checked = False
             f_name = t.strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir, f_name)
 
