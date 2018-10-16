@@ -57,9 +57,11 @@ This is a combination of the update posted in [this install guide](https://mediu
 
 2. virtualenv and virtualenvwrapper setup
 `$ nano .bashrc` and add the following 3 lines to bottom
+```
 export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
 export WORKON_HOME=$HOME/.virtualenvs
 source /usr/local/bin/virtualenvwrapper.sh
+```
 
 Exit out of the `.bashrc` file and run at the command line
 `$ source .bashrc`
