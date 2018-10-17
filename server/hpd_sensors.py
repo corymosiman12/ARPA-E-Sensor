@@ -9,6 +9,11 @@ from datetime import datetime
 import time
 import pyaudio
 import wave
+import numpy as np
+import cv2
+import imutils
+from imutils.video import WebcamVideoStream
+import wave
 import os
 import sys
 import logging

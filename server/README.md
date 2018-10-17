@@ -124,12 +124,13 @@ sudo rpi-update
 ```
 
 ## [PyAudio]
+1. `(cv) $ sudo apt-get install portaudio19-dev`
+2. `(cv) $ pip install PyAudio==0.2.11`
 
 ## Others
 1. `(cv) $ pip install circuitpython-build-tools==1.1.5`
 2. `(cv) $ pip install smbus2==0.2.1`
 3. `(cv) $ pip install board==0.0.0.post0`
-
 
 # Other things:
 1. Configure Github on pi:
@@ -137,7 +138,8 @@ sudo rpi-update
 `$ cd /home/pi/Github`
 `$ git init`
 `$ git remote add origin https://github.com/corymosiman12/ARPA-E-Sensor`
-`$ git pull origin master`
+`$ git fetch origin`
+`(cv) $ git checkout img_client_side`
 
 You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
 
