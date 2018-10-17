@@ -59,14 +59,14 @@ Now, to test the pi running over the network:
 # Environment Setup
 This is a combination of the update posted in [this install guide](https://medium.com/@debugvn/installing-opencv-3-3-0-on-ubuntu-16-04-lts-7db376f93961), addressing the [errors noted here](https://stackoverflow.com/questions/47113029/importerror-libsm-so-6-cannot-open-shared-object-file-no-such-file-or-directo).  Note that parts 1 and 2 are just to get the virtualenv setup.  Once we are in the virtualenv, it follows the first install guide.
 
-1. Install pip
-`$ wget https://bootstrap.pypa.io/get-pip.py `
-`$ python3 get-pip.py`
-`$ rm get-pip.py`
-`$ pip3 install virtualenv virtualenvwrapper`
+## Install pip
+1. `$ wget https://bootstrap.pypa.io/get-pip.py `
+2. `$ python3 get-pip.py`
+3. `$ rm get-pip.py`
+4. `$ pip3 install virtualenv virtualenvwrapper`
 
-2. virtualenv and virtualenvwrapper setup
-`$ nano .bashrc` and add the following 3 lines to bottom
+## virtualenv and virtualenvwrapper setup
+1. `$ nano .bashrc` and add the following 3 lines to bottom
 ```
 export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
 export WORKON_HOME=$HOME/.virtualenvs
@@ -74,10 +74,12 @@ source /usr/local/bin/virtualenvwrapper.sh
 ```
 
 Exit out of the `.bashrc` file and run at the command line
-`$ source .bashrc`
 
-3. Create a new virtualenv called 'cv'
-`$ mkvirtualenv cv`
+2. `$ source .bashrc`
+
+Create a new virtualenv called 'cv'
+
+3. `$ mkvirtualenv cv`
 
 # OpenCV Setup
 When you are in the virtualenv, (cv) should appear at the front now.  You can run `(cv) $ deactivate` to exit out of a virtualenv.  Then run `$ workon cv` to enter back into the virtualenv.  See here for docs: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
@@ -109,7 +111,10 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 
 ## VL53L1X
 1. `(cv) $ pip install VL53L1X==0.0.2`
-Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e19c4965219eff5baac085f49502503045) and change code to match accordingly.  If all steps have been followed correctly, code should be in: `/home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
+
+Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e19c4965219eff5baac085f49502503045) and change code to match accordingly.  If all steps have been followed correctly, code should be in:
+
+`/home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
 
 ## [I2S Microphone](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
@@ -133,13 +138,13 @@ sudo rpi-update
 3. `(cv) $ pip install board==0.0.0.post0`
 
 # Other things:
-1. Configure Github on pi:
-`$ mkdir /home/pi/Github`
-`$ cd /home/pi/Github`
-`$ git init`
-`$ git remote add origin https://github.com/corymosiman12/ARPA-E-Sensor`
-`$ git fetch origin`
-`(cv) $ git checkout img_client_side`
+## Configure Github on pi:
+1. `$ mkdir /home/pi/Github`
+2. `$ cd /home/pi/Github`
+3. `$ git init`
+4. `$ git remote add origin https://github.com/corymosiman12/ARPA-E-Sensor`
+5. `$ git fetch origin`
+6. `(cv) $ git checkout img_client_side`
 
 You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
 
