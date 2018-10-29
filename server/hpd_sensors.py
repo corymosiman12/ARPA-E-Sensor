@@ -10,7 +10,6 @@ import time
 import pyaudio
 import wave
 import numpy as np
-import cv2
 import imutils
 from imutils.video import WebcamVideoStream
 import wave
