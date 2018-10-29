@@ -1,6 +1,8 @@
 # Intro
 A service basically allows us to run a script immediately on boot without having to enter any commands.
 
+We will want to make sure that the services work on all of the Pi's, but we need to disable them until we are ready to deploy.  This eliminates the service from running (collecting data) when we aren't testing / depoloying.  SO, after we go through the following, make sure to run `sudo systemctl disable hpd_mobile.service`, which will prevent it from starting on boot.
+
 # Server Side
 1. On the pi, run the following to create a new file: `$ sudo touch /lib/systemd/system/hpd_mobile.service`.  Edit that file by running `$ sudo nano /lib/systemd/system/hpd_mobile.service` and add the following:
 

@@ -135,7 +135,6 @@ sudo rpi-update
 ## Others
 1. `(cv) $ pip install circuitpython-build-tools==1.1.5`
 2. `(cv) $ pip install smbus2==0.2.1`
-3. `(cv) $ pip install board==0.0.0.post0`
 
 # Other things:
 ## Configure Github on pi:
@@ -165,3 +164,13 @@ network={
 3. SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
 
 4. Likely missed things...
+
+# Update 10/28/18
+Hannah - apologies, I made a mistake in the previous stuff.  On the SD cards you have gone through the above steps already, I need you to do the following.
+
+1. `$ workon cv`
+2. `(cv) $ pip uninstall board` (agree to removal)
+3. `(cv) $ pip uninstall adafruit-blinka` (agree to removal)
+4. `(cv) $ pip install adafruit-blinka`
+
+I have changed this in the install instructions now (removed from the `Others` section above), so you can now follow those instructions exactly.
