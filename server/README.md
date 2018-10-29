@@ -9,29 +9,30 @@ This page is meant to describe the process for getting the UV4L library up and r
 
 # First
 To free up some space and limit the number of packages we will eventually install, we are going to remove our wolfram and libreoffice packages:
-`$ sudo apt-get purge wolfram-engine`
-`$ sudo apt-get clean && sudo apt-get autoremove`
-`$ sudo apt-get remove --purge libreoffice*`
-`$ sudo apt-get clean && sudo apt-get autoremove`
-`$ sudo reboot`
-`$ sudo apt update && sudo apt upgrade`
+1. `$ sudo apt-get purge wolfram-engine`
+2. `$ sudo apt-get clean && sudo apt-get autoremove`
+3. `$ sudo apt-get remove --purge libreoffice*`
+4. `$ sudo apt-get clean && sudo apt-get autoremove`
+5. `$ sudo reboot`
+6. `$ sudo apt update && sudo apt upgrade`
 
 # UV4L on the Pi
 Open a terminal and type:
-`$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -`
+1. `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -`
 
-Add the following line to the end of the file `/etc/apt/sources.list` by typing `$ nano /etc/apt/sources.list` at the command line:
-`deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
+Add the following line to the end of the file `/etc/apt/sources.list` by typing: 
+2. `$ sudo nano /etc/apt/sources.list` at the command line:
+3. Add at the end: `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
 Next, update, fetch, and install uv4l packages:
-`$ sudo apt-get update`
-`$ sudo apt-get install uv4l uv4l-raspicam`
+4. `$ sudo apt-get update`
+5. `$ sudo apt-get install uv4l uv4l-raspicam`
 
 We want the driver to load at boot, so type the following
-`$ sudo apt-get install uv4l-raspicam-extras`
+6. `$ sudo apt-get install uv4l-raspicam-extras`
 
 Install the front-end server:
-`$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp`
+7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp`
 
 Reboot the pi.  By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
 
@@ -61,9 +62,9 @@ This is a combination of the update posted in [this install guide](https://mediu
 
 ## Install pip
 1. `$ wget https://bootstrap.pypa.io/get-pip.py `
-2. `$ python3 get-pip.py`
+2. `$ sudo python3 get-pip.py`
 3. `$ rm get-pip.py`
-4. `$ pip3 install virtualenv virtualenvwrapper`
+4. `$ sudo pip3 install virtualenv virtualenvwrapper`
 
 ## virtualenv and virtualenvwrapper setup
 1. `$ nano .bashrc` and add the following 3 lines to bottom
@@ -84,13 +85,13 @@ Create a new virtualenv called 'cv'
 # OpenCV Setup
 When you are in the virtualenv, (cv) should appear at the front now.  You can run `(cv) $ deactivate` to exit out of a virtualenv.  Then run `$ workon cv` to enter back into the virtualenv.  See here for docs: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
 
-1. Install OpenCV (+ dependencies) and imutils
-`(cv) $ pip install opencv-python`
-`(cv) $ apt update && apt upgrade`
-`(cv) $ apt install -y libsm6 libxext6`
-`(cv) $ apt install -y libxrender-dev`
-`(cv) $ pip install imutils`
-`(cv) $ pip install influxdb`
+Install OpenCV (+ dependencies) and imutils
+1. `(cv) $ pip install opencv-python`
+2. `(cv) $ apt update && apt upgrade`
+3. `(cv) $ apt install -y libsm6 libxext6`
+4. `(cv) $ apt install -y libxrender-dev`
+5. `(cv) $ pip install imutils`
+6. `(cv) $ pip install influxdb`
 
 # Other Libraries
 ## [Circuit Python](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
@@ -116,21 +117,40 @@ Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e1
 
 `/home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
 
+type:
+`$ sudo nano home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
+
 ## [I2S Microphone](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
-**CAREFUL, DON'T FOLLOW EXACTLY AS WEBSITE SAYS**
 Deactivate your virtualenv `(cv) $ deactivate`
 
-Go through all of the lines EXCEPT:
-```
-sudo apt-get update
-sudo apt-get install rpi-update
-sudo rpi-update
-```
+1. `$ sudo nano /boot/config.txt` -- Uncomment #dtparam=i2s=on
+2. `$ sudo nano /etc/modules` -- Add `snd-bcm2835` on its own line
+3. `$ sudo reboot`
+4. `$ lsmod | grep snd`
+5. `$ sudo apt-get install git bc libncurses5-dev`
+6. `$ sudo wget https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source -O /usr/bin/rpi-source`
+7. `$ sudo chmod +x /usr/bin/rpi-source`
+8. `$ /usr/bin/rpi-source -q --tag-update`
+9. `$ rpi-source --skip-gcc`
+10. `$ sudo mount -t debugfs debugs /sys/kernel/debug` -- This may already be done and will say - mount: debugs is already mounted  - 
+11. Make sure the module name is: 3f203000.i2s  by typing `$ sudo cat /sys/kernel/debug/asoc/platforms`
+12. `$ git clone https://github.com/PaulCreaser/rpi-i2s-audio`
+13. `$ d rpi-i2s-audio`
+14. `$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules`
+15. `$ sudo insmod my_loader.ko`
+16. Verify that the module was loaded: `$ lsmod | grep my_loader` -> `$ dmesg | tail`
+17. Set to autoload on startup:
+18. `$ sudo cp my_loader.ko /lib/modules/$(uname -r)`
+19. `$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null`
+20. `$ sudo depmod -a`
+21. `$ sudo modprobe my_loader`
+22. `$ sudo reboot`
 
-## [PyAudio]
+
+## PyAudio
 1. `(cv) $ sudo apt-get install portaudio19-dev`
-2. `(cv) $ pip install PyAudio==0.2.11`
+2. `(cv) $ sudo pip install PyAudio==0.2.11`
 
 ## Others
 1. `(cv) $ pip install circuitpython-build-tools==1.1.5`
