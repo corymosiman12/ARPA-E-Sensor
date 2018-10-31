@@ -16,7 +16,7 @@ import subprocess
 # 3. Check out the OOM killer /var/log/messages
 # ^^ Find python libraries for this ^^
 
-# Alpine as potential option for 
+# Alpine as potential option for OS
 
 logging.basicConfig(filename = '/home/pi/server_logfile.log', level = logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -44,7 +44,7 @@ class Server():
         self.stream_type = self.settings['stream_type']
         self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']), self.debug)
         self.audio = hpd_sensors.MyAudio(self.audio_root, self.debug)
-        self.photo = hpd_sensors.MyPhoto(self.img_root, self.stream_type, self.debug)
+        # self.photo = hpd_sensors.MyPhoto(self.img_root, self.stream_type, self.debug)
         self.create_socket()
         
     def import_server_conf(self):
@@ -341,8 +341,11 @@ class MyThreadedSocket(threading.Thread):
                 # time.sleep(10)
 
                 logging.warning("self.client_request = restart_img.  Time is: {}".format(dt))
-                subprocess.run("sudo reboot", shell = True)
-                # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
+                # subprocess.run("sudo reboot", shell = True)
+                subprocess.run("sudo service uv4l_raspicam stop", shell = True)
+                time.sleep(2)
+                subprocess.run("sudo service uv4l_raspicam start", shell = True)
+                
             except Exception as e:
                 logging.warning('restart_img excepted.  Exception: {}'.format(e))
                 if self.client_socket:
