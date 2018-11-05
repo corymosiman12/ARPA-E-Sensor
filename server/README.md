@@ -183,7 +183,7 @@ This last part may take 15 minutes or so
 
 Now compile i2s support <br />
 6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
--- This may already be done and will say - mount: debugs is already mounted. Keep going 
+This may already be done and will say - mount: debugs is already mounted. Keep going <br />
 
 7. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
 
@@ -198,8 +198,8 @@ Now compile i2s support <br />
 `$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules` <br />
 `$ sudo insmod my_loader.ko` <br />
 
-10. Verify that the module was loaded: <br \>
-`$ lsmod | grep my_loader` <br \>
+10. Verify that the module was loaded: <br />
+`$ lsmod | grep my_loader` <br />
 `$ dmesg | tail` 
 
 ![Module-Loaded](https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051)
