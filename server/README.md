@@ -18,23 +18,26 @@ To free up some space and limit the number of packages we will eventually instal
 
 # UV4L on the Pi
 Open a terminal and type:
-1. `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -`
+1. `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
 
-Add the following line to the end of the file `/etc/apt/sources.list` by typing: 
+Add the following line to the end of the file `/etc/apt/sources.list` by typing: <br />
 2. `$ sudo nano /etc/apt/sources.list` at the command line:
-3. Add at the end: `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
+3. Then add at the end of the file: <br />
+`deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
-Next, update, fetch, and install uv4l packages:
-4. `$ sudo apt-get update`
-5. `$ sudo apt-get install uv4l uv4l-raspicam`
+Next, update, fetch, and install uv4l packages: <br />
+4. `$ sudo apt-get update` <br />
+5. `$ sudo apt-get install uv4l uv4l-raspicam` <br />
 
-We want the driver to load at boot, so type the following
-6. `$ sudo apt-get install uv4l-raspicam-extras`
+We want the driver to load at boot, so type the following <br />
+6. `$ sudo apt-get install uv4l-raspicam-extras` <br />
 
-Install the front-end server:
-7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp`
+Install the front-end server: <br />
+7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp` <br />
 
-Reboot the pi.  By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
+Reboot the pi. <br />
+
+By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
 
 ## Raspicam Options
 Edit the raspicam default options to use a lower resolution and framerate and use mjpeg streaming.  Set the resolution to 336x336 and the framerate to 2fps.  This is done via:
@@ -157,7 +160,7 @@ Deactivate your virtualenv `(cv) $ deactivate`
 2. `(cv) $ pip install smbus2==0.2.1`
 
 # Other things:
-## Configure Github on pi:
+### 1. Configure Github on pi:
 1. `$ mkdir /home/pi/Github`
 2. `$ cd /home/pi/Github`
 3. `$ git init`
@@ -167,25 +170,54 @@ Deactivate your virtualenv `(cv) $ deactivate`
 
 You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
 
-2. Need to add cradlepoint network to pi and make sure it is `preferred`.
+
+
+### 2. Rename pi name (need to change in two files on pi)
+`$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then rebooting.
+then just go to: `$ sudo nano /etc/hosts` 
+and make sure the line with `127.0.1.1` looks like:
+```127.0.1.1          <our_hostname>```
+where `<our_hostname>` would be BS3 or whatever.
+
+
+### 3. Set Cradlepoint as preferred network and set priority
+Need to add cradlepoint network to pi and make sure it is `preferred`.
 - Can just do this throught the pi GUI
 - To ensure on boot that it joins correct network, edit: `$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`, and set priority as follows:
+
 ```
 network={
     ssid = "cradlepoint_net"
     key_mgmt=NONE
     priority = 1
 }
+```
+
+
+ Then, make sure that the cradlepoint network is at top priority (i.e. it will join it first out of all other networks) by editing:
+ `$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`.  It should resemble:
+
+```
 network={
-   ...Don't care...
+ssid="IBR600B-3f4"
+psk="443163f4"
+priority=1
+key_mgmt=WPA-PSK
 }
 ```
 
-3. SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
+`$ sudo reboot` Check that it has joined the CP network.
 
-4. Likely missed things...
 
-# Update 10/28/18
+### 4.
+SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
+
+## If need to reset time/date:
+`$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
+Or if you run `$ date` at cmd line, it says old date.  Run `$ timedatectl`, run `$ date` again - should be updated
+
+
+# Update 10/28/18 for SD cards already formatted 
 Hannah - apologies, I made a mistake in the previous stuff.  On the SD cards you have gone through the above steps already, I need you to do the following.
 
 1. `$ workon cv`
