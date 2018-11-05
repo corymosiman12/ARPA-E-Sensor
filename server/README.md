@@ -181,7 +181,7 @@ Now we manually compile to i2s support
 `$ rpi-source --skip-gcc` <br />
 This last part may take 15 minutes or so
 
-Now compile i2s support <br \>
+Now compile i2s support <br />
 6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
 -- This may already be done and will say - mount: debugs is already mounted. Keep going 
 
