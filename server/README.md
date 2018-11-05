@@ -21,7 +21,8 @@ Open a terminal and type:
 1. `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
 
 Add the following line to the end of the file `/etc/apt/sources.list` by typing: <br />
-2. `$ sudo nano /etc/apt/sources.list` at the command line:
+
+2. `$ sudo nano /etc/apt/sources.list` at the command line <br />
 3. Then add at the end of the file: <br />
 `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
