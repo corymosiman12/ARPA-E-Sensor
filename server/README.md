@@ -23,8 +23,8 @@ Open a terminal and type:
 Add the following line to the end of the file `/etc/apt/sources.list` by typing: <br />
 
 2. `$ sudo nano /etc/apt/sources.list` at the command line <br />
-3. Then add at the end of the file: <br />
-`deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
+
+3. Then add at the end of the file: `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
 Next, update, fetch, and install uv4l packages: <br />
 4. `$ sudo apt-get update` <br />
@@ -36,7 +36,7 @@ We want the driver to load at boot, so type the following <br />
 Install the front-end server: <br />
 7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp` <br />
 
-Reboot the pi. <br />
+8. Reboot the pi. <br />
 
 By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
 
