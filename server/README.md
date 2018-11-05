@@ -157,7 +157,8 @@ Uncomment `#dtparam=i2s=on` <br />
 `$ sudo nano /etc/modules` <br />
 Add `snd-bcm2835` on its own line as shown below <br />
 
-![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865)
+![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865|width=300)
+
 
 Reboot with `$ sudo reboot` <br />
 
@@ -180,7 +181,7 @@ Now we manually compile to i2s support
 `$ rpi-source --skip-gcc` <br />
 This last part may take 15 minutes or so
 
-Now compile i2s support
+Now compile i2s support <br \>
 6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
 -- This may already be done and will say - mount: debugs is already mounted. Keep going 
 
