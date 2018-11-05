@@ -9,9 +9,12 @@ This page is meant to describe the process for getting the UV4L library up and r
 
 
 ## If need to reset time/date:
+
 `$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
-Or if you run `$ date` at cmd line, it says old date.  Run `$ timedatectl`, run `$ date` again - should be updated
-Rename pi name (need to change in two files on pi)
+
+Or if you run `$ date` at cmd line and it says old date, run: `$ timedatectl`, run `$ date` again.
+
+## Rename pi (need to change in two files on pi)
 `$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then rebooting.
 then just go to: `$ sudo nano /etc/hosts` 
 and make sure the line with `127.0.1.1` looks like:
@@ -19,7 +22,7 @@ and make sure the line with `127.0.1.1` looks like:
 where `<our_hostname>` would be BS3 or whatever.
 
 
-# First
+# Remove unnecessary packages
 To free up some space and limit the number of packages we will eventually install, we are going to remove our wolfram and libreoffice packages:
 1. `$ sudo apt-get purge wolfram-engine`
 2. `$ sudo apt-get clean && sudo apt-get autoremove`
@@ -32,13 +35,15 @@ To free up some space and limit the number of packages we will eventually instal
 Open a terminal and type:
 1. `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
 
-Add the following line to the end of the file `/etc/apt/sources.list` by typing: <br />
+Add the following line to the end of the `sources.list` file by typing:
 
-2. `$ sudo nano /etc/apt/sources.list` at the command line <br />
+2. `$ sudo nano /etc/apt/sources.list` at the command line
 
-3. Then add at the end of the file: `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
+3. Then add at the end of the file: 
+`deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
-Next, update, fetch, and install uv4l packages: <br />
+Next, update, fetch, and install uv4l packages:
+
 4. `$ sudo apt-get update` <br />
 5. `$ sudo apt-get install uv4l uv4l-raspicam` <br />
 
@@ -46,7 +51,7 @@ We want the driver to load at boot, so type the following <br />
 6. `$ sudo apt-get install uv4l-raspicam-extras` <br />
 
 Install the front-end server: <br />
-7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp` <br />
+7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp`
 
 8. Reboot the pi. <br />
 
