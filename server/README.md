@@ -15,8 +15,9 @@ This page is meant to describe the process for getting the UV4L library up and r
 Or if you run `$ date` at cmd line and it says old date, run: `$ timedatectl`, run `$ date` again.
 
 ## Rename pi (need to change in two files on pi)
-`$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then rebooting.
-then just go to: `$ sudo nano /etc/hosts` 
+`$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then reboot.
+
+Go to: `$ sudo nano /etc/hosts` 
 and make sure the line with `127.0.1.1` looks like:
 ```127.0.1.1          <our_hostname>```
 where `<our_hostname>` would be BS3 or whatever.
@@ -32,28 +33,27 @@ To free up some space and limit the number of packages we will eventually instal
 6. `$ sudo apt update && sudo apt upgrade`
 
 # UV4L on the Pi
-Open a terminal and type:
-1. `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
+Open a terminal and type:<br />
+`$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
 
-Add the following line to the end of the `sources.list` file by typing:
+Add the following line to the end of the `sources.list` file by typing: <br />
+`$ sudo nano /etc/apt/sources.list` at the command line
 
-2. `$ sudo nano /etc/apt/sources.list` at the command line
-
-3. Then add at the end of the file: 
+Then add at the end of the file: 
 `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
-Next, update, fetch, and install uv4l packages:
+Next, update, fetch, and install uv4l packages: <br />
 
-4. `$ sudo apt-get update` <br />
-5. `$ sudo apt-get install uv4l uv4l-raspicam` <br />
+`$ sudo apt-get update` <br />
+`$ sudo apt-get install uv4l uv4l-raspicam` <br />
 
 We want the driver to load at boot, so type the following <br />
-6. `$ sudo apt-get install uv4l-raspicam-extras` <br />
+`$ sudo apt-get install uv4l-raspicam-extras` <br />
 
 Install the front-end server: <br />
-7. `$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp`
+`$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp` <br />
 
-8. Reboot the pi. <br />
+Reboot the pi. <br />
 
 By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
 
@@ -153,7 +153,7 @@ Deactivate your virtualenv `(cv) $ deactivate`
 `$ sudo nano /boot/config.txt` <br/>
 Uncomment `#dtparam=i2s=on` <br />
 
-2. Make sure sound support is enabled in the kernal with: <br \>
+2. Make sure sound support is enabled in the kernal with: <br />
 `$ sudo nano /etc/modules` <br />
 Add `snd-bcm2835` on its own line as shown below <br />
 
@@ -161,7 +161,7 @@ Add `snd-bcm2835` on its own line as shown below <br />
 
 Reboot with `$ sudo reboot` <br />
 
- Once rebooted confirm that the mdoule is loaded with: <br />
+3. Once rebooted confirm that the mdoule is loaded with: <br />
  `$ lsmod | grep snd`
 
 ![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026)
@@ -170,24 +170,44 @@ Reboot with `$ sudo reboot` <br />
 
 ### Kernal Compiling
 Now we manually compile to i2s support
-5. `$ sudo apt-get install git bc libncurses5-dev`
-6. `$ sudo wget https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source -O /usr/bin/rpi-source`
-7. `$ sudo chmod +x /usr/bin/rpi-source`
-8. `$ /usr/bin/rpi-source -q --tag-update`
-9. `$ rpi-source --skip-gcc`
-10. `$ sudo mount -t debugfs debugs /sys/kernel/debug` -- This may already be done and will say - mount: debugs is already mounted. Keep going 
+4. Install the compilation dependencies <br />
+`$ sudo apt-get install git bc libncurses5-dev` <br />
 
-11. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
+5. Download kernel source and compile <br />
+`$ sudo wget https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source -O /usr/bin/rpi-source` <br />
+`$ sudo chmod +x /usr/bin/rpi-source` <br />
+`$ /usr/bin/rpi-source -q --tag-update` <br />
+`$ rpi-source --skip-gcc` <br />
+This last part may take 15 minutes or so
 
-Download the module written by Paul Creaser <br />
+Now compile i2s support
+6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
+-- This may already be done and will say - mount: debugs is already mounted. Keep going 
+
+7. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
+
+![kernel-debug](https://cdn-learn.adafruit.com/assets/assets/000/040/624/original/sensors_Screen_Shot_2017-04-03_at_11.40.14_AM.png?1491244426)
+
+
+8. Download the module written by Paul Creaser <br />
 `$ git clone https://github.com/PaulCreaser/rpi-i2s-audio` <br />
 `$ cd rpi-i2s-audio` <br />
 
-14. Compile the module with <br />
+9. Compile the module with <br />
 `$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules` <br />
-`$ sudo insmod my_loader.ko`
-Verify that the module was loaded: `$ lsmod | grep my_loader` -> `$ dmesg | tail` <br />
-17. Set to autoload on startup: <br />
+`$ sudo insmod my_loader.ko` <br />
+
+10. Verify that the module was loaded: <br \>
+`$ lsmod | grep my_loader` <br \>
+`$ dmesg | tail` 
+
+![Module-Loaded](https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051)
+
+Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-dummy-dai <-> 3F203000.i2s mapping ok` on the last line 
+
+
+
+11.  Set to autoload on startup: <br />
 `$ sudo cp my_loader.ko /lib/modules/$(uname -r)` <br />
 `$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null` <br />
 `$ sudo depmod -a` <br />
