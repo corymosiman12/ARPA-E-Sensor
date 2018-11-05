@@ -140,35 +140,43 @@ type:
 
 
 
-## [I2S Microphone](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
+## [I2S Configuration](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
 Deactivate your virtualenv `(cv) $ deactivate`
 
-1. `$ sudo nano /boot/config.txt` -- Uncomment #dtparam=i2s=on
+Turn on i2s support by editing /boot/config.txt with:
+1. `$ sudo nano /boot/config.txt` <br/>
+Uncomment `#dtparam=i2s=on`
+
 2. `$ sudo nano /etc/modules` -- Add `snd-bcm2835` on its own line
 3. `$ sudo reboot`
 4. `$ lsmod | grep snd`
+### Kernal Compiling
+Now we manually compile to i2s support
 5. `$ sudo apt-get install git bc libncurses5-dev`
 6. `$ sudo wget https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source -O /usr/bin/rpi-source`
 7. `$ sudo chmod +x /usr/bin/rpi-source`
 8. `$ /usr/bin/rpi-source -q --tag-update`
 9. `$ rpi-source --skip-gcc`
-10. `$ sudo mount -t debugfs debugs /sys/kernel/debug` -- This may already be done and will say - mount: debugs is already mounted  - 
-11. Make sure the module name is: 3f203000.i2s  by typing `$ sudo cat /sys/kernel/debug/asoc/platforms`
+10. `$ sudo mount -t debugfs debugs /sys/kernel/debug` -- This may already be done and will say - mount: debugs is already mounted. Keep going 
+11. Make sure the module name is: 3f203000.i2s  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
+Download the module written by Paul Creaser
 12. `$ git clone https://github.com/PaulCreaser/rpi-i2s-audio`
-13. `$ d rpi-i2s-audio`
-14. `$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules`
-15. `$ sudo insmod my_loader.ko`
-16. Verify that the module was loaded: `$ lsmod | grep my_loader` -> `$ dmesg | tail`
-17. Set to autoload on startup:
-18. `$ sudo cp my_loader.ko /lib/modules/$(uname -r)`
-19. `$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null`
-20. `$ sudo depmod -a`
-21. `$ sudo modprobe my_loader`
-22. `$ sudo reboot`
+13. `$ cd rpi-i2s-audio`
+14. Compile the module with
+`$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules` <br />
+`$ sudo insmod my_loader.ko`
+Verify that the module was loaded: `$ lsmod | grep my_loader` -> `$ dmesg | tail`
+17. Set to autoload on startup: <br />
+`$ sudo cp my_loader.ko /lib/modules/$(uname -r)` <br />
+`$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null` <br />
+`$ sudo depmod -a` <br />
+`$ sudo modprobe my_loader` <br />
+`$ sudo reboot`
 
 
 ## PyAudio
+activate virtual environment with  `workon cv`
 1. `(cv) $ sudo apt-get install portaudio19-dev`
 2. `(cv) $ sudo pip install PyAudio==0.2.11`
 
