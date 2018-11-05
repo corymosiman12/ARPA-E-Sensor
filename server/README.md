@@ -157,7 +157,7 @@ Uncomment `#dtparam=i2s=on` <br />
 `$ sudo nano /etc/modules` <br />
 Add `snd-bcm2835` on its own line as shown below <br />
 
-![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865|width=300)
+![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865|width=100)
 
 
 Reboot with `$ sudo reboot` <br />
