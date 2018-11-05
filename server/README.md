@@ -7,6 +7,18 @@ This page is meant to describe the process for getting the UV4L library up and r
 4. Enable SPI, I2C, SSH, Camera
 3. For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
 
+
+## If need to reset time/date:
+`$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
+Or if you run `$ date` at cmd line, it says old date.  Run `$ timedatectl`, run `$ date` again - should be updated
+Rename pi name (need to change in two files on pi)
+`$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then rebooting.
+then just go to: `$ sudo nano /etc/hosts` 
+and make sure the line with `127.0.1.1` looks like:
+```127.0.1.1          <our_hostname>```
+where `<our_hostname>` would be BS3 or whatever.
+
+
 # First
 To free up some space and limit the number of packages we will eventually install, we are going to remove our wolfram and libreoffice packages:
 1. `$ sudo apt-get purge wolfram-engine`
@@ -91,9 +103,9 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 
 Install OpenCV (+ dependencies) and imutils
 1. `(cv) $ pip install opencv-python`
-2. `(cv) $ apt update && apt upgrade`
-3. `(cv) $ apt install -y libsm6 libxext6`
-4. `(cv) $ apt install -y libxrender-dev`
+2. `(cv) $ sudo apt update && sudo apt upgrade`
+3. `(cv) $ sudo apt install -y libsm6 libxext6`
+4. `(cv) $ sudo apt install -y libxrender-dev`
 5. `(cv) $ pip install imutils`
 6. `(cv) $ pip install influxdb`
 
@@ -173,13 +185,6 @@ You will need to add in your credentials to the git manager to pull from Github.
 
 
 
-### 2. Rename pi name (need to change in two files on pi)
-`$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then rebooting.
-then just go to: `$ sudo nano /etc/hosts` 
-and make sure the line with `127.0.1.1` looks like:
-```127.0.1.1          <our_hostname>```
-where `<our_hostname>` would be BS3 or whatever.
-
 
 ### 3. Set Cradlepoint as preferred network and set priority
 Need to add cradlepoint network to pi and make sure it is `preferred`.
@@ -213,9 +218,6 @@ key_mgmt=WPA-PSK
 ### 4.
 SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
 
-## If need to reset time/date:
-`$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
-Or if you run `$ date` at cmd line, it says old date.  Run `$ timedatectl`, run `$ date` again - should be updated
 
 
 # Update 10/28/18 for SD cards already formatted 
