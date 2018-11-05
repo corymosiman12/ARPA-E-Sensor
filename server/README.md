@@ -134,7 +134,11 @@ Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e1
 `/home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
 
 type:
-`$ sudo nano home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
+`$ sudo nano /home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py` <br />
+
+### NOTE: When copy/pasting from the link the "try" line gets indented. Make sure to remove indent manually.
+
+
 
 ## [I2S Microphone](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
