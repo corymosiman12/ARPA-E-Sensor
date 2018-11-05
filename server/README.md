@@ -144,13 +144,25 @@ type:
 
 Deactivate your virtualenv `(cv) $ deactivate`
 
-Turn on i2s support by editing /boot/config.txt with:
-1. `$ sudo nano /boot/config.txt` <br/>
-Uncomment `#dtparam=i2s=on`
+1. Turn on i2s support by editing /boot/config.txt with: <br />
+`$ sudo nano /boot/config.txt` <br/>
+Uncomment `#dtparam=i2s=on` <br />
 
-2. `$ sudo nano /etc/modules` -- Add `snd-bcm2835` on its own line
-3. `$ sudo reboot`
-4. `$ lsmod | grep snd`
+2. Make sure sound support is enabled in the kernal with: <br \>
+`$ sudo nano /etc/modules` <br />
+Add `snd-bcm2835` on its own line as shown below <br />
+
+![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865)
+
+Reboot with `$ sudo reboot` <br />
+
+ Once rebooted confirm that the mdoule is loaded with: <br />
+ `$ lsmod | grep snd`
+
+![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026)
+
+
+
 ### Kernal Compiling
 Now we manually compile to i2s support
 5. `$ sudo apt-get install git bc libncurses5-dev`
@@ -159,14 +171,17 @@ Now we manually compile to i2s support
 8. `$ /usr/bin/rpi-source -q --tag-update`
 9. `$ rpi-source --skip-gcc`
 10. `$ sudo mount -t debugfs debugs /sys/kernel/debug` -- This may already be done and will say - mount: debugs is already mounted. Keep going 
-11. Make sure the module name is: 3f203000.i2s  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
-Download the module written by Paul Creaser
-12. `$ git clone https://github.com/PaulCreaser/rpi-i2s-audio`
-13. `$ cd rpi-i2s-audio`
-14. Compile the module with
+
+11. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
+
+Download the module written by Paul Creaser <br />
+`$ git clone https://github.com/PaulCreaser/rpi-i2s-audio` <br />
+`$ cd rpi-i2s-audio` <br />
+
+14. Compile the module with <br />
 `$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules` <br />
 `$ sudo insmod my_loader.ko`
-Verify that the module was loaded: `$ lsmod | grep my_loader` -> `$ dmesg | tail`
+Verify that the module was loaded: `$ lsmod | grep my_loader` -> `$ dmesg | tail` <br />
 17. Set to autoload on startup: <br />
 `$ sudo cp my_loader.ko /lib/modules/$(uname -r)` <br />
 `$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null` <br />
