@@ -150,7 +150,7 @@ type:
 Deactivate your virtualenv `(cv) $ deactivate`
 
 1. Turn on i2s support by editing /boot/config.txt with: <br />
-`$ sudo nano /boot/config.txt` <br/>
+`$ sudo nano /boot/config.txt` <br />
 Uncomment `#dtparam=i2s=on` <br />
 
 2. Make sure sound support is enabled in the kernal with: <br />
@@ -163,14 +163,14 @@ Add `snd-bcm2835` on its own line as shown below <br />
 Reboot with `$ sudo reboot` <br />
 
 3. Once rebooted confirm that the mdoule is loaded with: <br />
- `$ lsmod | grep snd`
+ `$ lsmod | grep snd` <br />
 
 ![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026)
 
 
 
 ### Kernal Compiling
-Now we manually compile to i2s support
+Now we manually compile to i2s support <br />
 4. Install the compilation dependencies <br />
 `$ sudo apt-get install git bc libncurses5-dev` <br />
 
@@ -179,7 +179,7 @@ Now we manually compile to i2s support
 `$ sudo chmod +x /usr/bin/rpi-source` <br />
 `$ /usr/bin/rpi-source -q --tag-update` <br />
 `$ rpi-source --skip-gcc` <br />
-This last part may take 15 minutes or so
+This last part may take 15 minutes or so <br />
 
 Now compile i2s support <br />
 6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
