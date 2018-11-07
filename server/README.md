@@ -7,12 +7,18 @@ This page is meant to describe the process for getting the UV4L library up and r
 4. Enable SPI, I2C, SSH, Camera
 3. For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
 
+# First Steps
+When installing Raspbian for the first time make sure to select US Keyboard setup. 
+
+When prompted change the pi password to `arpa-e`
+
+On first log-on, initially connect to the `IBR600B-3f4` WiFi network. Then for the remainder of the steps connect to the UCB Wireless network. Instructions at the end for setting preferred network. 
 
 ## If need to reset time/date:
+Run `$ date` at cmd line, and if it says old date, run: `$ timedatectl`,  then run `$ date` again.
 
+If it still says old data then set manually with: 
 `$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
-
-Or if you run `$ date` at cmd line and it says old date, run: `$ timedatectl`, run `$ date` again.
 
 ## Rename pi (need to change in two files on pi)
 `$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then reboot.
@@ -23,16 +29,18 @@ and make sure the line with `127.0.1.1` looks like:
 where `<our_hostname>` would be BS3 or whatever.
 
 
-# Remove unnecessary packages
+## Remove unnecessary packages
 To free up some space and limit the number of packages we will eventually install, we are going to remove our wolfram and libreoffice packages:
-1. `$ sudo apt-get purge wolfram-engine`
+1. `$ sudo apt-get purge wolfram-engine` This might not be installed
 2. `$ sudo apt-get clean && sudo apt-get autoremove`
 3. `$ sudo apt-get remove --purge libreoffice*`
 4. `$ sudo apt-get clean && sudo apt-get autoremove`
 5. `$ sudo reboot`
 6. `$ sudo apt update && sudo apt upgrade`
 
-# UV4L on the Pi
+# Download and Set-up Packages and Dependencies 
+
+## Set-up UV4L on the Pi
 Open a terminal and type:<br />
 `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
 
@@ -103,7 +111,7 @@ Create a new virtualenv called 'cv'
 
 3. `$ mkvirtualenv cv`
 
-# OpenCV Setup
+## OpenCV Setup
 When you are in the virtualenv, (cv) should appear at the front now.  You can run `(cv) $ deactivate` to exit out of a virtualenv.  Then run `$ workon cv` to enter back into the virtualenv.  See here for docs: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
 
 Install OpenCV (+ dependencies) and imutils
@@ -114,7 +122,8 @@ Install OpenCV (+ dependencies) and imutils
 5. `(cv) $ pip install imutils`
 6. `(cv) $ pip install influxdb`
 
-# Other Libraries
+
+# Install Sensor Specific Libraries
 ## [Circuit Python](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
 
 1. `(cv) $ pip install --upgrade setuptools`
@@ -168,7 +177,6 @@ Reboot with `$ sudo reboot` <br />
 ![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026)
 
 
-
 ### Kernal Compiling
 Now we manually compile to i2s support <br />
 4. Install the compilation dependencies <br />
@@ -207,7 +215,6 @@ This may already be done and will say - mount: debugs is already mounted. Keep g
 Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-dummy-dai <-> 3F203000.i2s mapping ok` on the last line 
 
 
-
 11.  Set to autoload on startup: <br />
 `$ sudo cp my_loader.ko /lib/modules/$(uname -r)` <br />
 `$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null` <br />
@@ -226,7 +233,7 @@ activate virtual environment with  `workon cv`
 2. `(cv) $ pip install smbus2==0.2.1`
 
 # Other things:
-### 1. Configure Github on pi:
+## Configure Github on pi:
 1. `$ mkdir /home/pi/Github`
 2. `$ cd /home/pi/Github`
 3. `$ git init`
@@ -237,23 +244,8 @@ activate virtual environment with  `workon cv`
 You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
 
 
-
-
-### 3. Set Cradlepoint as preferred network and set priority
-Need to add cradlepoint network to pi and make sure it is `preferred`.
-- Can just do this throught the pi GUI
-- To ensure on boot that it joins correct network, edit: `$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`, and set priority as follows:
-
-```
-network={
-    ssid = "cradlepoint_net"
-    key_mgmt=NONE
-    priority = 1
-}
-```
-
-
- Then, make sure that the cradlepoint network is at top priority (i.e. it will join it first out of all other networks) by editing:
+## Set Cradlepoint as preferred network and set priority
+Make sure that the cradlepoint network is at top priority (i.e. it will join it first out of all other networks) by editing:
  `$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`.  It should resemble:
 
 ```
@@ -268,12 +260,12 @@ key_mgmt=WPA-PSK
 `$ sudo reboot` Check that it has joined the CP network.
 
 
-### 4.
+## Set up SSH
 SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
 
 
 
-# Update 10/28/18 for SD cards already formatted 
+## Update 10/28/18 for SD cards already formatted 
 Hannah - apologies, I made a mistake in the previous stuff.  On the SD cards you have gone through the above steps already, I need you to do the following.
 
 1. `$ workon cv`
