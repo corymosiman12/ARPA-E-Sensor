@@ -211,7 +211,7 @@ class MyRetriever(threading.Thread):
         if self.debug:
             print('Thread started to get: {}'.format(item))
         try:
-            with pysftp.Connection(self.pi_ip_address, username='pi', password='sensor') as sftp:
+            with pysftp.Connection(self.pi_ip_address, username='pi', password='arpa-e') as sftp:
                 try:
                     sftp.get_d(item[0], item[1], preserve_mtime=True)
                     # ind = self.to_retrieve.index(item)

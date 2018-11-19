@@ -43,12 +43,13 @@ Exit out of the `.bashrc` file and run at the command line
 When you are in the virtualenv, (cv) should appear at the front now.  You can run `(cv) $ deactivate` to exit out of a virtualenv.  Then run `$ workon cv` to enter back into the virtualenv.  See here for docs: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
 
 4. Install OpenCV (+ 3 dependencies), influxdb client, imutils
-`(cv) $ pip install opencv-python`
-`(cv) $ apt update && apt upgrade`
-`(cv) $ apt install -y libsm6 libxext6`
-`(cv) $ apt install -y libxrender-dev`
-`(cv) $ pip install imutils`
-`(cv) $ pip install influxdb`
+- `(cv) $ pip install opencv-python`
+- `(cv) $ apt update && apt upgrade`
+- `(cv) $ apt install -y libsm6 libxext6`
+- `(cv) $ apt install -y libxrender-dev`
+- `(cv) $ pip install imutils`
+- `(cv) $ pip install influxdb`
+- `(cv) $ pip install pysftp`
 
 5. Copy client folder from root profile
-`(cv) $ sftp -r root@10.0.0.5:Github/client .`
+- `(cv) $ sftp -r root@10.0.0.5:Github/client .`
