@@ -12,7 +12,7 @@ We will use the `root` user for all of the individual antlet setups.  If, at any
 - To test if this worked, close out of the console and try to ssh into the Antlet as the root user.  If you are able to, then it has worked!
 - Perform all OpenCV setup by ssh'ing in as the root user.
 
-3. Mount a new virtual drive with 400 GB HDD space.  Name it `hpd_mobile`, then follow this guide [here](https://docs.antsle.com/drives/).
+3. Mount a new virtual drive with 400 GB HDD space.  Name it `vdb`, then follow this guide [here](https://docs.antsle.com/drives/).
 - If it is the first drive created, the target name should always be `vdb`
 - Regardless of the target name, when we need to create a new directory, name it `/mnt/vdb`, i.e. perform `mkdir /mnt/vdb`.
 - Follow the rest of the guide, only performing the Debian/Ubuntu steps.
@@ -51,5 +51,12 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 - `(cv) $ pip install influxdb`
 - `(cv) $ pip install pysftp`
 
-5. Copy client folder from root profile
+5. ssh from antlet vm to correct raspberry pi, should look something like this:
+- `ssh pi@192.168.0.101`
+
+6. Copy client folder from root profile
 - `(cv) $ sftp -r root@192.168.0.50:Github/client .`
+
+7. Check that the date is correct:
+- `$ date`, should print stuff out.  will likely say PST.  Need to change to MST
+- `$ timedatectl set-timezone "America/Denver"`
