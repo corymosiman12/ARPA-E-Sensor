@@ -23,22 +23,22 @@ We will use the `root` user for all of the individual antlet setups.  If, at any
 This is a combination of the update posted in [this install guide](https://medium.com/@debugvn/installing-opencv-3-3-0-on-ubuntu-16-04-lts-7db376f93961), addressing the [errors noted here](https://stackoverflow.com/questions/47113029/importerror-libsm-so-6-cannot-open-shared-object-file-no-such-file-or-directo).  Note that parts 1 and 2 are just to get the virtualenv setup.  Once we are in the virtualenv, it follows the first install guide.
 
 1. Install pip
-`$ wget https://bootstrap.pypa.io/get-pip.py`
-`$ python3 get-pip.py`
-`$ rm get-pip.py`
-`$ pip3 install virtualenv virtualenvwrapper`
+- `$ wget https://bootstrap.pypa.io/get-pip.py`
+- `$ python3 get-pip.py`
+- `$ rm get-pip.py`
+- `$ pip3 install virtualenv virtualenvwrapper`
 
 2. virtualenv and virtualenvwrapper setup
-`$ nano .bashrc` and add the following 3 lines to bottom
-export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-export WORKON_HOME=$HOME/.virtualenvs
-source /usr/local/bin/virtualenvwrapper.sh
+- `$ nano .bashrc` and add the following 3 lines to bottom
+- export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+- export WORKON_HOME=$HOME/.virtualenvs
+- source /usr/local/bin/virtualenvwrapper.sh
 
-Exit out of the `.bashrc` file and run at the command line
-`$ source .bashrc`
+Exit out of the `.bashrc` file and run at the command line:
+- `$ source .bashrc`
 
-3. Create a new virtualenv called 'cv'
-`$ mkvirtualenv cv`
+3. Create a new virtualenv called 'cv':
+- `$ mkvirtualenv cv`
 
 When you are in the virtualenv, (cv) should appear at the front now.  You can run `(cv) $ deactivate` to exit out of a virtualenv.  Then run `$ workon cv` to enter back into the virtualenv.  See here for docs: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
 
@@ -52,4 +52,4 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 - `(cv) $ pip install pysftp`
 
 5. Copy client folder from root profile
-- `(cv) $ sftp -r root@10.0.0.5:Github/client .`
+- `(cv) $ sftp -r root@192.168.0.50:Github/client .`
