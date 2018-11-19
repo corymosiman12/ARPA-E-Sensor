@@ -7,33 +7,63 @@ This page is meant to describe the process for getting the UV4L library up and r
 4. Enable SPI, I2C, SSH, Camera
 3. For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
 
-# First
+# First Steps
+When installing Raspbian for the first time make sure to select US Keyboard setup. 
+
+When prompted change the pi password to `arpa-e`
+
+On first log-on, initially connect to the `IBR600B-3f4` WiFi network. Then for the remainder of the steps connect to the UCB Wireless network. Instructions at the end for setting preferred network. 
+
+## If need to reset time/date:
+Run `$ date` at cmd line, and if it says old date, run: `$ timedatectl`,  then run `$ date` again.
+
+If it still says old data then set manually with: 
+`$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
+
+## Rename pi (need to change in two files on pi)
+`$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then reboot.
+
+Go to: `$ sudo nano /etc/hosts` 
+and make sure the line with `127.0.1.1` looks like:
+```127.0.1.1          <our_hostname>```
+where `<our_hostname>` would be BS3 or whatever.
+
+
+## Remove unnecessary packages
 To free up some space and limit the number of packages we will eventually install, we are going to remove our wolfram and libreoffice packages:
-`$ sudo apt-get purge wolfram-engine`
-`$ sudo apt-get clean && sudo apt-get autoremove`
-`$ sudo apt-get remove --purge libreoffice*`
-`$ sudo apt-get clean && sudo apt-get autoremove`
-`$ sudo reboot`
-`$ sudo apt update && sudo apt upgrade`
+1. `$ sudo apt-get purge wolfram-engine` This might not be installed
+2. `$ sudo apt-get clean && sudo apt-get autoremove`
+3. `$ sudo apt-get remove --purge libreoffice*`
+4. `$ sudo apt-get clean && sudo apt-get autoremove`
+5. `$ sudo reboot`
+6. `$ sudo apt update && sudo apt upgrade`
 
-# UV4L on the Pi
-Open a terminal and type:
-`$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -`
+# Download and Set-up Packages and Dependencies 
 
-Add the following line to the end of the file `/etc/apt/sources.list` by typing `$ nano /etc/apt/sources.list` at the command line:
+## Set-up UV4L on the Pi
+Open a terminal and type:<br />
+`$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
+
+Add the following line to the end of the `sources.list` file by typing: <br />
+`$ sudo nano /etc/apt/sources.list` at the command line
+
+Then add at the end of the file: 
 `deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main`
 
-Next, update, fetch, and install uv4l packages:
-`$ sudo apt-get update`
-`$ sudo apt-get install uv4l uv4l-raspicam`
+Next, update, fetch, and install uv4l packages: <br />
 
-We want the driver to load at boot, so type the following
-`$ sudo apt-get install uv4l-raspicam-extras`
+`$ sudo apt-get update` <br />
+`$ sudo apt-get install uv4l uv4l-raspicam` <br />
 
-Install the front-end server:
-`$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp`
+We want the driver to load at boot, so type the following <br />
+`$ sudo apt-get install uv4l-raspicam-extras` <br />
 
-Reboot the pi.  By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
+Install the front-end server: <br />
+`$ sudo apt-get install uv4l-server uv4l-uvc uv4l-xscreen uv4l-mjpegstream uv4l-dummy uv4l-raspidisp` <br />
+
+Reboot the pi. <br />
+
+By default, the streaming video server will run on port 8080.  You should now be able to access the video server from a web-browser by typing in `localhost:8080`.  Clicking on the MJPEG/Stills stream will show you the stream.  The `Control Panel` tab will allow you to adjust settings.  I found that reducing the resolution to 3x our target (112x112 is target of WISPCam), so 336x336, gives us minimal lag time.
 
 ## Raspicam Options
 Edit the raspicam default options to use a lower resolution and framerate and use mjpeg streaming.  Set the resolution to 336x336 and the framerate to 2fps.  This is done via:
@@ -61,9 +91,9 @@ This is a combination of the update posted in [this install guide](https://mediu
 
 ## Install pip
 1. `$ wget https://bootstrap.pypa.io/get-pip.py `
-2. `$ python3 get-pip.py`
+2. `$ sudo python3 get-pip.py`
 3. `$ rm get-pip.py`
-4. `$ pip3 install virtualenv virtualenvwrapper`
+4. `$ sudo pip3 install virtualenv virtualenvwrapper`
 
 ## virtualenv and virtualenvwrapper setup
 1. `$ nano .bashrc` and add the following 3 lines to bottom
@@ -81,18 +111,19 @@ Create a new virtualenv called 'cv'
 
 3. `$ mkvirtualenv cv`
 
-# OpenCV Setup
+## OpenCV Setup
 When you are in the virtualenv, (cv) should appear at the front now.  You can run `(cv) $ deactivate` to exit out of a virtualenv.  Then run `$ workon cv` to enter back into the virtualenv.  See here for docs: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
 
-1. Install OpenCV (+ dependencies) and imutils
-`(cv) $ pip install opencv-python`
-`(cv) $ apt update && apt upgrade`
-`(cv) $ apt install -y libsm6 libxext6`
-`(cv) $ apt install -y libxrender-dev`
-`(cv) $ pip install imutils`
-`(cv) $ pip install influxdb`
+Install OpenCV (+ dependencies) and imutils
+1. `(cv) $ pip install opencv-python`
+2. `(cv) $ sudo apt update && sudo apt upgrade`
+3. `(cv) $ sudo apt install -y libsm6 libxext6`
+4. `(cv) $ sudo apt install -y libxrender-dev`
+5. `(cv) $ pip install imutils`
+6. `(cv) $ pip install influxdb`
 
-# Other Libraries
+
+# Install Sensor Specific Libraries
 ## [Circuit Python](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
 
 1. `(cv) $ pip install --upgrade setuptools`
@@ -116,21 +147,86 @@ Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e1
 
 `/home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
 
-## [I2S Microphone](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
+type:
+`$ sudo nano /home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py` <br />
 
-**CAREFUL, DON'T FOLLOW EXACTLY AS WEBSITE SAYS**
+### NOTE: When copy/pasting from the link the "try" line gets indented. Make sure to remove indent manually.
+
+
+
+## [I2S Configuration](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
+
 Deactivate your virtualenv `(cv) $ deactivate`
 
-Go through all of the lines EXCEPT:
-```
-sudo apt-get update
-sudo apt-get install rpi-update
-sudo rpi-update
-```
+1. Turn on i2s support by editing /boot/config.txt with: <br />
+`$ sudo nano /boot/config.txt` <br />
+Uncomment `#dtparam=i2s=on` <br />
 
-## [PyAudio]
+2. Make sure sound support is enabled in the kernal with: <br />
+`$ sudo nano /etc/modules` <br />
+Add `snd-bcm2835` on its own line as shown below <br />
+
+![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865|width=100)
+
+
+Reboot with `$ sudo reboot` <br />
+
+3. Once rebooted confirm that the mdoule is loaded with: <br />
+ `$ lsmod | grep snd` <br />
+
+![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026)
+
+
+### Kernal Compiling
+Now we manually compile to i2s support <br />
+4. Install the compilation dependencies <br />
+`$ sudo apt-get install git bc libncurses5-dev` <br />
+
+5. Download kernel source and compile <br />
+`$ sudo wget https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source -O /usr/bin/rpi-source` <br />
+`$ sudo chmod +x /usr/bin/rpi-source` <br />
+`$ /usr/bin/rpi-source -q --tag-update` <br />
+`$ rpi-source --skip-gcc` <br />
+This last part may take 15 minutes or so <br />
+
+Now compile i2s support <br />
+6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
+This may already be done and will say - mount: debugs is already mounted. Keep going <br />
+
+7. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
+
+![kernel-debug](https://cdn-learn.adafruit.com/assets/assets/000/040/624/original/sensors_Screen_Shot_2017-04-03_at_11.40.14_AM.png?1491244426)
+
+
+8. Download the module written by Paul Creaser <br />
+`$ git clone https://github.com/PaulCreaser/rpi-i2s-audio` <br />
+`$ cd rpi-i2s-audio` <br />
+
+9. Compile the module with <br />
+`$ make -C /lib/modules/$(uname -r )/build M=$(pwd) modules` <br />
+`$ sudo insmod my_loader.ko` <br />
+
+10. Verify that the module was loaded: <br />
+`$ lsmod | grep my_loader` <br />
+`$ dmesg | tail` 
+
+![Module-Loaded](https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051)
+
+Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-dummy-dai <-> 3F203000.i2s mapping ok` on the last line 
+
+
+11.  Set to autoload on startup: <br />
+`$ sudo cp my_loader.ko /lib/modules/$(uname -r)` <br />
+`$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null` <br />
+`$ sudo depmod -a` <br />
+`$ sudo modprobe my_loader` <br />
+`$ sudo reboot`
+
+
+## PyAudio
+activate virtual environment with  `workon cv`
 1. `(cv) $ sudo apt-get install portaudio19-dev`
-2. `(cv) $ pip install PyAudio==0.2.11`
+2. `(cv) $ sudo pip install PyAudio==0.2.11`
 
 ## Others
 1. `(cv) $ pip install circuitpython-build-tools==1.1.5`
@@ -147,25 +243,29 @@ sudo rpi-update
 
 You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
 
-2. Need to add cradlepoint network to pi and make sure it is `preferred`.
-- Can just do this throught the pi GUI
-- To ensure on boot that it joins correct network, edit: `$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`, and set priority as follows:
+
+## Set Cradlepoint as preferred network and set priority
+Make sure that the cradlepoint network is at top priority (i.e. it will join it first out of all other networks) by editing:
+ `$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`.  It should resemble:
+
 ```
 network={
-    ssid = "cradlepoint_net"
-    key_mgmt=NONE
-    priority = 1
-}
-network={
-   ...Don't care...
+ssid="IBR600B-3f4"
+psk="443163f4"
+priority=1
+key_mgmt=WPA-PSK
 }
 ```
 
-3. SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
+`$ sudo reboot` Check that it has joined the CP network.
 
-4. Likely missed things...
 
-# Update 10/28/18
+## Set up SSH
+SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
+
+
+
+## Update 10/28/18 for SD cards already formatted 
 Hannah - apologies, I made a mistake in the previous stuff.  On the SD cards you have gone through the above steps already, I need you to do the following.
 
 1. `$ workon cv`
