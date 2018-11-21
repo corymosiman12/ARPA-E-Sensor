@@ -66,23 +66,6 @@ class MyRetriever(threading.Thread):
                         self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
                     self.to_retrieve.put((pi_audio_dir, prev_min_audio_dir))
 
-                ''' Photo Retriever '''
-                # img_date_dir = os.path.join(
-                #     self.my_img_root, datetime.now().strftime('%Y-%m-%d'))
-
-                # if not os.path.isdir(img_date_dir):
-                #     os.makedirs(img_date_dir)
-                # self.my_img_root_date = img_date_dir
-
-                # prev_min_img_dir = os.path.join(
-                #     self.my_img_root_date, t.strftime('%H%M'))
-
-                # if not os.path.isdir(prev_min_img_dir):
-                #     os.makedirs(prev_min_img_dir)
-                #     pi_img_dir = os.path.join(
-                #         self.pi_img_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
-                #     # self.to_retrieve.append((pi_img_dir, prev_min_img_dir))
-                #     self.to_retrieve.put((pi_img_dir, prev_min_img_dir))
 
     def restart_dat_service(self):
         r = ['restart']
@@ -122,45 +105,6 @@ class MyRetriever(threading.Thread):
                 s.close()
             except:
                 pass
-
-    # def restart_dat_img(self):
-    #     r = ['restart_img']
-    #     # Instantiate IPV4 TCP socket class
-    #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #     try:
-    #         # Create a socket connection to the server at the specified port
-    #         s.connect((self.pi_ip_address, self.listen_port))
-
-    #         # Send message over socket connection, requesting aforementioned data
-    #         s.sendall(self.create_message(r))
-
-    #         # Receive all data from server.
-    #         self.restart_response = self.my_recv_all(s).split('\r\n')
-
-    #         logging.warning(
-    #             'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
-    #         if self.debug:
-    #             print(
-    #                 'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
-
-    #         # Close socket
-    #         s.close()
-
-    #     except Exception as e:
-    #         logging.warning(
-    #             'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
-    #         if self.debug:
-    #             print('Attempted to restart UV4L, appears unsuccessful')
-    #         if s:
-    #             try:
-    #                 s.close()
-    #             except:
-    #                 pass
-    #     if s:
-    #         try:
-    #             s.close()
-    #         except:
-    #             pass
 
     def has_correct_files(self, item):
         missing = []
@@ -986,7 +930,7 @@ class MyClient():
 if __name__ == "__main__":
     """
     The client must be run by specifying a server id. Example:
-        client$ python client.py B_S3
+        client$ python client.py BS3
     Client is currently set to ping it's specified server
     every 2 minutes, get data, and write to InfluxDB.
 

@@ -45,9 +45,7 @@ class AudioChecker():
     def writer(self, output_dict):
         if self.write_file:
 
-            a = os.path.basename(self.conf_file_path).split('_')[0:3]
-            a.append('output.json')
-            b = '_'.join(a)
+            b = 'test_output.json'
             write_file = os.path.join(self.root_dir, b)
             print('Writing file to: {}'.format(write_file))
             with open(write_file, 'w+') as f:

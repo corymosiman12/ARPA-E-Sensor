@@ -44,7 +44,6 @@ class Server():
         self.stream_type = self.settings['stream_type']
         self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']), self.debug)
         self.audio = hpd_sensors.MyAudio(self.audio_root, self.debug)
-        # self.photo = hpd_sensors.MyPhoto(self.img_root, self.stream_type, self.debug)
         self.create_socket()
         
     def import_server_conf(self):
@@ -90,7 +89,7 @@ class Server():
                 (client_socket, client_address) = self.sock.accept()
                 try:
                     if client_socket:
-                        thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors, self.debug, self.audio, self.photo)
+                        thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors, self.debug, self.audio)
                         thr.start()
                         thr.join()
                         print("New connection with: {}".format(client_address))
@@ -119,7 +118,7 @@ class MyThreadedSocket(threading.Thread):
             Pointer to master class of sensors.  Allows thread
             to get readings from sensors to send to client.
     """
-    def __init__(self, socket, address, settings, sensors, debug, audio, photo):
+    def __init__(self, socket, address, settings, sensors, debug, audio):
         threading.Thread.__init__(self)
         self.client_socket = socket
         self.client_address = address
@@ -128,7 +127,6 @@ class MyThreadedSocket(threading.Thread):
         self.sensors = sensors
         self.debug = debug
         self.audio = audio
-        self.photo = photo
     
     def decode_request(self):
         """

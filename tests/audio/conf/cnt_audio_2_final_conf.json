@@ -1,7 +1,7 @@
 {
     "begin_dt": "2018-09-18 14:17:00",
     "end_dt": "2018-09-18 15:17:00",
-    "audio_root": "/Users/corymosiman/hpd_mobile/B_S3/audio",
+    "audio_root": "/Users/corymosiman/hpd_mobile/tests/2018-09-18/B_S3/audio",
     "date_dirs": ["2018-09-18"],
     "hr_dirs_to_skip": []
 }
