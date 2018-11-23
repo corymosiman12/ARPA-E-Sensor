@@ -25,12 +25,15 @@ class PhotoChecker():
         self.counter_min = 2000
         self.duplicates_ts = []
         self.pics = []
+        self.start_time = datetime.now()
 
     def import_conf(self, path):
         with open(path, 'r') as f:
             self.conf_dict = json.loads(f.read())
         self.b_dt = self.conf_dict['begin_dt']
         self.e_dt = self.conf_dict['end_dt']
+        self.b_dt_as_dt = datetime.strptime(self.b_dt, '%Y-%m-%d %H:%M:%S')
+        self.e_dt_as_dt = datetime.strptime(self.e_dt, '%Y-%m-%d %H:%M:%S')
 
     def finder(self):
         for pic in self.pics:
@@ -46,9 +49,7 @@ class PhotoChecker():
 
     def writer(self, output_dict):
         if self.write_file:
-            a = os.path.basename(self.conf_file_path).split('_')[0:3]
-            a.append('output.json')
-            b = '_'.join(a)
+            b = 'test_output.json'
             write_file = os.path.join(self.root_dir, b)
             print('Writing file to: {}'.format(write_file))
             with open(write_file, 'w+') as f:
@@ -64,9 +65,11 @@ class PhotoChecker():
 
             for ts in self.all_seconds:
                 missed_seconds.append(ts.strftime('%Y-%m-%d %H:%M:%S'))
-
+            rt = datetime.now() - self.start_time
+            mins = rt.seconds / 60
             output_dict = {
                 'Configuration dict': self.conf_dict,
+                'Total runtime in minutes': mins,
                 'Expected number of photos': self.expect_num_photos,
                 'Number of photos counted (including duplicates)': self.total_pics,
                 'Total number of duplicates': self.duplicates,
@@ -88,32 +91,36 @@ class PhotoChecker():
         for d in self.date_dirs:
             hr_min_dirs = os.listdir(os.path.join(self.root_dir, d))
             for hr_min in hr_min_dirs:
-                if hr_min in self.hrs_to_pass:
-                    print('Not looking in : {}'.format(os.path.join(self.root_dir, d, hr_min)))
-                    pass
-                else:
-                    temp = os.path.join(self.root_dir, d, hr_min)
-                    if os.path.isdir(temp):
-                        self.pics = os.listdir(os.path.join(self.root_dir, d, hr_min))
-                        self.pics = [x for x in self.pics if x.endswith('.png')]
-                        self.finder()
-                        self.total_pics += len(self.pics)
-                        if self.total_pics > self.counter_min:
-                            print('Counting picture: {}'.format(self.total_pics))
-                            self.counter_min += 2000
-                        if len(self.pics) == 61:
-                            double_00 = [x for x in self.pics if x.split('_')[0].endswith('00')]
-                            if len(double_00) == 2:
-                                self.count_61_double_00 += 1
-                            self.count_61[os.path.join(d,hr_min)] = 61
-
-                        elif len(self.pics) == 60:
-                            self.count_60[os.path.join(d,hr_min)] = 60
-                        else:
-                            self.count_other[os.path.join(d,hr_min)] = len(self.pics)
-
+                if not hr_min == '.DS_Store' and not hr_min in self.hrs_to_pass:
+                    a = datetime.strptime((d + ' ' + hr_min), '%Y-%m-%d %H%M')
+                    if a < self.b_dt_as_dt or a > self.e_dt_as_dt:
+                        continue
                     else:
-                        print('{} is not a dir'.format(temp))
+                        temp = os.path.join(self.root_dir, d, hr_min)
+                        if os.path.isdir(temp):
+                            self.pics = os.listdir(os.path.join(self.root_dir, d, hr_min))
+                            self.pics = [x for x in self.pics if x.endswith('.png')]
+                            self.finder()
+                            self.total_pics += len(self.pics)
+                            if self.total_pics > self.counter_min:
+                                print('Counting picture: {}'.format(self.total_pics))
+                                rt = datetime.now() - self.start_time
+                                mins = rt.seconds / 60
+                                print('Current runtime in mins: {}'.format(mins))
+                                self.counter_min += 2000
+                            if len(self.pics) == 61:
+                                double_00 = [x for x in self.pics if x.split('_')[0].endswith('00')]
+                                if len(double_00) == 2:
+                                    self.count_61_double_00 += 1
+                                self.count_61[os.path.join(d,hr_min)] = 61
+
+                            elif len(self.pics) == 60:
+                                self.count_60[os.path.join(d,hr_min)] = 60
+                            else:
+                                self.count_other[os.path.join(d,hr_min)] = len(self.pics)
+
+                        else:
+                            print('{} is not a dir'.format(temp))
         
         output_dict = self.configure_output()
         self.writer(output_dict)
