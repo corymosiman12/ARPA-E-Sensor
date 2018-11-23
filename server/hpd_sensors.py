@@ -254,12 +254,11 @@ class MyAudio(threading.Thread):
             while datetime.now().second % 20 != 0:
                 pass
             f_name = datetime.now().strftime('%Y-%m-%d %H%M%S_audio.wav')
+            f_path = os.path.join(self.audio_dir, f_name) 
             self.frames.clear()
             
             for i in range(0, int(self.rate / self.chunk * self.tape_length)):
                 self.frames.append(self.stream.read(self.chunk))
-
-            f_path = os.path.join(self.audio_dir, f_name)    
 
             writer = threading.Thread(target=self.write_to_file, args = (f_path, self.frames))
             writer.start()

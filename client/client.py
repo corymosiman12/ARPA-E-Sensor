@@ -49,7 +49,7 @@ class MyRetriever(threading.Thread):
                     print("Retriever updater running")
                     p = False
 
-                ''' Image Retriever '''
+                ''' Audio Retriever '''
                 audio_date_dir = os.path.join(
                     self.my_audio_root, datetime.now().strftime('%Y-%m-%d'))
                 if not os.path.isdir(audio_date_dir):
@@ -64,6 +64,7 @@ class MyRetriever(threading.Thread):
                     os.makedirs(prev_min_audio_dir)
                     pi_audio_dir = os.path.join(
                         self.pi_audio_root, t.strftime('%Y-%m-%d'), t.strftime('%H%M'))
+                    time.sleep(5)
                     self.to_retrieve.put((pi_audio_dir, prev_min_audio_dir))
 
 
@@ -126,28 +127,9 @@ class MyRetriever(threading.Thread):
                 logging.warning('audio missing: {} files'.format(len(missing)))
                 logging.warning('specifically these files: {}'.format(missing))
 
-        ''' Image Check Files'''
-        # elif 'img' in local_dir:
-        #     should_have_files = [os.path.join(
-        #         local_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
-        #     has_files = [os.path.join(local_dir, f) for f in os.listdir(
-        #         local_dir) if f.endswith('.png')]
-        #     missing = list(set(should_have_files) - set(has_files))
-        #     if self.debug:
-        #         print('img missing: {} files'.format(len(missing)))
-        #         print('specifically these files: {}'.format(missing))
-        #     if len(missing) >= 1:
-        #         self.bad_img_transfers += 1
-        #         logging.warning('img missing: {} files'.format(len(missing)))
-        #         logging.warning('specifically these files: {}'.format(missing))
-
-        # if self.bad_audio_transfers >= 5 or self.bad_img_transfers >= 5:
         if self.bad_audio_transfers >= 5:
             self.restart_dat_service()
-            # time.sleep(5)
-            # self.restart_dat_img()
             self.bad_audio_transfers = 0
-            # self.bad_img_transfers = 0
 
     def retrieve_this(self):
         item = self.to_retrieve.get()
@@ -465,9 +447,22 @@ class MyPhoto(threading.Thread):
                 os.makedirs(min_dir)
             self.img_dir = min_dir
 
+    def img_checker(self):
+        while 1:
+            t = datetime.now()
+            if t.second == 1 and not self.img_checked:
+                file_checker = threading.Thread(target=self.has_correct_files)
+                file_checker.start()
+                self.img_checked = True
+            if t.second != 1:
+                self.img_checked = False
+
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
+
+        img_checker = threading.Thread(target=self.img_checker)
+        img_checker.start()
         
         # Wait for self.img_dir to exist
         time.sleep(1)
@@ -479,13 +474,6 @@ class MyPhoto(threading.Thread):
                     logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
                 self.bad_img_transfers = 0
                 self.connect_to_video() 
-            t = datetime.now()
-            if t.second == 1 and not self.img_checked:
-                file_checker = threading.Thread(target=self.has_correct_files)
-                file_checker.start()
-                self.img_checked = True
-            if t.second != 1:
-                self.img_checked = False
             f_name = t.strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir, f_name)
 
