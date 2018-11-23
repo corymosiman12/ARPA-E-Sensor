@@ -219,8 +219,6 @@ class MyAudio(threading.Thread):
             if not os.path.isdir(date_dir):
                 os.makedirs(date_dir)
 
-                # if self.debug:
-                #     print('Created dir: {}'.format(date_dir))
             self.audio_root_date = date_dir
                 
             min_dir = os.path.join(self.audio_root_date, datetime.now().strftime('%H%M'))
@@ -229,14 +227,6 @@ class MyAudio(threading.Thread):
             
             self.audio_dir = min_dir
             
-                # try:
-                #     os.makedirs(min_dir)
-                #     if self.debug:
-                #         print('Created dir: {}'.format(min_dir))
-                # except PermissionError as e:
-                #     if self.debug:
-                #         print(e)
-                # self.audio_dir = min_dir
     
     def write_to_file(self, f_path, to_write):
         wf = wave.open(f_path, 'wb')
@@ -264,12 +254,13 @@ class MyAudio(threading.Thread):
             while datetime.now().second % 20 != 0:
                 pass
             f_name = datetime.now().strftime('%Y-%m-%d %H%M%S_audio.wav')
-            f_path = os.path.join(self.audio_dir, f_name)
-            self.frames = []
+            self.frames.clear()
             
             for i in range(0, int(self.rate / self.chunk * self.tape_length)):
                 self.frames.append(self.stream.read(self.chunk))
-            
+
+            f_path = os.path.join(self.audio_dir, f_name)    
+
             writer = threading.Thread(target=self.write_to_file, args = (f_path, self.frames))
             writer.start()
             writer.join()
