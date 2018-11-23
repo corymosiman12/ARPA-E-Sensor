@@ -121,7 +121,8 @@ class HPD_DHT22():
         return t * 9/5.0 + 32
     
     def read(self):
-        h, t = Adafruit_DHT.read_retry(self.sensor, self.pin) # returns humidity in % and temp in celsius
+        # h, t = Adafruit_DHT.read_retry(self.sensor, self.pin) # returns humidity in % and temp in celsius
+        h, t = Adafruit_DHT.read(self.sensor, self.pin) # returns humidity in % and temp in celsius
         return((h, t))
 
 
