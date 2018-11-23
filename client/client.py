@@ -675,47 +675,73 @@ class MyClient():
         times = []
         for r in self.get_sensors_response["Readings"]:
             count_points += 1
-            json_body.append({
-                "measurement": "env_params",
-                "tags": {
-                    "server_id": self.server_id,
-                    "pi_ip_address": self.pi_ip_address,
-                    "client_request_time": self.get_sensors_response["Client_Request_Time"],
-                    "server_response_time": self.get_sensors_response["Server_Response_Time"]
-                },
-                "time": r["time"],
-                "fields": {
-                    "light_lux": int(r["light_lux"]),
-                    "temp_c": int(r["temp_c"]),
-                    "rh_percent": int(r["rh_percent"]),
-                    "dist_mm": int(r["dist_mm"]),
-                    "co2eq_ppm": int(r["co2eq_ppm"]),
-                    "tvoc_ppb": int(r["tvoc_ppb"]),
-                    "co2eq_base": int(r["co2eq_base"]),
-                    "tvoc_base": int(r["tvoc_base"])
-                }
-            })
+            try:
+                json_body.append({
+                    "measurement": "env_params",
+                    "tags": {
+                        "server_id": self.server_id,
+                        "pi_ip_address": self.pi_ip_address,
+                        "client_request_time": self.get_sensors_response["Client_Request_Time"],
+                        "server_response_time": self.get_sensors_response["Server_Response_Time"]
+                    },
+                    "time": r["time"],
+                    "fields": {
+                        "light_lux": int(r["light_lux"]),
+                        "temp_c": int(r["temp_c"]),
+                        "rh_percent": int(r["rh_percent"]),
+                        "dist_mm": int(r["dist_mm"]),
+                        "co2eq_ppm": int(r["co2eq_ppm"]),
+                        "tvoc_ppb": int(r["tvoc_ppb"]),
+                        "co2eq_base": int(r["co2eq_base"]),
+                        "tvoc_base": int(r["tvoc_base"])
+                    }
+                })
+            except TypeError as e:
+                logging.warning('TypeError in readings.  Error: {}'.format(e))
+                if self.debug:
+                    print('TypeError in readings.  Error: {}'.format(e))
+                json_body.append({
+                    "measurement": "env_params",
+                    "tags": {
+                        "server_id": self.server_id,
+                        "pi_ip_address": self.pi_ip_address,
+                        "client_request_time": self.get_sensors_response["Client_Request_Time"],
+                        "server_response_time": self.get_sensors_response["Server_Response_Time"]
+                    },
+                    "time": r["time"],
+                    "fields": {
+                        "light_lux": r["light_lux"],
+                        "temp_c": r["temp_c"],
+                        "rh_percent": r["rh_percent"],
+                        "dist_mm": r["dist_mm"],
+                        "co2eq_ppm": r["co2eq_ppm"],
+                        "tvoc_ppb": r["tvoc_ppb"],
+                        "co2eq_base": r["co2eq_base"],
+                        "tvoc_base": r["tvoc_base"]
+                    }
+                })
             times.append(r["time"])
         if self.debug:
             print('{} points to insert into influxdb'.format(count_points))
             print('Times of sensor readings: {}'.format(times))
-        # if count_points != 12:
-        #     logging.warning('Only {} points to insert into influxdb.'.format(count_points))
-        #     logging.warning('Timestamps of sensor readings: {}'.format(times))
-        # else:
-        #     logging.info('{} points inserted'.format(count_points))
+        if count_points != 12:
+            logging.warning('Only {} points to insert into influxdb.'.format(count_points))
+            logging.warning('Timestamps of sensor readings: {}'.format(times))
+        else:
+            logging.info('{} points inserted'.format(count_points))
         successful_write = self.influx_client.write_points(json_body)
+
         if successful_write:
             self.readings_inserted += count_points
         else:
             self.bad_writes += 1
 
-        diff = abs(self.readings_inserted - self.should_have_readings)
+        # diff = abs(self.readings_inserted - self.should_have_readings)
 
-        if diff >= 5:
-            logging.warning('Should be about {} readings.  Only {} readings actually inserted.  Diff = {}'.format(self.should_have_readings,
-                                                                                                                  self.readings_inserted, diff))
-            logging.warning('{} total bad writes'.format(self.bad_writes))
+        # if diff >= 5:
+        #     logging.warning('Should be about {} readings.  Only {} readings actually inserted.  Diff = {}'.format(self.should_have_readings,
+        #                                                                                                           self.readings_inserted, diff))
+        #     logging.warning('{} total bad writes'.format(self.bad_writes))
 
         return(successful_write)
 
