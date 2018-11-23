@@ -308,49 +308,49 @@ class MyThreadedSocket(threading.Thread):
                     except Exception as e:
                         logging.info('Unable to close client_socket in to_remove.  Socket may already be closed.  Exception: {}'.format(e))
         
-        elif self.client_request == 'restart':
-            try:
-                dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                r = ['Pi to restart.  Time is: {}'.format(dt)]
-                message = '\r\n'.join(r)
-                self.client_socket.sendall(message.encode())
-                self.client_socket.close()
+        # elif self.client_request == 'restart':
+        #     try:
+        #         dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        #         r = ['Pi to restart.  Time is: {}'.format(dt)]
+        #         message = '\r\n'.join(r)
+        #         self.client_socket.sendall(message.encode())
+        #         self.client_socket.close()
 
-                # time.sleep(10)
-                logging.warning("self.client_request = restart.  Time is: {}".format(dt))
-                self.subprocess.run("sudo reboot", shell = True)
-                # subprocess.run("sudo service hpd_mobile restart", shell = True)
-            except Exception as e:
-                logging.warning('restart excepted.  Exception: {}'.format(e))
-                if self.client_socket:
-                    try:
-                        self.client_socket.close()
-                    except Exception as e:
-                        logging.info('Unable to close client_socket in restart.  Socket may already be closed.  Exception: {}'.format(e))
+        #         # time.sleep(10)
+        #         logging.warning("self.client_request = restart.  Time is: {}".format(dt))
+        #         self.subprocess.run("sudo reboot", shell = True)
+        #         # subprocess.run("sudo service hpd_mobile restart", shell = True)
+        #     except Exception as e:
+        #         logging.warning('restart excepted.  Exception: {}'.format(e))
+        #         if self.client_socket:
+        #             try:
+        #                 self.client_socket.close()
+        #             except Exception as e:
+        #                 logging.info('Unable to close client_socket in restart.  Socket may already be closed.  Exception: {}'.format(e))
 
-        elif self.client_request == 'restart_img':
-            try:
-                dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                r = ['Pi to restart UV4L.  Time is: {}'.format(dt)]
-                message = '\r\n'.join(r)
-                self.client_socket.sendall(message.encode())
-                self.client_socket.close()
+        # elif self.client_request == 'restart_img':
+        #     try:
+        #         dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        #         r = ['Pi to restart UV4L.  Time is: {}'.format(dt)]
+        #         message = '\r\n'.join(r)
+        #         self.client_socket.sendall(message.encode())
+        #         self.client_socket.close()
 
-                # time.sleep(10)
+        #         # time.sleep(10)
 
-                logging.warning("self.client_request = restart_img.  Time is: {}".format(dt))
-                # subprocess.run("sudo reboot", shell = True)
-                subprocess.run("sudo service uv4l_raspicam stop", shell = True)
-                time.sleep(2)
-                subprocess.run("sudo service uv4l_raspicam start", shell = True)
+        #         logging.warning("self.client_request = restart_img.  Time is: {}".format(dt))
+        #         # subprocess.run("sudo reboot", shell = True)
+        #         subprocess.run("sudo service uv4l_raspicam stop", shell = True)
+        #         time.sleep(2)
+        #         subprocess.run("sudo service uv4l_raspicam start", shell = True)
                 
-            except Exception as e:
-                logging.warning('restart_img excepted.  Exception: {}'.format(e))
-                if self.client_socket:
-                    try:
-                        self.client_socket.close()
-                    except Exception as e:
-                        logging.info('Unable to close client_socket in restart_img.  Socket may already be closed.  Exception: {}'.format(e))
+        #     except Exception as e:
+        #         logging.warning('restart_img excepted.  Exception: {}'.format(e))
+        #         if self.client_socket:
+        #             try:
+        #                 self.client_socket.close()
+        #             except Exception as e:
+        #                 logging.info('Unable to close client_socket in restart_img.  Socket may already be closed.  Exception: {}'.format(e))
 
 
         # Make sure socket is closed

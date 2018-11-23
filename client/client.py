@@ -25,19 +25,15 @@ class MyRetriever(threading.Thread):
         threading.Thread.__init__(self)
         logging.log(25, 'Initializing MyRetriever')
         self.my_audio_root = os.path.join(my_root, 'audio')
-        # self.my_img_root = os.path.join(my_root, 'img')
         self.pi_ip_address = pi_ip_address
         self.pi_audio_root = os.path.join(pi_img_audio_root, 'audio')
-        # self.pi_img_root = os.path.join(pi_img_audio_root, 'img')
         self.listen_port = listen_port
         self.debug = debug
         self.to_retrieve = Queue(maxsize=0)
         self.num_threads = 5
         self.successfully_retrieved = []
         self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, 20)]
-        # self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
         self.bad_audio_transfers = 0
-        # self.bad_img_transfers = 0
         self.start()
 
     def to_retrieve_updater(self):
@@ -68,44 +64,44 @@ class MyRetriever(threading.Thread):
                     self.to_retrieve.put((pi_audio_dir, prev_min_audio_dir))
 
 
-    def restart_dat_service(self):
-        r = ['restart']
-        # Instantiate IPV4 TCP socket class
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            # Create a socket connection to the server at the specified port
-            s.connect((self.pi_ip_address, self.listen_port))
+    # def restart_dat_service(self):
+    #     r = ['restart']
+    #     # Instantiate IPV4 TCP socket class
+    #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #     try:
+    #         # Create a socket connection to the server at the specified port
+    #         s.connect((self.pi_ip_address, self.listen_port))
 
-            # Send message over socket connection, requesting aforementioned data
-            s.sendall(self.create_message(r))
+    #         # Send message over socket connection, requesting aforementioned data
+    #         s.sendall(self.create_message(r))
 
-            # Receive all data from server.
-            self.restart_response = self.my_recv_all(s).split('\r\n')
+    #         # Receive all data from server.
+    #         self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning(
-                'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
-            if self.debug:
-                print(
-                    'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         logging.warning(
+    #             'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         if self.debug:
+    #             print(
+    #                 'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
 
-            # Close socket
-            s.close()
+    #         # Close socket
+    #         s.close()
 
-        except Exception as e:
-            logging.warning(
-                'Exception occured when telling pi to restart.  Exception: {}'.format(e))
-            if self.debug:
-                print('Attempted to restart pi, appears unsuccessful')
-            if s:
-                try:
-                    s.close()
-                except:
-                    pass
-        if s:
-            try:
-                s.close()
-            except:
-                pass
+    #     except Exception as e:
+    #         logging.warning(
+    #             'Exception occured when telling pi to restart.  Exception: {}'.format(e))
+    #         if self.debug:
+    #             print('Attempted to restart pi, appears unsuccessful')
+    #         if s:
+    #             try:
+    #                 s.close()
+    #             except:
+    #                 pass
+    #     if s:
+    #         try:
+    #             s.close()
+    #         except:
+    #             pass
 
     def has_correct_files(self, item):
         missing = []
@@ -125,10 +121,10 @@ class MyRetriever(threading.Thread):
             if len(missing) >= 1:
                 self.bad_audio_transfers += 1
                 logging.warning('audio missing: {} files'.format(len(missing)))
-                logging.warning('specifically these files: {}'.format(missing))
+                logging.warning('audio missing these files: {}'.format(missing))
 
         if self.bad_audio_transfers >= 5:
-            self.restart_dat_service()
+            # self.restart_dat_service()
             self.bad_audio_transfers = 0
 
     def retrieve_this(self):
@@ -263,44 +259,44 @@ class MyPhoto(threading.Thread):
         self.connect_to_video()
         self.start()
 
-    def restart_dat_img(self):
-        r = ['restart_img']
-        # Instantiate IPV4 TCP socket class
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            # Create a socket connection to the server at the specified port
-            s.connect((self.pi_ip_address, self.listen_port))
+    # def restart_dat_img(self):
+    #     r = ['restart_img']
+    #     # Instantiate IPV4 TCP socket class
+    #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #     try:
+    #         # Create a socket connection to the server at the specified port
+    #         s.connect((self.pi_ip_address, self.listen_port))
 
-            # Send message over socket connection, requesting aforementioned data
-            s.sendall(self.create_message(r))
+    #         # Send message over socket connection, requesting aforementioned data
+    #         s.sendall(self.create_message(r))
 
-            # Receive all data from server.
-            self.restart_response = self.my_recv_all(s).split('\r\n')
+    #         # Receive all data from server.
+    #         self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning(
-                'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
-            if self.debug:
-                print(
-                    'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         logging.warning(
+    #             'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         if self.debug:
+    #             print(
+    #                 'Telling pi to restart UV4L - not getting correct data. Pi response: {}'.format(self.restart_response))
 
-            # Close socket
-            s.close()
+    #         # Close socket
+    #         s.close()
 
-        except Exception as e:
-            logging.warning(
-                'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
-            if self.debug:
-                print('Attempted to restart UV4L, appears unsuccessful')
-            if s:
-                try:
-                    s.close()
-                except:
-                    pass
-        if s:
-            try:
-                s.close()
-            except:
-                pass
+    #     except Exception as e:
+    #         logging.warning(
+    #             'Exception occured when telling pi to restart UV4L.  Exception: {}'.format(e))
+    #         if self.debug:
+    #             print('Attempted to restart UV4L, appears unsuccessful')
+    #         if s:
+    #             try:
+    #                 s.close()
+    #             except:
+    #                 pass
+    #     if s:
+    #         try:
+    #             s.close()
+    #         except:
+    #             pass
 
     def create_message(self, to_send):
         """
@@ -383,12 +379,12 @@ class MyPhoto(threading.Thread):
         missing = list(set(should_have_files) - set(has_files))
         if self.debug:
             print('img missing: {} files'.format(len(missing)))
-            print('specifically these files: {}'.format(missing))
+            print('img missing these files: {}'.format(missing))
 
         if len(missing) >= 1:
             self.bad_img_transfers += 1
             logging.warning('img missing: {} files'.format(len(missing)))
-            logging.warning('specifically these files: {}'.format(missing))
+            logging.warning('img missing these files: {}'.format(missing))
 
         time.sleep(2)
 
@@ -419,7 +415,7 @@ class MyPhoto(threading.Thread):
             if self.debug:
                 print('Unable to connect to video')
             if self.img_restart_attempts >= 5:
-                self.restart_dat_img()
+                # self.restart_dat_img()
                 # subprocess.run("sudo reboot", shell = True)
                 # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
                 # time.sleep(5)
@@ -723,44 +719,44 @@ class MyClient():
 
         return(successful_write)
 
-    def restart_dat_service(self):
-        r = ['restart']
-        # Instantiate IPV4 TCP socket class
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            # Create a socket connection to the server at the specified port
-            s.connect((self.pi_ip_address, self.listen_port))
+    # def restart_dat_service(self):
+    #     r = ['restart']
+    #     # Instantiate IPV4 TCP socket class
+    #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #     try:
+    #         # Create a socket connection to the server at the specified port
+    #         s.connect((self.pi_ip_address, self.listen_port))
 
-            # Send message over socket connection, requesting aforementioned data
-            s.sendall(self.create_message(r))
+    #         # Send message over socket connection, requesting aforementioned data
+    #         s.sendall(self.create_message(r))
 
-            # Receive all data from server.
-            self.restart_response = self.my_recv_all(s).split('\r\n')
+    #         # Receive all data from server.
+    #         self.restart_response = self.my_recv_all(s).split('\r\n')
 
-            logging.warning(
-                'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
-            if self.debug:
-                print(
-                    'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         logging.warning(
+    #             'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
+    #         if self.debug:
+    #             print(
+    #                 'Telling pi to restart - not getting correct data. Pi response: {}'.format(self.restart_response))
 
-            # Close socket
-            s.close()
+    #         # Close socket
+    #         s.close()
 
-        except Exception as e:
-            logging.warning(
-                'Exception occured when telling pi to restart.  Exception: {}'.format(e))
-            if self.debug:
-                print('Attempted to restart, appears unsuccessful')
-            if s:
-                try:
-                    s.close()
-                except:
-                    pass
-        if s:
-            try:
-                s.close()
-            except:
-                pass
+    #     except Exception as e:
+    #         logging.warning(
+    #             'Exception occured when telling pi to restart.  Exception: {}'.format(e))
+    #         if self.debug:
+    #             print('Attempted to restart, appears unsuccessful')
+    #         if s:
+    #             try:
+    #                 s.close()
+    #             except:
+    #                 pass
+    #     if s:
+    #         try:
+    #             s.close()
+    #         except:
+    #             pass
 
     def get_sensors_data(self):
         """
@@ -815,8 +811,8 @@ class MyClient():
                 # Close socket
                 s.close()
 
-                if not successful_write and self.bad_writes >= 5:
-                    self.restart_dat_service()
+                # if not successful_write and self.bad_writes >= 5:
+                #     self.restart_dat_service()
 
         except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
             logging.warning(
