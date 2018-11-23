@@ -470,7 +470,7 @@ class MyPhoto(threading.Thread):
                     logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
                 self.bad_img_transfers = 0
                 self.connect_to_video() 
-            f_name = t.strftime("%Y-%m-%d %H%M%S_photo.png")
+            f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
             f_path = os.path.join(self.img_dir, f_name)
 
             # Only capture a photo if it doesn't already exist
@@ -479,7 +479,7 @@ class MyPhoto(threading.Thread):
                     img = False
                     img = self.cam.read()
                     if type(img) is not np.ndarray:
-                        logging.warning('Camera read did not return image.  Attempting to restart video connection')
+                        logging.warning('Camera read did not return image.  Attempting to reconnect to video')
                         if self.debug:
                             print('Camera read did not return image.  Attempting to restart video connection')
                         try:
