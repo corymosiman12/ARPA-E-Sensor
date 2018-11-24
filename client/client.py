@@ -725,10 +725,10 @@ class MyClient():
             print('{} points to insert into influxdb'.format(count_points))
             print('Times of sensor readings: {}'.format(times))
         if count_points != 12:
-            logging.warning('Only {} points to insert into influxdb.'.format(count_points))
-            logging.warning('Timestamps of sensor readings: {}'.format(times))
+            logging.warning('{} points to insert into influxdb.'.format(count_points))
+            # logging.warning('Timestamps of sensor readings: {}'.format(times))
         else:
-            logging.info('{} points inserted'.format(count_points))
+            # logging.info('{} points inserted into influxdb'.format(count_points))
         successful_write = self.influx_client.write_points(json_body)
 
         if successful_write:
