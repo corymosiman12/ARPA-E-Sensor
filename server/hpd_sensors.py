@@ -169,8 +169,8 @@ class Sensors(threading.Thread):
 class MyAudio(threading.Thread):
     def __init__(self, audio_root, debug):
         threading.Thread.__init__(self)
-        self.chunk = 16000
-        self.rate = 32000
+        self.chunk = 4000
+        self.rate = 8000
         self.tape_length = 20
         self.format = pyaudio.paInt32
         self.channels = 1
