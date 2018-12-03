@@ -94,10 +94,16 @@ class HPD_SGP30():
         self.sensor.set_iaq_baseline(0x8973, 0x8aae)
 
     def read(self):
-        return((self.sensor.co2eq, self.sensor.tvoc)) # returns co2eq in ppm and TVOC in ppb
+            try:
+                return((self.sensor.eCO2, self.sensor.TVOC))
+            except:
+                return((self.sensor.co2eq, self.sensor.tvoc)) # returns co2eq in ppm and TVOC in ppb
 
-    def read_baseline(self):
-        return((self.sensor.baseline_co2eq, self.sensor.baseline_tvoc))
+        def read_baseline(self):
+            try:
+                return((self.sensor.baseline_eCO2, self.sensor.baseline_TVOC))
+            except:
+                return((self.sensor.baseline_co2eq, self.sensor.baseline_tvoc))
     
 
 class HPD_VL53L1X():
