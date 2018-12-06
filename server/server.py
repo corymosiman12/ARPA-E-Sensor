@@ -229,6 +229,7 @@ class MyThreadedSocket(threading.Thread):
         if self.client_request == "env_params":
             try:
                 self.client_socket.sendall(self.send_sensors())
+                
 
                 # Client will respond to whether or not the write
                 # to the InfluxDB was successful
@@ -241,7 +242,10 @@ class MyThreadedSocket(threading.Thread):
                 if self.client_request == "SUCCESS":
                     
                     # clear sensor cache
+                    logging.warning('list index ...')
                     self.sensors.readings = []
+                    logging.warning('... in range')
+
 
                     # respond that cache has been cleared.
                     self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
@@ -257,6 +261,7 @@ class MyThreadedSocket(threading.Thread):
 
                 # Close socket
                 self.client_socket.close()
+                logging.info("socket closed, try (264)")
             except Exception as e:
                 logging.warning('env_params excepted.  Exception: {}'.format(e))
                 if self.client_socket:
@@ -264,7 +269,10 @@ class MyThreadedSocket(threading.Thread):
                         self.client_socket.close()
                     except Exception as e:
                         logging.info('Unable to close client_socket in env_params.  Socket may already be closed.  Exception: {}'.format(e))
-            
+            finally:
+                self.client_socket.close()
+                logging.info("socket closed, finally (274)")
+
         elif self.client_request == "to_remove":
             deleted = []
             try:
@@ -300,14 +308,21 @@ class MyThreadedSocket(threading.Thread):
 
                 # Close socket
                 self.client_socket.close()
+                logging.info("socket closed, try (311)")
+
             except Exception as e:
                 logging.warning('to_remove excepted.  Exception: {}'.format(e))
                 if self.client_socket:
                     try:
                         self.client_socket.close()
+                        logging.info("socket closed, try(318)")
+
                     except Exception as e:
                         logging.info('Unable to close client_socket in to_remove.  Socket may already be closed.  Exception: {}'.format(e))
-        
+            finally:
+                self.client_socket.close()
+                logging.info("socket closed, finally (324)")
+
         # elif self.client_request == 'restart':
         #     try:
         #         dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -355,6 +370,7 @@ class MyThreadedSocket(threading.Thread):
 
         # Make sure socket is closed
         self.client_socket.close()
+
 
 if __name__=='__main__':
     """
