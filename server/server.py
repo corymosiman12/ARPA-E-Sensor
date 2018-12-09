@@ -292,8 +292,8 @@ class MyPerformanceMonitor(threading.Thread):
                         # print(m)
 
                     swap_mem = psutil.swap_memory()
-                    if swap_mem.available >= 100 - self.mem_threshold:
-                        m = 'High swap mem usage: {}'.format(swap_mem.available)
+                    if swap_mem.percent >= self.mem_threshold:
+                        m = 'High swap mem usage: {}'.format(swap_mem.percent)
                         logging.warning(m)
                         # print(m)
 
