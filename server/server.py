@@ -224,9 +224,9 @@ class MyNetworkMonitor(threading.Thread):
         logging.info("Base connections: {}".format(self.base_conns))
 
     def run(self):
+        logging.info('MyNetworkMonitor run')
         while True:
             # Choose weird start time so that other things aren't happening as well...?
-            logging.info('MyNetworkMonitor run')
             if datetime.now().second == 46:
                 logging.info('MyNetworkMonitor time to check!')
                 t_wait_conns = []
