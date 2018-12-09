@@ -149,8 +149,8 @@ class MyAudioChecker(threading.Thread):
                 should_have_files = [os.path.join(prev_min_audio_dir,
                                                   '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
 
-                logging.info('len: {} should_have_files: {}'.format(
-                    len(should_have_files), should_have_files))
+                # logging.info('len: {} should_have_files: {}'.format(
+                #     len(should_have_files), should_have_files))
 
                 has_files = [os.path.join(prev_min_audio_dir, f) for f in os.listdir(
                     prev_min_audio_dir) if f.endswith('.wav')]
@@ -229,30 +229,33 @@ class MyNetworkMonitor(threading.Thread):
         while True:
             # Choose weird start time so that other things aren't happening as well...?
             if datetime.now().second == 46:
-                logging.info('MyNetworkMonitor time to check!')
-                t_wait_conns = []
-                t_wait_conn_count = 0
-                conns = psutil.net_connections(kind="inet")
-                if len(conns) > self.max_conns:
-                    self.max_conns = len(conns)
-                    logging.info(
-                        'Number of connections has increased to: {}'.format(self.max_conns))
+                # logging.info('MyNetworkMonitor time to check!')
+                try:
+                    t_wait_conns = []
+                    t_wait_conn_count = 0
+                    conns = psutil.net_connections(kind="inet")
+                    if len(conns) > self.max_conns:
+                        self.max_conns = len(conns)
+                        logging.info(
+                            'Number of connections has increased to: {}'.format(self.max_conns))
 
-                for c in conns:
-                    if c.status == "TIME_WAIT":
-                        t_wait_conns.append({
-                            "Proto": self.proto_map[(c.family, c.type)],
-                            "Local Address": laddr,
-                            "Remote Address": raddr or self.AD,
-                            "Status": c.status,
-                            "PID": c.pid or self.AD,
-                            "Program Name": self.proc_names.get(c.pid, '?')
-                        })
-                        t_wait_conn_count += 1
-                
-                if t_wait_conn_count > 0:
-                    logging.warning('Number of sockets in TIME_WAIT: {}'.format(t_wait_conn_count))
-                    logging.warning('Sockets: {}'.format(t_wait_conns))
+                    for c in conns:
+                        if c.status == "TIME_WAIT":
+                            t_wait_conns.append({
+                                "Proto": self.proto_map[(c.family, c.type)],
+                                "Local Address": laddr,
+                                "Remote Address": raddr or self.AD,
+                                "Status": c.status,
+                                "PID": c.pid or self.AD,
+                                "Program Name": self.proc_names.get(c.pid, '?')
+                            })
+                            t_wait_conn_count += 1
+                    
+                    if t_wait_conn_count > 0:
+                        logging.warning('Number of sockets in TIME_WAIT: {}'.format(t_wait_conn_count))
+                        logging.warning('Sockets: {}'.format(t_wait_conns))
+                except Exception as e:
+                    logging.warning('MyNetworkMonitor excepted: {}'.format(e))
 
                 time.sleep(1)
 
@@ -277,7 +280,7 @@ class MyPerformanceMonitor(threading.Thread):
             # michaelJordan time
             if datetime.now().second == 23:
                 try:
-                    logging.info('MyPerformanceMonitor time to check!')
+                    # logging.info('MyPerformanceMonitor time to check!')
                     cpu = psutil.cpu_freq()
                     cpu_perc = (cpu.current - cpu.min) / self.cpu_range
                     if  cpu_perc > 80:
