@@ -1,6 +1,5 @@
 import socket
 import threading
-from thread import inte
 import os
 import sys
 import logging
