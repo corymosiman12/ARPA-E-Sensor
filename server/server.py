@@ -312,7 +312,7 @@ class MyPerformanceMonitor(threading.Thread):
                         # print(m)
                         logging.warning(m)
 
-                    if datetime.now().minute == 5:
+                    if datetime.now().minute % 5 == 0:
                         logging.info('CPU Perc Usage: {}\tVirt Mem Available: {}\tSwap Mem Available: {}\tDisk Perc Usage: {}'.format(
                             cpu_perc, virt_mem.available, swap_mem.percent, disk_usage.percent))
                 except Exception as e:
