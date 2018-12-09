@@ -298,12 +298,13 @@ class MyPerformanceMonitor(threading.Thread):
                         # print(m)
 
                     disk_usage = psutil.disk_usage('/')
-                    if disk_usage >= self.disk_threshold:
+                    if disk_usage.percent >= self.disk_threshold:
                         m = 'High disk usage: % User disk utilization: {}'.format(disk_usage.percent)
                         # print(m)
                         logging.warning(m)
                 except Exception as e:
                     logging.warning('MyPerformanceMonitor excepted: {}'.format(e))
+                time.sleep(1)
 
                 
 
