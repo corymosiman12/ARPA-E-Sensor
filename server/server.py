@@ -415,19 +415,15 @@ class MyThreadedSocket(threading.Thread):
 
                 # Close socket
                 self.client_socket.close()
-                logging.info("socket closed, try (264)")
+                logging.info("env_params socket closed, try")
             except Exception as e:
                 logging.warning(
                     'env_params excepted.  Exception: {}'.format(e))
-                if self.client_socket:
-                    try:
-                        self.client_socket.close()
-                    except Exception as e:
-                        logging.info(
-                            'Unable to close client_socket in env_params.  Socket may already be closed.  Exception: {}'.format(e))
+
             finally:
-                self.client_socket.close()
-                logging.info("socket closed, finally (274)")
+                if self.client_socket:
+                    self.client_socket.close()
+                    logging.info("env_params socket closed, finally")
 
         elif self.client_request == "to_remove":
             deleted = []
@@ -464,21 +460,15 @@ class MyThreadedSocket(threading.Thread):
 
                 # Close socket
                 self.client_socket.close()
-                logging.info("socket closed, try (311)")
+                logging.info("to_remove socket closed, try")
 
             except Exception as e:
                 logging.warning('to_remove excepted.  Exception: {}'.format(e))
-                if self.client_socket:
-                    try:
-                        self.client_socket.close()
-                        logging.info("socket closed, try(318)")
 
-                    except Exception as e:
-                        logging.info(
-                            'Unable to close client_socket in to_remove.  Socket may already be closed.  Exception: {}'.format(e))
             finally:
-                self.client_socket.close()
-                logging.info("socket closed, finally (324)")
+                if self.client_socket:
+                    self.client_socket.close()
+                    logging.info("to_remove socket closed, finally")
 
         # elif self.client_request == 'restart':
         #     try:

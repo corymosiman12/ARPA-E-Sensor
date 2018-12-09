@@ -469,6 +469,8 @@ class MyPhoto(threading.Thread):
                     self.cam.close()
                 except Exception as e:
                     logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
+                finally:
+                    self.cam.close()
                 self.bad_img_transfers = 0
                 self.connect_to_video() 
             f_name = datetime.now().strftime("%Y-%m-%d %H%M%S_photo.png")
@@ -487,6 +489,8 @@ class MyPhoto(threading.Thread):
                             self.cam.close()
                         except Exception as e:
                             logging.warning('Unable to close cam.  Potentially closed.  Exception: {}'.format(e))
+                        finally: 
+                            self.cam.close()
                         self.connect_to_video()
 
                     elif type(img) is np.ndarray:
@@ -845,17 +849,8 @@ class MyClient():
                 'Unable to connect and get_sensors_data. Error: {}'.format(e))
             if self.debug:
                 print('Unable to connect and get_sensors_data. Error: {}'.format(e))
-
-            try:
-                if s:
-                    s.close()
-            except:
-                pass
-        if s:
-            try:
-                s.close()
-            except:
-                pass
+        finally:
+            s.close()
 
         time.sleep(60)
 
@@ -927,11 +922,8 @@ class MyClient():
                         if self.debug:
                             print(
                                 'Unable to connect and server_delete. Error: {}'.format(e))
-                        try:
-                            if s:
-                                s.close()
-                        except:
-                            pass
+                    finally:
+                        s.close()
 
                 time.sleep(30)
 
