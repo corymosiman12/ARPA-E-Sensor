@@ -131,6 +131,7 @@ class MyAudioChecker(threading.Thread):
         self.start()
 
     def run():
+        logging.info('MyAudioChecker run')
         first_check = True
         while True:
             t = datetime.now()
@@ -163,9 +164,6 @@ class MyAudioChecker(threading.Thread):
                 
                 if first_check:
                     first_check = False
-
-
-
 
 
 class MyThreadedSocket(threading.Thread):

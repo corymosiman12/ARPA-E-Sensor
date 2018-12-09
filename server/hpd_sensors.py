@@ -258,7 +258,7 @@ class MyAudio(threading.Thread):
         while not self.stream:
             pass
         while True:
-            while datetime.now().second % 20 != 0:
+            while datetime.now().second % self.tape_length != 0:
                 pass
             f_name = datetime.now().strftime('%Y-%m-%d %H%M%S_audio.wav')
             f_path = os.path.join(self.audio_dir, f_name) 
