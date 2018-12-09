@@ -126,7 +126,7 @@ class MyAudioChecker(threading.Thread):
         self.audio_root = audio_root
         self.audio_seconds = [str(x).zfill(2)
                               for x in range(0, 60, self.tape_length)]
-        self.daemon = True
+        #self.daemon = True
         self.total_missing = 0
         self.start()
 
