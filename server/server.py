@@ -144,6 +144,8 @@ class MyAudioChecker(threading.Thread):
                 should_have_files = [os.path.join(prev_min_audio_dir,
                                                   '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
 
+                logging.info('len: {} should_have_files: {}'.format(len(should_have_files), should_have_files))
+
                 has_files = [os.path.join(prev_min_audio_dir, f) for f in os.listdir(
                     prev_min_audio_dir) if f.endswith('.wav')]
 
