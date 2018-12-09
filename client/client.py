@@ -21,18 +21,19 @@ logging.basicConfig(filename='/root/client_logfile.log', level=25,
 
 
 class MyRetriever(threading.Thread):
-    def __init__(self, my_root, pi_ip_address, pi_img_audio_root, listen_port, debug):
+    def __init__(self, my_root, pi_ip_address, pi_img_audio_root, listen_port, debug, tape_length):
         threading.Thread.__init__(self)
         logging.log(25, 'Initializing MyRetriever')
         self.my_audio_root = os.path.join(my_root, 'audio')
         self.pi_ip_address = pi_ip_address
         self.pi_audio_root = os.path.join(pi_img_audio_root, 'audio')
+        self.audio_tape_length = int(tape_length)
         self.listen_port = listen_port
         self.debug = debug
         self.to_retrieve = Queue(maxsize=0)
         self.num_threads = 5
         self.successfully_retrieved = []
-        self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, 20)]
+        self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, self.audio_tape_length)]
         self.bad_audio_transfers = 0
         self.start()
 
@@ -541,7 +542,7 @@ class MyClient():
         self.create_audio_dir()
         self.photos = MyPhoto(self.image_dir, self.stream_type, self.pi_ip_address, self.listen_port, self.debug)
         self.retriever = MyRetriever(
-            self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
+            self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug, self.conf["audio_tape_length"])
 
     def import_conf(self, server_id):
         """
@@ -872,7 +873,6 @@ class MyClient():
                 if len(to_remove) <= 1:
                     logging.log(25,
                         'Nothing to remove from self.retriever.successfully_retrieved...')
-                    pass
 
                 else:
                     # Instantiate IPV4 TCP socket class

@@ -4,5 +4,6 @@
     "root": "/home/pi/Github/server",
     "audio_root": "/home/pi/audio",
     "img_root": "/home/pi/img",
-    "stream_type": "mjpeg"
+    "stream_type": "mjpeg",
+    "audio_tape_length": 5
 }

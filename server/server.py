@@ -1,5 +1,6 @@
 import socket
 import threading
+from thread import inte
 import os
 import sys
 import logging
@@ -18,10 +19,11 @@ import subprocess
 
 # Alpine as potential option for OS
 
-logging.basicConfig(filename = '/home/pi/server_logfile.log', level = logging.INFO,
+logging.basicConfig(filename='/home/pi/server_logfile.log', level=logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
-                               
+
+
 class Server():
     def __init__(self, debug):
         """
@@ -42,10 +44,14 @@ class Server():
         self.audio_root = self.settings['audio_root']
         self.img_root = self.settings['img_root']
         self.stream_type = self.settings['stream_type']
-        self.sensors = hpd_sensors.Sensors(int(self.settings['read_interval']), self.debug)
-        self.audio = hpd_sensors.MyAudio(self.audio_root, self.debug)
+        self.sensors = hpd_sensors.Sensors(
+            int(self.settings['read_interval']), self.debug)
+        self.audio = hpd_sensors.MyAudio(
+            self.audio_root, self.debug, self.settings['audio_tape_length'])
+        self.audio_checker = MyAudioChecker(
+            self.settings['tape_length'], self.settings['audio_root'])
         self.create_socket()
-        
+
     def import_server_conf(self):
         """
         This function is used to import the configuration file from the
@@ -57,11 +63,12 @@ class Server():
         try:
             with open('/home/pi/Github/server/server_conf.json', 'r') as f:
                 conf = json.loads(f.read())
-            
+
             return conf
-            
+
         except Exception as e:
-            logging.critical("Unable to read server configuration file.  Exception: {}".format(e))
+            logging.critical(
+                "Unable to read server configuration file.  Exception: {}".format(e))
             logging.critical('Exiting.  System should reboot program')
             sys.exit()
 
@@ -80,7 +87,8 @@ class Server():
             self.sock = sock
         except socket.error as e:
             logging.critical('Bind failed.  Exception: {}'.format(e))
-            logging.critical('Exiting program.  Program should restart from system')
+            logging.critical(
+                'Exiting program.  Program should restart from system')
             sys.exit()
         while True:
             try:
@@ -89,16 +97,75 @@ class Server():
                 (client_socket, client_address) = self.sock.accept()
                 try:
                     if client_socket:
-                        thr = MyThreadedSocket(client_socket, client_address, self.settings, self.sensors, self.debug, self.audio)
+                        thr = MyThreadedSocket(
+                            client_socket, client_address, self.settings, self.sensors, self.debug, self.audio)
                         thr.start()
                         thr.join()
                         print("New connection with: {}".format(client_address))
                 except Exception as e:
-                    logging.warning('create_socket excepted after socket accepted. Exception: {}'.format(e))
+                    logging.warning(
+                        'create_socket excepted after socket accepted. Exception: {}'.format(e))
                     if client_socket:
                         client_socket.close()
             except Exception as e:
-                logging.warning('create_socket function excepted. Exception: {}'.format(e))
+                logging.warning(
+                    'create_socket function excepted. Exception: {}'.format(e))
+
+
+class MyAudioChecker(threading.Thread):
+    """
+    This class is designed to check the number of audio files written 
+    to disk for each minute.
+
+    param: 
+    """
+
+    def __init__(self, tape_length, audio_root):
+        threading.Thread.__init__(self)
+        self.tape_length = int(tape_length)
+        self.audio_root = audio_root
+        self.audio_seconds = [str(x).zfill(2)
+                              for x in range(0, 60, self.tape_length)]
+        self.daemon = True
+        self.total_missing = 0
+        self.start()
+
+    def run():
+        first_check = True
+        while True:
+            t = datetime.now()
+            # Check audio files for previous minute at the 5 second.
+            if t.second == 5:
+                t_prev = t - timedelta(minutes=1)
+                d = t_prev.strftime("%Y-%m-%d")
+                hr = t_prev.strftime("%H%M")
+
+                prev_min_audio_dir = os.path.join(self.audio_root, d, hr)
+                should_have_files = [os.path.join(prev_min_audio_dir,
+                                                  '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
+
+                has_files = [os.path.join(prev_min_audio_dir, f) for f in os.listdir(
+                    prev_min_audio_dir) if f.endswith('.wav')]
+
+                if len(has_files) == 0 and not first_check:
+                    logging.critical('No audio files found.  Next line runs os._exit(1)')
+                    os._exit(1)
+
+                missing = list(set(should_have_files) - set(has_files))
+                if len(missing) > 0:
+                    self.total_missing += len(missing)
+                    logging.warning('audio missing: {} files'.format(len(missing)))
+                    logging.warning('audio missing these files: {}'.format(missing))
+
+                if self.total_missing > 3*len(should_have_files):
+                    logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
+                    os._exit(1)
+                
+                if first_check:
+                    first_check = False
+
+
+
 
 
 class MyThreadedSocket(threading.Thread):
@@ -118,6 +185,7 @@ class MyThreadedSocket(threading.Thread):
             Pointer to master class of sensors.  Allows thread
             to get readings from sensors to send to client.
     """
+
     def __init__(self, socket, address, settings, sensors, debug, audio):
         threading.Thread.__init__(self)
         self.client_socket = socket
@@ -127,7 +195,7 @@ class MyThreadedSocket(threading.Thread):
         self.sensors = sensors
         self.debug = debug
         self.audio = audio
-    
+
     def decode_request(self):
         """
         Each line in the client message is separated by a
@@ -141,7 +209,7 @@ class MyThreadedSocket(threading.Thread):
         self.client_request = decoded[1]
         if len(decoded) > 2:
             self.dirs_to_delete = decoded[2:]
-        
+
     def send_sensors(self):
         """
         Create dictionary of readings, along with additional meta data
@@ -166,33 +234,33 @@ class MyThreadedSocket(threading.Thread):
                 A string containing all info sent.
         """
         # try:
-        #make socket non blocking
+        # make socket non blocking
         self.client_socket.setblocking(0)
-        
-        #total data partwise in an array
-        total_data=[]
-        data=''
-        
-        #beginning time
-        begin=time.time()
+
+        # total data partwise in an array
+        total_data = []
+        data = ''
+
+        # beginning time
+        begin = time.time()
         while 1:
-            #if you got some data, then break after timeout
+            # if you got some data, then break after timeout
             if total_data and time.time()-begin > timeout:
                 break
-            
-            #if you got no data at all, wait a little longer, twice the timeout
+
+            # if you got no data at all, wait a little longer, twice the timeout
             elif time.time()-begin > timeout*2:
                 break
-            
-            #recv something
+
+            # recv something
             try:
                 data = self.client_socket.recv(8192).decode()
                 if data:
                     total_data.append(data)
-                    #change the beginning time for measurement
+                    # change the beginning time for measurement
                     begin = time.time()
                 else:
-                    #sleep for sometime to indicate a gap
+                    # sleep for sometime to indicate a gap
                     time.sleep(0.1)
             except:
                 pass
@@ -208,10 +276,10 @@ class MyThreadedSocket(threading.Thread):
         #         self.client_socket.close()
         #     except:
         #         pass
-        
-        #join all parts to make final string
+
+        # join all parts to make final string
         return ''.join(total_data)
-    
+
     def run(self):
         """
         Process client request, send requested information, and ensure
@@ -229,7 +297,6 @@ class MyThreadedSocket(threading.Thread):
         if self.client_request == "env_params":
             try:
                 self.client_socket.sendall(self.send_sensors())
-                
 
                 # Client will respond to whether or not the write
                 # to the InfluxDB was successful
@@ -240,18 +307,17 @@ class MyThreadedSocket(threading.Thread):
                 if self.debug:
                     print("Write to influx: {}".format(self.client_request))
                 if self.client_request == "SUCCESS":
-                    
+
                     # clear sensor cache
                     logging.warning('list index ...')
                     self.sensors.readings = []
                     logging.warning('... in range')
 
-
                     # respond that cache has been cleared.
                     self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
                                                 \tself.readings is now cleared. \n\
                                                 \tself.readings= {}".format(self.client_request,
-                                                                        self.sensors.readings).encode())
+                                                                            self.sensors.readings).encode())
                 elif self.client_request == "NOT SUCCESS":
                     # Respond that cache has not been cleared
                     self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
@@ -263,12 +329,14 @@ class MyThreadedSocket(threading.Thread):
                 self.client_socket.close()
                 logging.info("socket closed, try (264)")
             except Exception as e:
-                logging.warning('env_params excepted.  Exception: {}'.format(e))
+                logging.warning(
+                    'env_params excepted.  Exception: {}'.format(e))
                 if self.client_socket:
                     try:
                         self.client_socket.close()
                     except Exception as e:
-                        logging.info('Unable to close client_socket in env_params.  Socket may already be closed.  Exception: {}'.format(e))
+                        logging.info(
+                            'Unable to close client_socket in env_params.  Socket may already be closed.  Exception: {}'.format(e))
             finally:
                 self.client_socket.close()
                 logging.info("socket closed, finally (274)")
@@ -283,12 +351,12 @@ class MyThreadedSocket(threading.Thread):
                             shutil.rmtree(d)
                         except:
                             logging.info('Unable to remove dir: {}'.format(d))
-                    
+
                     # Regardless of whether or not it was a directory, if it doesn't exist,
                     # then it is identified as 'deleted'
                     if not os.path.isdir(d):
                         deleted.append(d)
-                
+
                 # Respond to client with the number of directories removed,
                 # followed by the names of the directories on the pi.
                 temp = [str(len(deleted))]
@@ -318,7 +386,8 @@ class MyThreadedSocket(threading.Thread):
                         logging.info("socket closed, try(318)")
 
                     except Exception as e:
-                        logging.info('Unable to close client_socket in to_remove.  Socket may already be closed.  Exception: {}'.format(e))
+                        logging.info(
+                            'Unable to close client_socket in to_remove.  Socket may already be closed.  Exception: {}'.format(e))
             finally:
                 self.client_socket.close()
                 logging.info("socket closed, finally (324)")
@@ -358,7 +427,7 @@ class MyThreadedSocket(threading.Thread):
         #         subprocess.run("sudo service uv4l_raspicam stop", shell = True)
         #         time.sleep(2)
         #         subprocess.run("sudo service uv4l_raspicam start", shell = True)
-                
+
         #     except Exception as e:
         #         logging.warning('restart_img excepted.  Exception: {}'.format(e))
         #         if self.client_socket:
@@ -367,20 +436,17 @@ class MyThreadedSocket(threading.Thread):
         #             except Exception as e:
         #                 logging.info('Unable to close client_socket in restart_img.  Socket may already be closed.  Exception: {}'.format(e))
 
-
         # Make sure socket is closed
         self.client_socket.close()
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     """
     Upon initialization of the program, the configuration file is read
     in and passed to the Server.  The Server is responsible for gathering
     and caching sensor data until a request is received from a client.
-    Depending on the data requested, the Server will either send audio
-    data or environmental parameters.
+    Depending on the data requested, the Server will either send environmental 
+    parameters data or 
     """
     debug = True
     s = Server(debug)
-
-    

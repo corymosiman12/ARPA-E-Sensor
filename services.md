@@ -37,7 +37,6 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStartPre=/bin/sleep 60
 ExecStart=/root/.virtualenvs/cv/bin/python /root/client/client.py [server_id]
 restart=always
 
