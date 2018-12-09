@@ -69,7 +69,7 @@ class Server():
             logging.critical(
                 "Unable to read server configuration file.  Exception: {}".format(e))
             logging.critical('Exiting.  System should reboot program')
-            sys.exit()
+            sys.exit(1)
 
     def create_socket(self):
         """
@@ -88,7 +88,7 @@ class Server():
             logging.critical('Bind failed.  Exception: {}'.format(e))
             logging.critical(
                 'Exiting program.  Program should restart from system')
-            sys.exit()
+            sys.exit(1)
         while True:
             try:
                 # accept() method creates a new socket separate from the
@@ -129,7 +129,7 @@ class MyAudioChecker(threading.Thread):
         self.total_missing = 0
         self.start()
 
-    def run():
+    def run(self):
         logging.info('MyAudioChecker run')
         first_check = True
         while True:
