@@ -48,7 +48,7 @@ class Server():
         self.audio = hpd_sensors.MyAudio(
             self.audio_root, self.debug, self.settings['audio_tape_length'])
         self.audio_checker = MyAudioChecker(
-            self.settings['tape_length'], self.settings['audio_root'])
+            self.settings['audio_tape_length'], self.settings['audio_root'])
         self.create_socket()
 
     def import_server_conf(self):
@@ -124,9 +124,8 @@ class MyAudioChecker(threading.Thread):
         threading.Thread.__init__(self)
         self.tape_length = int(tape_length)
         self.audio_root = audio_root
-        self.audio_seconds = [str(x).zfill(2)
-                              for x in range(0, 60, self.tape_length)]
-        self.daemon = True
+        self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, self.tape_length)]
+        # self.daemon = True
         self.total_missing = 0
         self.start()
 
