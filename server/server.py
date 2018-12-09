@@ -124,14 +124,8 @@ class MyAudioChecker(threading.Thread):
         threading.Thread.__init__(self)
         self.tape_length = int(tape_length)
         self.audio_root = audio_root
-<<<<<<< HEAD
-        self.audio_seconds = [str(x).zfill(2)
-                              for x in range(0, 60, self.tape_length)]
-        #self.daemon = True
-=======
         self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, self.tape_length)]
         # self.daemon = True
->>>>>>> 81f86d356308f4d4cdd18cebbfee778715752cdb
         self.total_missing = 0
         self.start()
 
