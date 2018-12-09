@@ -293,9 +293,9 @@ class MyPerformanceMonitor(threading.Thread):
                         # print(m)
 
                     virt_mem = psutil.virtual_memory()
-                    if virt_mem.available <= self.mem_threshold:
+                    if virt_mem.percent <= self.mem_threshold:
                         m = 'High virtual mem usage. Mem available: {}'.format(
-                            virt_mem.available)
+                            virt_mem.percent)
                         logging.warning(m)
                         # print(m)
 
@@ -313,8 +313,8 @@ class MyPerformanceMonitor(threading.Thread):
                         logging.warning(m)
 
                     if datetime.now().minute % 5 == 0:
-                        logging.info('CPU Perc Usage: {}\tVirt Mem Available: {}\tSwap Mem Available: {}\tDisk Perc Usage: {}'.format(
-                            cpu_perc, virt_mem.available, swap_mem.percent, disk_usage.percent))
+                        logging.info('CPU Perc Usage: {}\tVirt Mem Perc Usage: {}\tSwap Mem Perc Usage: {}\tDisk Perc Usage: {}'.format(
+                            cpu_perc, virt_mem.percent, swap_mem.percent, disk_usage.percent))
                 except Exception as e:
                     logging.warning(
                         'MyPerformanceMonitor excepted: {}'.format(e))
