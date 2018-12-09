@@ -286,8 +286,7 @@ class MyPerformanceMonitor(threading.Thread):
             if datetime.now().second == 23:
                 try:
                     # logging.info('MyPerformanceMonitor time to check!')
-                    cpu = psutil.cpu_freq()
-                    cpu_perc = (cpu.current - cpu.min) / self.cpu_range
+                    cpu_perc = psutil.cpu_percent()
                     if cpu_perc > 80:
                         m = 'High CPU usage: {}'.format(cpu_perc)
                         logging.warning(m)
