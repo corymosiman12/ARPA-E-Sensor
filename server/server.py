@@ -167,7 +167,7 @@ class MyAudioChecker(threading.Thread):
                 if first_check:
                     first_check = False
                 
-                # time.sleep(1)
+                time.sleep(1)
 
 
 class MyThreadedSocket(threading.Thread):
