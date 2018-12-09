@@ -51,6 +51,7 @@ class Server():
             self.audio_root, self.debug, self.settings['audio_tape_length'])
         self.audio_checker = MyAudioChecker(
             self.settings['audio_tape_length'], self.settings['audio_root'])
+        self.network_monitor = MyNetworkMonitor()
         self.create_socket()
 
     def import_server_conf(self):
@@ -225,7 +226,9 @@ class MyNetworkMonitor(threading.Thread):
     def run(self):
         while True:
             # Choose weird start time so that other things aren't happening as well...?
+            logging.info('MyNetworkMonitor run')
             if datetime.now().second == 46:
+                logging.info('MyNetworkMonitor time to check!')
                 t_wait_conns = []
                 t_wait_conn_count = 0
                 conns = psutil.net_connections(kind="inet")
