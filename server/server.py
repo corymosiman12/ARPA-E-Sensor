@@ -272,11 +272,11 @@ class MyNetworkMonitor(threading.Thread):
             self.cpu_range = cpu.max - cpu.min
 
         def run(self):
-            logging.info('MyPerformanceMonitor run')
+            # logging.info('MyPerformanceMonitor run')
             while True:
                 # michaelJordan time
                 if datetime.now().second == 23:
-                    logging.info('MyPerformanceMonitor time to check!')
+                    # logging.info('MyPerformanceMonitor time to check!')
                     cpu = psutil.cpu_freq()
                     cpu_perc = (cpu.current - cpu.min) / self.cpu_range
                     if  cpu_perf > 80:
@@ -284,15 +284,15 @@ class MyNetworkMonitor(threading.Thread):
 
                     virt_mem = psutil.virtual_memory()
                     if virt_mem.available <= self.mem_threshold:
-                        logging.warning('High virtual mem usage. Mem available: {}'.format(virt_mem.available))
+                        # logging.warning('High virtual mem usage. Mem available: {}'.format(virt_mem.available))
 
                     swap_mem = psutil.swap_memory()
                     if swap_mem.available >= 100 - self.mem_threshold:
-                        logging.warning('High swap mem usage: {}'.format(swap_mem.available))
+                        # logging.warning('High swap mem usage: {}'.format(swap_mem.available))
 
                     disk_usage = psutil.disk_usage('/')
                     if disk_usage >= self.disk_threshold:
-                        logging.warning('High disk usage: % User disk utilization: {}'.format(disk_usage.percent))
+                        # logging.warning('High disk usage: % User disk utilization: {}'.format(disk_usage.percent))
 
                 
 
