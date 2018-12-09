@@ -1,4 +1,5 @@
 import socket
+from socket import AF_INET, SOCK_STREAM, SOCK_DGRAM
 import threading
 import os
 import sys
@@ -9,6 +10,7 @@ import hpd_sensors
 import time
 import shutil
 import subprocess
+import psutil
 
 # TODO:
 # 1. create class to log system performance (RAM, CPU, disk space)
@@ -124,7 +126,8 @@ class MyAudioChecker(threading.Thread):
         threading.Thread.__init__(self)
         self.tape_length = int(tape_length)
         self.audio_root = audio_root
-        self.audio_seconds = [str(x).zfill(2) for x in range(0, 60, self.tape_length)]
+        self.audio_seconds = [str(x).zfill(2)
+                              for x in range(0, 60, self.tape_length)]
         # self.daemon = True
         self.total_missing = 0
         self.start()
@@ -144,29 +147,109 @@ class MyAudioChecker(threading.Thread):
                 should_have_files = [os.path.join(prev_min_audio_dir,
                                                   '{} {}{}_audio.wav'.format(d, hr, s)) for s in self.audio_seconds]
 
-                logging.info('len: {} should_have_files: {}'.format(len(should_have_files), should_have_files))
+                logging.info('len: {} should_have_files: {}'.format(
+                    len(should_have_files), should_have_files))
 
                 has_files = [os.path.join(prev_min_audio_dir, f) for f in os.listdir(
                     prev_min_audio_dir) if f.endswith('.wav')]
 
                 if len(has_files) == 0 and not first_check:
-                    logging.critical('No audio files found.  Next line runs os._exit(1)')
+                    logging.critical(
+                        'No audio files found.  Next line runs os._exit(1)')
                     os._exit(1)
 
                 missing = list(set(should_have_files) - set(has_files))
                 if len(missing) > 0:
                     self.total_missing += len(missing)
-                    logging.warning('audio missing: {} files'.format(len(missing)))
-                    logging.warning('audio missing these files: {}'.format(missing))
+                    logging.warning(
+                        'audio missing: {} files'.format(len(missing)))
+                    logging.warning(
+                        'audio missing these files: {}'.format(missing))
 
-                # Abrupt exit if more than 5 minutes of data missing.  
+                # Abrupt exit if more than 5 minutes of data missing.
                 if self.total_missing > 5*len(should_have_files):
-                    logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
+                    logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
+                        self.total_missing))
                     os._exit(1)
-                
+
                 if first_check:
                     first_check = False
+
+                time.sleep(1)
+
+
+class MyNetworkMonitor(threading.Thread):
+    """
+    Used to monitor the number of network connections to the server.
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.AD = "-"
+        AF_INET6 = getattr(socket, 'AF_INET6', object())
+        self.proto_map = {
+            (AF_INET, SOCK_STREAM): 'tcp',
+            (AF_INET6, SOCK_STREAM): 'tcp6',
+            (AF_INET, SOCK_DGRAM): 'udp',
+            (AF_INET6, SOCK_DGRAM): 'udp6',
+        }
+        self.proc_names = {}
+        self.add_proc_names()
+        self.base_conns = []
+        self.max_t_wait_conns = 0
+        self.count_base_conns()
+        self.max_conns = len(self.base_conns)
+        self.start()
+
+    def add_proc_names(self):
+        for p in psutil.process_iter(attrs=['pid', 'name']):
+            self.proc_names[p.info['pid']] = p.info['name']
+
+    def count_base_conns(self):
+        for c in psutil.net_connections(kind="inet"):
+            laddr = "%s:%s" % (c.laddr)
+            raddr = ""
+            if c.raddr:
+                raddr = "%s:%s" % (c.raddr)
+            self.base_conns.append({
+                "Proto": self.proto_map[(c.family, c.type)],
+                "Local Address": laddr,
+                "Remote Address": raddr or self.AD,
+                "Status": c.status,
+                "PID": c.pid or self.AD,
+                "Program Name": self.proc_names.get(c.pid, '?')
+            })
+        logging.info("Number of base connections: {}".format(
+            len(self.base_conns)))
+        logging.info("Base connections: {}".format(self.base_conns))
+
+    def run(self):
+        while True:
+            # Choose weird start time so that other things aren't happening as well...?
+            if datetime.now().second == 46:
+                t_wait_conns = []
+                t_wait_conn_count = 0
+                conns = psutil.net_connections(kind="inet")
+                if len(conns) > self.max_conns:
+                    self.max_conns = len(conns)
+                    logging.info(
+                        'Number of connections has increased to: {}'.format(self.max_conns))
+
+                for c in conns:
+                    if c.status == "TIME_WAIT":
+                        t_wait_conns.append({
+                            "Proto": self.proto_map[(c.family, c.type)],
+                            "Local Address": laddr,
+                            "Remote Address": raddr or self.AD,
+                            "Status": c.status,
+                            "PID": c.pid or self.AD,
+                            "Program Name": self.proc_names.get(c.pid, '?')
+                        })
+                        t_wait_conn_count += 1
                 
+                if t_wait_conn_count > 0:
+                    logging.warning('Number of sockets in TIME_WAIT: {}'.format(t_wait_conn_count))
+                    logging.warning('Sockets: {}'.format(t_wait_conns))
+
                 time.sleep(1)
 
 
