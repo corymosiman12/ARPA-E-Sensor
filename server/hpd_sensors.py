@@ -145,6 +145,7 @@ class Sensors(threading.Thread):
         self.start()
 
     def run(self):
+        logging.info('Sensors run')
         while True:
             if datetime.now().second % self.read_interval == 0:
                 (h, t) = self.temp_humid.read()
@@ -191,7 +192,7 @@ class MyAudio(threading.Thread):
                 print('type(self.p) != pyaudio.PyAudio')
                 logging.info('type(self.p) != pyaudio.PyAudio')
             
-        while datetime.now().second % 20 != 0:
+        while datetime.now().second % self.tape_length != 0:
             pass
         
         logging.info('Starting audio stream.  Time is: ' + datetime.now().strftime('%Y-%m-%d %H:%M'))
