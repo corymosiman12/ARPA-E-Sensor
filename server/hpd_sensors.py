@@ -16,9 +16,9 @@ import sys
 import logging
 import subprocess
 
-logging.basicConfig(filename = '/home/pi/sensors_logfile.log', level = logging.INFO,
-                    format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%d-%m-%Y:%H:%M:%S',)
+# logging.basicConfig(filename = '/home/pi/sensors_logfile.log', level = logging.INFO,
+#                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+#                     datefmt='%d-%m-%Y:%H:%M:%S',)
 
 class HPD_APDS9301():
     def __init__(self):

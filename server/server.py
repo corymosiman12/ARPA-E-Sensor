@@ -18,7 +18,7 @@ import subprocess
 
 # Alpine as potential option for OS
 
-logging.basicConfig(filename='/home/pi/server_logfile.log', level=logging.INFO,
+logging.basicConfig(filename='/home/pi/sensors_logfile.log', level=logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%d-%m-%Y:%H:%M:%S',)
 
