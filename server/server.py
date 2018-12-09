@@ -83,6 +83,7 @@ class Server():
             sock.bind((self.host, self.port))
             sock.listen(5)
             print("Listen socket created on port: {}".format(self.port))
+            logging.info("Listen socket created on port: {}".format(self.port))
             self.sock = sock
         except socket.error as e:
             logging.critical('Bind failed.  Exception: {}'.format(e))
