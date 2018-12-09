@@ -518,6 +518,7 @@ class MyPhoto(threading.Thread):
 
 class MyClient():
     def __init__(self, server_id, debug):
+        logging.info('\n\n\t\t\t ##### NEW START #####')
         self.debug = debug
         self.server_id = server_id
         self.conf = self.import_conf(self.server_id)

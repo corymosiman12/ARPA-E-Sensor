@@ -37,6 +37,7 @@ class Server():
                     root document directory,
                     sensor read interval, ....
         """
+        logging.info('\n\n\t\t\t ##### NEW START #####')
         self.debug = debug
         self.settings = self.import_server_conf()
         self.host = ''
