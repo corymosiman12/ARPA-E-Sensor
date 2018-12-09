@@ -244,8 +244,8 @@ class MyNetworkMonitor(threading.Thread):
                         if c.status == "TIME_WAIT":
                             t_wait_conns.append({
                                 "Proto": self.proto_map[(c.family, c.type)],
-                                "Local Address": laddr,
-                                "Remote Address": raddr or self.AD,
+                                "Local Address": c.laddr,
+                                "Remote Address": c.raddr or self.AD,
                                 "Status": c.status,
                                 "PID": c.pid or self.AD,
                                 "Program Name": self.proc_names.get(c.pid, '?')
