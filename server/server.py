@@ -159,12 +159,15 @@ class MyAudioChecker(threading.Thread):
                     logging.warning('audio missing: {} files'.format(len(missing)))
                     logging.warning('audio missing these files: {}'.format(missing))
 
-                if self.total_missing > 3*len(should_have_files):
+                # Abrupt exit if more than 5 minutes of data missing.  
+                if self.total_missing > 5*len(should_have_files):
                     logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
                     os._exit(1)
                 
                 if first_check:
                     first_check = False
+                
+                # time.sleep(1)
 
 
 class MyThreadedSocket(threading.Thread):
