@@ -184,6 +184,7 @@ class MyNetworkMonitor(threading.Thread):
     """
     Used to monitor the number of network connections to the server.
     """
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.AD = "-"
@@ -250,19 +251,22 @@ class MyNetworkMonitor(threading.Thread):
                                 "Program Name": self.proc_names.get(c.pid, '?')
                             })
                             t_wait_conn_count += 1
-                    
+
                     if t_wait_conn_count > 0:
-                        logging.warning('Number of sockets in TIME_WAIT: {}'.format(t_wait_conn_count))
+                        logging.warning(
+                            'Number of sockets in TIME_WAIT: {}'.format(t_wait_conn_count))
                         logging.warning('Sockets: {}'.format(t_wait_conns))
                 except Exception as e:
                     logging.warning('MyNetworkMonitor excepted: {}'.format(e))
 
                 time.sleep(1)
 
+
 class MyPerformanceMonitor(threading.Thread):
     """
     Used to monitor the disk space, CPU, and memory of the pi.
     """
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.disk_threshold = 75
@@ -283,14 +287,15 @@ class MyPerformanceMonitor(threading.Thread):
                     # logging.info('MyPerformanceMonitor time to check!')
                     cpu = psutil.cpu_freq()
                     cpu_perc = (cpu.current - cpu.min) / self.cpu_range
-                    if  cpu_perc > 80:
+                    if cpu_perc > 80:
                         m = 'High CPU usage: {}'.format(cpu_perc)
                         logging.warning(m)
                         # print(m)
 
                     virt_mem = psutil.virtual_memory()
                     if virt_mem.available <= self.mem_threshold:
-                        m = 'High virtual mem usage. Mem available: {}'.format(virt_mem.available)
+                        m = 'High virtual mem usage. Mem available: {}'.format(
+                            virt_mem.available)
                         logging.warning(m)
                         # print(m)
 
@@ -302,14 +307,19 @@ class MyPerformanceMonitor(threading.Thread):
 
                     disk_usage = psutil.disk_usage('/')
                     if disk_usage.percent >= self.disk_threshold:
-                        m = 'High disk usage: % User disk utilization: {}'.format(disk_usage.percent)
+                        m = 'High disk usage: % User disk utilization: {}'.format(
+                            disk_usage.percent)
                         # print(m)
                         logging.warning(m)
+
+                    if datetime.now().minute == 5:
+                        logging.info('CPU Perc Usage: {}\tVirt Mem Available: {}\tSwap Mem Available: {}\tDisk Perc Usage: {}'.format(
+                            cpu_perc, virt_mem.available, swap_mem.percent, disk_usage.percent))
                 except Exception as e:
-                    logging.warning('MyPerformanceMonitor excepted: {}'.format(e))
+                    logging.warning(
+                        'MyPerformanceMonitor excepted: {}'.format(e))
                 time.sleep(1)
 
-                
 
 class MyThreadedSocket(threading.Thread):
     """
