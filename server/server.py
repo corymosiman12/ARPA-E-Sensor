@@ -276,31 +276,34 @@ class MyPerformanceMonitor(threading.Thread):
         while True:
             # michaelJordan time
             if datetime.now().second == 23:
-                logging.info('MyPerformanceMonitor time to check!')
-                cpu = psutil.cpu_freq()
-                cpu_perc = (cpu.current - cpu.min) / self.cpu_range
-                if  cpu_perc > 80:
-                    m = 'High CPU usage: {}'.format(cpu_perc)
-                    logging.warning(m)
-                    # print(m)
+                try:
+                    logging.info('MyPerformanceMonitor time to check!')
+                    cpu = psutil.cpu_freq()
+                    cpu_perc = (cpu.current - cpu.min) / self.cpu_range
+                    if  cpu_perc > 80:
+                        m = 'High CPU usage: {}'.format(cpu_perc)
+                        logging.warning(m)
+                        # print(m)
 
-                virt_mem = psutil.virtual_memory()
-                if virt_mem.available <= self.mem_threshold:
-                    m = 'High virtual mem usage. Mem available: {}'.format(virt_mem.available)
-                    logging.warning(m)
-                    # print(m)
+                    virt_mem = psutil.virtual_memory()
+                    if virt_mem.available <= self.mem_threshold:
+                        m = 'High virtual mem usage. Mem available: {}'.format(virt_mem.available)
+                        logging.warning(m)
+                        # print(m)
 
-                swap_mem = psutil.swap_memory()
-                if swap_mem.available >= 100 - self.mem_threshold:
-                    m = 'High swap mem usage: {}'.format(swap_mem.available)
-                    logging.warning(m)
-                    # print(m)
+                    swap_mem = psutil.swap_memory()
+                    if swap_mem.available >= 100 - self.mem_threshold:
+                        m = 'High swap mem usage: {}'.format(swap_mem.available)
+                        logging.warning(m)
+                        # print(m)
 
-                disk_usage = psutil.disk_usage('/')
-                if disk_usage >= self.disk_threshold:
-                    m = 'High disk usage: % User disk utilization: {}'.format(disk_usage.percent)
-                    # print(m)
-                    logging.warning(m)
+                    disk_usage = psutil.disk_usage('/')
+                    if disk_usage >= self.disk_threshold:
+                        m = 'High disk usage: % User disk utilization: {}'.format(disk_usage.percent)
+                        # print(m)
+                        logging.warning(m)
+                except Exception as e:
+                    logging.warning('MyPerformanceMonitor excepted: {}'.format(e))
 
                 
 
