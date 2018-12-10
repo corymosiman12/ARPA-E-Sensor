@@ -5,18 +5,20 @@ import json
 import ast
 
 class AudioChecker():
-    def __init__(self, path_to_import_conf, write_file, display_output):
+    def __init__(self, path_to_import_conf, write_file, display_output, server_id):
         self.conf_file_path = path_to_import_conf
         self.import_conf(self.conf_file_path)
         self.write_file = write_file
         self.display_output = display_output
-        self.all_seconds = pd.date_range(self.b_dt, self.e_dt, freq = '20S').tolist()
+        self.audio_tape_length = self.conf_dict['audio_tape_length']
+        self.all_seconds = pd.date_range(self.b_dt, self.e_dt, freq = self.audio_tape_length).tolist()
         self.expect_num_wavs = len(self.all_seconds)
-        self.expect_num_directories = len(pd.date_range(self.b_dt, self.e_dt, freq = 'min').tolist())
-        self.root_dir = self.conf_dict['audio_root']
+        self.expect_num_directories = len(pd.date_range(self.b_dt, self.e_dt, freq = self.conf_dict["dir_create_freq"]).tolist())
+        self.root_dir = os.path.join(self.conf_dict['root'], server_id, 'audio')
         self.date_dirs = self.conf_dict['date_dirs']
         self.hrs_to_pass = self.conf_dict['hr_dirs_to_skip']
-        self.count_3 = {}
+        self.correct_files_per_dir = self.conf_dict['audio_files_per_dir']
+        self.count_correct = {}
         self.count_other = {}
         self.total_wavs = 0
         self.duplicates = 0
@@ -29,6 +31,8 @@ class AudioChecker():
             self.conf_dict = json.loads(f.read())
         self.b_dt = self.conf_dict['begin_dt']
         self.e_dt = self.conf_dict['end_dt']
+        self.b_dt_as_dt = datetime.strptime(self.b_dt, '%Y-%m-%d %H:%M:%S')
+        self.e_dt_as_dt = datetime.strptime(self.e_dt, '%Y-%m-%d %H:%M:%S')
 
     def finder(self):
         for pic in self.wavs:
@@ -69,9 +73,9 @@ class AudioChecker():
                 'Total number of duplicates': self.duplicates,
                 'Number of not captured wavs': len(self.all_seconds),
                 'Expected number of directories': self.expect_num_directories,
-                'Number of directories w/3 wavs': len(self.count_3),
-                'Number of directories w/not 3 wavs': len(self.count_other),
-                'Non-3 wavs directories': self.count_other,
+                'Number of directories w/correct num wavs': len(self.count_correct),
+                'Number of directories w/incorrect num wavs': len(self.count_other),
+                'Non-correct wavs directories': self.count_other,
                 'Timestamps of not captured wavs': missed_seconds,
                 'Duplicates': self.duplicates_ts
             }
@@ -85,26 +89,30 @@ class AudioChecker():
             for hr_min in hr_min_dirs:
                 if hr_min in self.hrs_to_pass:
                     print('Not looking in : {}'.format(os.path.join(self.root_dir, d, hr_min)))
-                    pass
+                    continue
                 else:
-                    temp = os.path.join(self.root_dir, d, hr_min)
-                    if os.path.isdir(temp):
-                        self.wavs = os.listdir(os.path.join(self.root_dir, d, hr_min))
-                        self.wavs = [x for x in self.wavs if x.endswith('.wav')]
-                        self.finder()
-                        self.total_wavs += len(self.wavs)
-                        if self.total_wavs > self.counter_min:
-                            print('Counting wav: {}'.format(self.total_wavs))
-                            self.counter_min += 50
-
-                        if len(self.wavs) == 3:
-                            self.count_3[os.path.join(d,hr_min)] = 3
-
-                        elif len(self.wavs) != 3:
-                            self.count_other[os.path.join(d,hr_min)] = len(self.wavs)
-
+                    a = datetime.strptime((d + ' ' + hr_min), '%Y-%m-%d %H%M')
+                    if a < self.b_dt_as_dt or a > self.e_dt_as_dt:
+                        continue
                     else:
-                        print('{} is not a dir'.format(temp))
+                        temp = os.path.join(self.root_dir, d, hr_min)
+                        if os.path.isdir(temp):
+                            self.wavs = os.listdir(os.path.join(self.root_dir, d, hr_min))
+                            self.wavs = [x for x in self.wavs if x.endswith('.wav')]
+                            self.finder()
+                            self.total_wavs += len(self.wavs)
+                            if self.total_wavs > self.counter_min:
+                                print('Counting wav: {}'.format(self.total_wavs))
+                                self.counter_min += 50
+
+                            if len(self.wavs) == self.correct_files_per_dir:
+                                self.count_correct[os.path.join(d,hr_min)] = self.correct_files_per_dir
+
+                            elif len(self.wavs) != 3:
+                                self.count_other[os.path.join(d,hr_min)] = len(self.wavs)
+
+                        else:
+                            print('{} is not a dir'.format(temp))
         
         output_dict = self.configure_output()
         self.writer(output_dict)
@@ -118,14 +126,15 @@ if __name__ == '__main__':
         /Users/corymosiman/Github/ARPA-E-Sensor/tests/audio/conf/cnt_audio_2_final_conf.json
     """
     path = input('Input full path to configuration file: ')
+    server_id = input('Enter the server id.  For example, `BS1`: ')
     write_file = input('Do you want to write output file (True or False): ')
-    while not write_file == 'True' or write_file == 'False':
+    while not write_file == 'True' and not write_file == 'False':
         write_file = input('Enter True or False: ')
 
 
     display_output = input('Do you want to display output (True or False): ')
-    while not display_output == 'True' or display_output == 'False':
+    while not display_output == 'True' and not display_output == 'False':
         display_output = input('Enter True or False: ')
 
-    a = AudioChecker(path, write_file, display_output)
+    a = AudioChecker(path, write_file, display_output, server_id)
     a.main()

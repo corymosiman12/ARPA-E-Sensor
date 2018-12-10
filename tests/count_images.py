@@ -5,15 +5,15 @@ import json
 import ast
 
 class PhotoChecker():
-    def __init__(self, path_to_import_conf, write_file, display_output):
+    def __init__(self, path_to_import_conf, write_file, display_output, server_id):
         self.conf_file_path = path_to_import_conf
         self.import_conf(self.conf_file_path)
         self.write_file = write_file
         self.display_output = display_output
-        self.all_seconds = pd.date_range(self.b_dt, self.e_dt, freq = 'S').tolist()
+        self.all_seconds = pd.date_range(self.b_dt, self.e_dt, freq = self.conf_dict['img_freq']).tolist()
         self.expect_num_photos = len(self.all_seconds)
-        self.expect_num_directories = len(pd.date_range(self.b_dt, self.e_dt, freq = 'min').tolist())
-        self.root_dir = self.conf_dict['img_root']
+        self.expect_num_directories = len(pd.date_range(self.b_dt, self.e_dt, freq = self.conf_dict["dir_create_freq"]).tolist())
+        self.root_dir = os.path.join(self.conf_dict['root'], server_id, 'img')
         self.date_dirs = self.conf_dict['date_dirs']
         self.hrs_to_pass = self.conf_dict['hr_dirs_to_skip']
         self.count_61 = {}
@@ -135,14 +135,15 @@ if __name__ == '__main__':
         /Users/corymosiman/Github/ARPA-E-Sensor/tests/img/conf/cnt_img_3_final_conf.json
     """
     path = input('Input full path to configuration file: ')
+    server_id = input('Enter the server id.  For example, `BS1`: ')
     write_file = input('Do you want to write output file (True or False): ')
-    while not write_file == 'True' or write_file == 'False':
+    while not write_file == 'True' and not write_file == 'False':
         write_file = input('Enter True or False: ')
 
 
     display_output = input('Do you want to display output (True or False): ')
-    while not display_output == 'True' or display_output == 'False':
+    while not display_output == 'True' and not display_output == 'False':
         display_output = input('Enter True or False: ')
 
-    a = PhotoChecker(path, write_file, display_output)
+    a = PhotoChecker(path, write_file, display_output, server_id)
     a.main()

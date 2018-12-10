@@ -1,0 +1,11 @@
+{
+    "begin_dt": "2018-12-09 01:09:00",
+    "end_dt": "2018-12-09 14:18:59",
+    "root": "/Volumes/HPD_Mobile/test10/",
+    "date_dirs": ["2018-12-09"],
+    "hr_dirs_to_skip": [],
+    "audio_tape_length": "5S",
+    "audio_files_per_dir": 12,
+    "img_freq": "1S",
+    "dir_create_freq": "1min"
+}
