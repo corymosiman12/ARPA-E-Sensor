@@ -234,8 +234,13 @@ class MyRetriever(threading.Thread):
     def run(self):
         retriever_updater = threading.Thread(target=self.to_retrieve_updater)
         retriever_updater.start()
-
+        log_this = True
         while True:
+            if datetime.now().minute % 10 == 0 and log_this:
+                logging.info('Thread count: {}'.format(threading.active_count()))
+                log_this = False
+            if datetime.now().minute in [1, 11, 21, 31, 41, 51]:
+                log_this = True
             if not self.to_retrieve.empty():
                 for i in range(self.num_threads):
                     worker = threading.Thread(target=self.retrieve_this)

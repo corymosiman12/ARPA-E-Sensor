@@ -95,7 +95,13 @@ class Server():
             logging.critical(
                 'Exiting program.  Program should restart from system')
             sys.exit(1)
+        log_this = True
         while True:
+            if datetime.now().minute % 10 == 0 and log_this:
+                logging.info('Thread count: {}'.format(threading.active_count()))
+                log_this = False
+            if datetime.now().minute in [1, 11, 21, 31, 41, 51]:
+                log_this = True
             try:
                 # accept() method creates a new socket separate from the
                 # main listening socket.

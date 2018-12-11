@@ -258,7 +258,13 @@ class MyAudio(threading.Thread):
         stream_start.start()
         while not self.stream:
             pass
+        log_this = True
         while True:
+            if datetime.now().minute % 10 == 0 and log_this:
+                logging.info('MyAudio thread staying alive')
+                log_this = False
+            if datetime.now().minute in [1, 11, 21, 31, 41, 51]:
+                log_this = True
             while datetime.now().second % self.tape_length != 0:
                 pass
             f_name = datetime.now().strftime('%Y-%m-%d %H%M%S_audio.wav')
