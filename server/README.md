@@ -1,20 +1,22 @@
 # Intro
 This page is meant to describe the process for getting sensor hubs configured with necessary packages and dependencies. 
 
-1. The pi must be running the `stretch` OS (didn't work when I tried on `jessie`).  Type `$ cat /etc/os-release` to check OS version.  If not, follow the guide [here](https://www.raspberrypi.org/documentation/installation/noobs.md).
-2. Enable camera and other peripherals.  Run `$ sudo raspi-config`, then go to `Interfacing Options` and enable: <br \>
+The pi must be running the `stretch` OS (didn't work when I tried on `jessie`).  Type `$ cat /etc/os-release` to check OS version.  If not, follow the guide [here](https://www.raspberrypi.org/documentation/installation/noobs.md).
+
+For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
+
+# First Steps
+When installing Raspbian for the first time make sure to select `US Keyboard setup`. 
+
+When prompted change the pi password to `arpa-e`
+
+On first log-on, initially connect to the `IBR600B-3f4` WiFi network. Then for the remainder of the steps connect to the UCB Wireless network. Instructions at the end for setting preferred network. NOTE: After each reboot you will have to reset the wifi network to UCB Wireless.
+
+Enable camera and other peripherals.  Run `$ sudo raspi-config`, then go to `Interfacing Options` and enable: <br \>
     - Camera
     - SPI
     - I2C
     - SSH
-3. For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
-
-# First Steps
-When installing Raspbian for the first time make sure to select US Keyboard setup. 
-
-When prompted change the pi password to `arpa-e`
-
-On first log-on, initially connect to the `IBR600B-3f4` WiFi network. Then for the remainder of the steps connect to the UCB Wireless network. Instructions at the end for setting preferred network. 
 
 ## If need to reset time/date:
 Run `$ date` at cmd line, and if it says old date, run: `$ timedatectl`,  then run `$ date` again.
@@ -120,9 +122,9 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 
 Install OpenCV (+ dependencies) and imutils
 1. `(cv) $ pip install opencv-python`
-2. `(cv) $ apt update && sudo apt upgrade`
-3. `(cv) $ apt install -y libsm6 libxext6`
-4. `(cv) $ apt install -y libxrender-dev`
+2. `(cv) $ sudo apt update && sudo apt upgrade`
+3. `(cv) $ sudo apt install -y libsm6 libxext6`
+4. `(cv) $ sudo apt install -y libxrender-dev`
 5. `(cv) $ pip install imutils`
 6. `(cv) $ pip install influxdb`
 
@@ -136,7 +138,7 @@ Install OpenCV (+ dependencies) and imutils
 
 ## [DHT Sensor](https://learn.adafruit.com/dht-humidity-sensing-on-raspberry-pi-with-gdocs-logging/software-install-updated)
 1. `(cv) $ git clone https://github.com/adafruit/Adafruit_Python_DHT.git`
-2. `(cv) $ apt-get update && sudo apt-get install build-essential python-dev python-openssl`
+2. `(cv) $ sudo apt-get update && sudo apt-get install build-essential python-dev python-openssl`
 3. `(cv) $ cd Adafruit_Python_DHT/`
 4. `(cv) $ python setup.py install`
 5. `(cv) $ cd .. && rm -r Adafruit_Python_DHT/`
@@ -146,6 +148,10 @@ Install OpenCV (+ dependencies) and imutils
 
 ## VL53L1X
 1. `(cv) $ pip install VL53L1X==0.0.2`
+
+## NUMPY
+May have trouble importing numpy. To fix try this:
+`sudo apt-get install libatlas-base-dev`
 
 Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e19c4965219eff5baac085f49502503045) and change code to match accordingly.  If all steps have been followed correctly, code should be in:
 
