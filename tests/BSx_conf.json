@@ -1,0 +1,8 @@
+{
+    "begin_dt": "2018-12-09 01:09:00",
+    "end_dt": "2018-12-09 14:18:59",
+    "audio_root": "/Volumes/HPD_Mobile/test10/BS2/audio",
+    "img_root": "/Volumes/HPD_Mobile/test10/BS2/img",
+    "date_dirs": ["2018-12-09"],
+    "hr_dirs_to_skip": []
+}

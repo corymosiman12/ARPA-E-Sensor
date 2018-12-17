@@ -1,10 +1,12 @@
 # Intro
-This page is meant to describe the process for getting the UV4L library up and running on a Raspberry Pi.  UV4L allows the pi to act as a streaming video server, which can be connected to using `OpenCV` on a client side application.
+This page is meant to describe the process for getting sensor hubs configured with necessary packages and dependencies. 
 
 1. The pi must be running the `stretch` OS (didn't work when I tried on `jessie`).  Type `$ cat /etc/os-release` to check OS version.  If not, follow the guide [here](https://www.raspberrypi.org/documentation/installation/noobs.md).
-2. The camera must be enabled on the pi.  Run `$ sudo raspi-config`, then go to `Interfacing Options` and enable.
-3. We also want to enable `ssh`, so do that in the same `Interfacing Options` as well.
-4. Enable SPI, I2C, SSH, Camera
+2. Enable camera and other peripherals.  Run `$ sudo raspi-config`, then go to `Interfacing Options` and enable: <br \>
+    - Camera
+    - SPI
+    - I2C
+    - SSH
 3. For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
 
 # First Steps
@@ -41,6 +43,8 @@ To free up some space and limit the number of packages we will eventually instal
 # Download and Set-up Packages and Dependencies 
 
 ## Set-up UV4L on the Pi
+This section describes getting the UV4L library up and running on a Raspberry Pi.  UV4L allows the pi to act as a streaming video server, which can be connected to using `OpenCV` on a client side application.
+
 Open a terminal and type:<br />
 `$ curl http://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | sudo apt-key add -` <br />
 
@@ -116,9 +120,9 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 
 Install OpenCV (+ dependencies) and imutils
 1. `(cv) $ pip install opencv-python`
-2. `(cv) $ sudo apt update && sudo apt upgrade`
-3. `(cv) $ sudo apt install -y libsm6 libxext6`
-4. `(cv) $ sudo apt install -y libxrender-dev`
+2. `(cv) $ apt update && sudo apt upgrade`
+3. `(cv) $ apt install -y libsm6 libxext6`
+4. `(cv) $ apt install -y libxrender-dev`
 5. `(cv) $ pip install imutils`
 6. `(cv) $ pip install influxdb`
 
@@ -132,7 +136,7 @@ Install OpenCV (+ dependencies) and imutils
 
 ## [DHT Sensor](https://learn.adafruit.com/dht-humidity-sensing-on-raspberry-pi-with-gdocs-logging/software-install-updated)
 1. `(cv) $ git clone https://github.com/adafruit/Adafruit_Python_DHT.git`
-2. `(cv) $ sudo apt-get update && sudo apt-get install build-essential python-dev python-openssl`
+2. `(cv) $ apt-get update && sudo apt-get install build-essential python-dev python-openssl`
 3. `(cv) $ cd Adafruit_Python_DHT/`
 4. `(cv) $ python setup.py install`
 5. `(cv) $ cd .. && rm -r Adafruit_Python_DHT/`
@@ -225,8 +229,8 @@ Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-d
 
 ## PyAudio
 activate virtual environment with  `workon cv`
-1. `(cv) $ sudo apt-get install portaudio19-dev`
-2. `(cv) $ sudo pip install PyAudio==0.2.11`
+1. `(cv) $ apt-get install portaudio19-dev`
+2. `(cv) $ pip install PyAudio==0.2.11`
 
 ## Others
 1. `(cv) $ pip install circuitpython-build-tools==1.1.5`

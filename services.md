@@ -12,9 +12,9 @@ Description=Serice to start Github/server/server.py on boot from venv
 After=multi-user.target
 
 [Service]
-Type=idle
+Type=simple
 ExecStart=/home/pi/.virtualenvs/cv/bin/python /home/pi/Github/server/server.py
-restart=always
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
