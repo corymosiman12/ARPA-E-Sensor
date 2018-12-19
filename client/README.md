@@ -39,9 +39,9 @@ This is a combination of the update posted in [this install guide](https://mediu
 
 2. virtualenv and virtualenvwrapper setup
 - `$ nano .bashrc` and add the following 3 lines to bottom
-- export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-- export WORKON_HOME=$HOME/.virtualenvs
-- source /usr/local/bin/virtualenvwrapper.sh
+- `export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3`
+- `export WORKON_HOME=$HOME/.virtualenvs`
+- `source /usr/local/bin/virtualenvwrapper.sh`
 
 Exit out of the `.bashrc` file and run at the command line:
 - `$ source .bashrc`
@@ -60,6 +60,14 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 - `(cv) $ pip install influxdb`
 - `(cv) $ pip install pysftp`
 
+- `pip install opencv-python`
+- `apt update && apt upgrade`
+- `apt install -y libsm6 libxext6`
+- `apt install -y libxrender-dev`
+- `pip install imutils`
+- `pip install influxdb`
+- `pip install pysftp`
+
 5. ssh from antlet vm to correct raspberry pi, should look something like this:
 - `ssh pi@192.168.0.101`
 
@@ -69,3 +77,5 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 7. Check that the date is correct:
 - `$ date`, should print stuff out.  will likely say PST.  Need to change to MST
 - `$ timedatectl set-timezone "America/Denver"`
+
+
