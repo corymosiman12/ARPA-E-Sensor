@@ -220,7 +220,7 @@ This may already be done and will say - mount: debugs is already mounted. Keep g
 `$ lsmod | grep my_loader` <br />
 `$ dmesg | tail` 
 
-![Module-Loaded](https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051 =250x)
+<img src="https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051" width="200)
 
 Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-dummy-dai <-> 3F203000.i2s mapping ok` on the last line 
 
