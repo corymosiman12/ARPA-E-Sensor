@@ -60,14 +60,6 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 - `(cv) $ pip install influxdb`
 - `(cv) $ pip install pysftp`
 
-- `pip install opencv-python`
-- `apt update && apt upgrade`
-- `apt install -y libsm6 libxext6`
-- `apt install -y libxrender-dev`
-- `pip install imutils`
-- `pip install influxdb`
-- `pip install pysftp`
-
 5. ssh from antlet vm to correct raspberry pi, should look something like this:
 - `ssh pi@192.168.0.101`
 
