@@ -189,7 +189,7 @@ Reboot with `$ sudo reboot` <br />
 
 
 ### Kernal Compiling
-Now we manually compile to i2s support <br />
+Now we manually compile to i2s support
 4. Install the compilation dependencies <br />
 `$ sudo apt-get install git bc libncurses5-dev` <br />
 
@@ -200,7 +200,7 @@ Now we manually compile to i2s support <br />
 `$ rpi-source --skip-gcc` <br />
 This last part may take 15 minutes or so <br />
 
-Now compile i2s support <br />
+Now compile i2s support
 6. `$ sudo mount -t debugfs debugs /sys/kernel/debug` <br /> 
 This may already be done and will say - mount: debugs is already mounted. Keep going <br />
 

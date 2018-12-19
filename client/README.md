@@ -17,16 +17,25 @@ We will use the `root` user for all of the individual antlet setups.  If, at any
 - Regardless of the target name, when we need to create a new directory, name it `/mnt/vdb`, i.e. perform `mkdir /mnt/vdb`.
 - Follow the rest of the guide, only performing the Debian/Ubuntu steps.
 
+## Rename pi (need to change in two files on pi)
+`$ sudo nano /etc/hostname`, and change name to 'BS1-Antlet' or similar then reboot.
+
+Go to: `$ sudo nano /etc/hosts` 
+and make sure the line with `127.0.1.1` looks like:
+```127.0.1.1          <our_hostname>```
+where `<our_hostname>` would be BS3-Antlet or whatever.
+
+
 
 # OpenCV Setup
 ## 1. Easiest Method
 This is a combination of the update posted in [this install guide](https://medium.com/@debugvn/installing-opencv-3-3-0-on-ubuntu-16-04-lts-7db376f93961), addressing the [errors noted here](https://stackoverflow.com/questions/47113029/importerror-libsm-so-6-cannot-open-shared-object-file-no-such-file-or-directo).  Note that parts 1 and 2 are just to get the virtualenv setup.  Once we are in the virtualenv, it follows the first install guide.
 
 1. Install pip
-- `$ wget https://bootstrap.pypa.io/get-pip.py`
-- `$ python3 get-pip.py`
-- `$ rm get-pip.py`
-- `$ pip3 install virtualenv virtualenvwrapper`
+- `wget https://bootstrap.pypa.io/get-pip.py`
+- `python3 get-pip.py`
+- `rm get-pip.py`
+- `pip3 install virtualenv virtualenvwrapper`
 
 2. virtualenv and virtualenvwrapper setup
 - `$ nano .bashrc` and add the following 3 lines to bottom
