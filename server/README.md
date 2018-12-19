@@ -12,16 +12,16 @@ When prompted change the pi password to `arpa-e`
 
 On first log-on, initially connect to the `IBR600B-3f4` WiFi network. Then for the remainder of the steps connect to the UCB Wireless network. Instructions at the end for setting preferred network. NOTE: After each reboot you will have to reset the wifi network to UCB Wireless.
 
-Enable camera and other peripherals.  Run `$ sudo raspi-config`, then go to `Interfacing Options` and enable: <br \>
-    - Camera
-    - SPI
-    - I2C
-    - SSH
+Enable camera and other peripherals.  Run `$ sudo raspi-config`, then go to `Interfacing Options` and enable: <br />
+    - Camera <br />
+    - SPI <br />
+    - I2C <br />
+    - SSH <br />
 
 ## If need to reset time/date:
 Run `$ date` at cmd line, and if it says old date, run: `$ timedatectl`,  then run `$ date` again.
 
-If it still says old data then set manually with: 
+If it still says old data then set manually with: <br />
 `$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
 
 ## Rename pi (need to change in two files on pi)
@@ -166,7 +166,7 @@ type:
 
 ## [I2S Configuration](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
-Deactivate your virtualenv `(cv) $ deactivate`
+### Deactivate your virtualenv: `(cv) $ deactivate`
 
 1. Turn on i2s support by editing /boot/config.txt with: <br />
 `$ sudo nano /boot/config.txt` <br />
@@ -176,7 +176,7 @@ Uncomment `#dtparam=i2s=on` <br />
 `$ sudo nano /etc/modules` <br />
 Add `snd-bcm2835` on its own line as shown below <br />
 
-![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865|width=100)
+![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865 =100x)
 
 
 Reboot with `$ sudo reboot` <br />
@@ -184,7 +184,7 @@ Reboot with `$ sudo reboot` <br />
 3. Once rebooted confirm that the mdoule is loaded with: <br />
  `$ lsmod | grep snd` <br />
 
-![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026)
+![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026 =200x)
 
 
 ### Kernal Compiling
@@ -205,7 +205,7 @@ This may already be done and will say - mount: debugs is already mounted. Keep g
 
 7. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
 
-![kernel-debug](https://cdn-learn.adafruit.com/assets/assets/000/040/624/original/sensors_Screen_Shot_2017-04-03_at_11.40.14_AM.png?1491244426)
+![kernel-debug](https://cdn-learn.adafruit.com/assets/assets/000/040/624/original/sensors_Screen_Shot_2017-04-03_at_11.40.14_AM.png?1491244426 =200x)
 
 
 8. Download the module written by Paul Creaser <br />
@@ -220,7 +220,7 @@ This may already be done and will say - mount: debugs is already mounted. Keep g
 `$ lsmod | grep my_loader` <br />
 `$ dmesg | tail` 
 
-![Module-Loaded](https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051)
+![Module-Loaded](https://cdn-learn.adafruit.com/assets/assets/000/045/983/original/sensors_insmod.png?1504203051 =250x)
 
 Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-dummy-dai <-> 3F203000.i2s mapping ok` on the last line 
 
