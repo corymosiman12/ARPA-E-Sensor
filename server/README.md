@@ -176,7 +176,7 @@ Uncomment `#dtparam=i2s=on` <br />
 `$ sudo nano /etc/modules` <br />
 Add `snd-bcm2835` on its own line as shown below <br />
 
-![Sound-Support](https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865 =100x)
+<img src="https://cdn-learn.adafruit.com/assets/assets/000/040/621/large1024/sensors_Screen_Shot_2017-04-03_at_11.04.57_AM.png?1491243865" width="750">
 
 
 Reboot with `$ sudo reboot` <br />
@@ -184,7 +184,7 @@ Reboot with `$ sudo reboot` <br />
 3. Once rebooted confirm that the mdoule is loaded with: <br />
  `$ lsmod | grep snd` <br />
 
-![loaded](https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026 =200x)
+<img src="https://cdn-learn.adafruit.com/assets/assets/000/040/622/original/sensors_Screen_Shot_2017-04-03_at_11.06.56_AM.png?1491244026" width="750">
 
 
 ### Kernal Compiling
@@ -205,7 +205,7 @@ This may already be done and will say - mount: debugs is already mounted. Keep g
 
 7. Make sure the module name is: `3f203000.i2s`  by typing: `$ sudo cat /sys/kernel/debug/asoc/platforms`
 
-![kernel-debug](https://cdn-learn.adafruit.com/assets/assets/000/040/624/original/sensors_Screen_Shot_2017-04-03_at_11.40.14_AM.png?1491244426 =200x)
+<img src="https://cdn-learn.adafruit.com/assets/assets/000/040/624/original/sensors_Screen_Shot_2017-04-03_at_11.40.14_AM.png?1491244426" width="750">
 
 
 8. Download the module written by Paul Creaser <br />
