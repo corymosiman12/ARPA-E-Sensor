@@ -166,7 +166,8 @@ type:
 
 ## [I2S Configuration](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
-### Deactivate your virtualenv: `(cv) $ deactivate`
+### important: Deactivate your virtualenv: <br />
+`(cv) $ deactivate`
 
 1. Turn on i2s support by editing /boot/config.txt with: <br />
 `$ sudo nano /boot/config.txt` <br />
