@@ -3,6 +3,15 @@ The following outlines how to install opencv, imutils, and their required depend
 
 We will use the `root` user for all of the individual antlet setups.  If, at any point, a network error is encountered, simply restart the Antsle.  This typically works.
 
+# Antsle first-time setup
+With a new antsle need to add remote origin for github
+1. `$ mkdir root/Github`
+2. `$ cd root/Github`
+3. `$ git init`
+4. `$ git remote add origin https://github.com/corymosiman12/ARPA-E-Sensor`
+5. `$ git fetch origin`
+6. `$ git checkout Maggie-branch`
+
 # Antlet setup
 1. Create a new `Ubuntu16.04 - KVM` antlet through antman.  I have been using `Inherit` compression.
 
@@ -25,10 +34,12 @@ and make sure the line with `127.0.1.1` looks like:
 ```127.0.1.1          <our_hostname>```
 where `<our_hostname>` would be BS3-Antlet or whatever.
 
+Check that the date is correct:
+- `$ date`, should print stuff out.  will likely say PST.  Need to change to MST
+- `$ timedatectl set-timezone "America/Denver"`
 
 
 # OpenCV Setup
-## 1. Easiest Method
 This is a combination of the update posted in [this install guide](https://medium.com/@debugvn/installing-opencv-3-3-0-on-ubuntu-16-04-lts-7db376f93961), addressing the [errors noted here](https://stackoverflow.com/questions/47113029/importerror-libsm-so-6-cannot-open-shared-object-file-no-such-file-or-directo).  Note that parts 1 and 2 are just to get the virtualenv setup.  Once we are in the virtualenv, it follows the first install guide.
 
 1. Install pip
@@ -66,8 +77,13 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 6. Copy client folder from root profile
 - `(cv) $ sftp -r root@192.168.0.50:Github/client .`
 
-7. Check that the date is correct:
-- `$ date`, should print stuff out.  will likely say PST.  Need to change to MST
-- `$ timedatectl set-timezone "America/Denver"`
+# Set-up antlet for file transfer
+This allows us to mount the external drive directly to the antlet and move or copy the audio and image files
+
+1. Install udisks2 with: `apt install udisks2`
+2. Install exfat file system with: `sudo apt-get install exfat-fuse exfat-utils`
+3. Install NFS softwarre with: `sudo apt install nfs-kernel-server`
+4. Start service with: `sudo systemctl start nfs-kernel-server.service`
+5. Create directory to mount external to with: `mkdir /media/externalHD`
 
 

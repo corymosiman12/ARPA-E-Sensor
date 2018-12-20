@@ -250,7 +250,7 @@ activate virtual environment with  `workon cv`
 3. `$ git init`
 4. `$ git remote add origin https://github.com/corymosiman12/ARPA-E-Sensor`
 5. `$ git fetch origin`
-6. `(cv) $ git checkout img_client_side`
+6. `$ git checkout Maggie-branch`
 
 You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
 
