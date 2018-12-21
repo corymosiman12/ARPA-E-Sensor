@@ -11,56 +11,31 @@ BS3-Antlet      192.168.0.203
 BS4-Antlet      192.168.0.204
 BS5-Antlet      192.168.0.205
 ```
-- So, you can ssh into each antlet via: `$ ssh root@BS1-Antlet` or `$ ssh root@192.168.0.201`
+- You can ssh into each antlet via: `$ ssh root@BS1-Antlet` or `$ ssh root@192.168.0.201`
 
-- We want to write directly from antsle to the external disk (named `HPD_Mobile`), so connect the external disk to your computer
-- We will want to mimic the file structure already being adhered to by all of the antsles for writing data.  Create a new directory on the `HPD_Mobile` external disk labeled `test5` (or similar, w.e. test you are on).  Then, within that, create a directory for each of the `BS1`, `BS2`, etc.
-- Create a directory within the `test5` to store the InfluxDB backup (explained later).  So, you should have a directory structure on the external disk that looks like:
 
-```
-test5
-    - BS1
-    - BS2
-    - BS3
-    - BS4
-    - BS5
-    - influx
-```
-
-# Photos and Audio
+# Photos, Audio, Logfiles
   
-## How to transfer via a direct connection (preferred)
+- Make sure hpd_mobile.service is stopped on all antlets and pis:
+    `sudo systemctl stop hpd_mobile.service`
+    `sudo systemctl disable hpd_mobile.service`
+- Move sensor log file from pi to antlet via sftp:
+    `sftp pi@192.168.0.10x:/home/pi/sensors_logfile.log /root/`
 - Plug external HD into the antsle in one of the blue ports (USB3.0)
 - Stop antlet in antman and [enable USB pass through](https://docs.antsle.com/usbdrives/#usb-pass-through). Restart antlet
 - SSH into the antlet
-- Find connected devices with: `sudo fdisk -l` or `lsblk`
-- Mount drive with `sudo mount /dev/sda2 /media/externalHD`
-    - Check it was mounted correctly with: `ls /media/externalHD/`
-- Create subfolder for specific test and antlet: `mkdir /media/externalHD/testxx/BSx`
-- Copy or move files to external HD: `mv /mnt/vdb/BS1/audio /media/externalHD/testxx/BSx`
-    * Note: you can do this by date specifically with:
-    `cp -r /mnt/vdb/BS1/audio/2018-11-26 /media/externalHD/testxx/BSx/audio`
+- Mount drive with:
+     `sudo mount /dev/sda2 /media/externalHD`
+- Create subfolder for specific test (only once per test):
+    `mkdir /media/externalHD/testxx`
+- Move files to external HD:
+    `mv /mnt/vdb/BSx /media/externalHD/testxx/`
+- Get the logfiles: 
+    `mv /root/client_logfile.log /media/externalHD/testxx/BSx`
+    `mv /root/sensors_logfile.log /media/externalHD/testxx/BSx`
 - Unmount drive with: `udisksctl unmount -b /dev/sda2`
 - Detach with: `udisksctl power-off -b /dev/sda2`
 - Repeat this for all of the antlets
-
-## How to transfer via an indirect connection (if above method is not available)
-- Connect your computer to the hub
-- Turn off wi-fi, connect to box, make sure you get an IP address.  Just allow this to happen over DHCP, shouldn't need to assign yourself a static IP address
-- Now we will begin transferring data via `sftp` from each Antlet directly onto the external disk. 
-- We will perform multiple sftp data transfers at the same time. The following paths follow the mounting structure for a mac
-- We will transfer photos and audio data separately onto the external disk for each antlet.  You could even split this up by date if needed
-- We tell sftp that we want to transfer from A -> B, where A is the location on the antlet, and B is the location on the external disk.  The -r means recursive and the -a option attempts to continue interrupted transfers and only overwrites a file if there are differences in the file (this is just a safety precaution).
-- Transfer audio from BS1 to external disk: `$ sftp -r -a root@192.168.0.201:/mnt/vdb/BS1/audio /Volumes/HPD_Mobile/test5/BS1/`
-- Transfer images from BS1 to external disk: `$ sftp -r -a root@192.168.0.201:/mnt/vdb/BS1/img /Volumes/HPD_Mobile/test5/BS1/`
-- Repeat this for all of the antlets.
-
-
-# Logfiles
-We will also want the logfiles from both the client and server for reference.
-- Get the client logfiles: `$ sftp root@192.168.0.201:/root/client_logfile.log /Volumes/HPD_Mobile/test5/BS1/`
-- Get the server logfiles: `$ sftp pi@192.168.0.101:/home/pi/sensors_logfile.log /Volumes/HPD_Mobile/test5/BS1/`
-- Repeat this for all clients and servers
 
 # Collecting InfluxDB (env_params)
 To get all of the `env_params` data from the InfluxDB antsle, we will create a backup of the `hpd_mobile` influxdb database, and then restore it into an influx container on our machine.
@@ -69,7 +44,7 @@ To get all of the `env_params` data from the InfluxDB antsle, we will create a b
 We tell the antsle which database we want backed up, since when, and where we want to save the backup.  We will do this first locally on the antlet, then transfer the backup to our external disk.
 1. ssh into the `InfluxDB` antsle
 
-2. Make a directory for where to store the backup: `$ mkdir test5_influx`.
+2. Make a directory for where to store the backup: `$ mkdir testxx_influx`.
 - I have just been making directories based on the test number I have been doing so far.  This should correspond to an experiment number or the like when we get into actually doing this for real.
 
 3. Create the backup of the hpd_mobile database:
@@ -122,3 +97,30 @@ test5
 
 # Access the data in Python
 - See /ARPA-E-Sensor/infludb_python/HPD_Mobile Data Access and Plot Example.ipynb
+
+## How to transfer via an indirect connection (if above method is not available)
+- We want to write directly from antsle to the external disk (named `HPD_Mobile`), so connect the external disk to your computer
+- We will want to mimic the file structure already being adhered to by all of the antsles for writing data.  Create a new directory on the `HPD_Mobile` external disk labeled `test5` (or similar, w.e. test you are on).  Then, within that, create a directory for each of the `BS1`, `BS2`, etc.
+- Create a directory within the `test5` to store the InfluxDB backup (explained later).  So, you should have a directory structure on the external disk that looks like:
+
+```
+test5
+    - BS1
+    - BS2
+    - BS3
+    - BS4
+    - BS5
+    - influx
+```
+
+- Connect your computer to the hub
+- Turn off wi-fi, connect to box, make sure you get an IP address.  Just allow this to happen over DHCP, shouldn't need to assign yourself a static IP address
+- Now we will begin transferring data via `sftp` from each Antlet directly onto the external disk. 
+- We will perform multiple sftp data transfers at the same time. The following paths follow the mounting structure for a mac
+- We will transfer photos and audio data separately onto the external disk for each antlet.  You could even split this up by date if needed
+- We tell sftp that we want to transfer from A -> B, where A is the location on the antlet, and B is the location on the external disk.  The -r means recursive and the -a option attempts to continue interrupted transfers and only overwrites a file if there are differences in the file (this is just a safety precaution).
+- Transfer audio from BS1 to external disk: 
+    - `$ sftp -r -a root@192.168.0.201:/mnt/vdb/BS1/audio /Volumes/HPD_Mobile/test5/BS1/`
+- Transfer images from BS1 to external disk: 
+    - `$ sftp -r -a root@192.168.0.201:/mnt/vdb/BS1/img /Volumes/HPD_Mobile/test5/BS1/`
+- Repeat this for all of the antlets

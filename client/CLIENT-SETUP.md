@@ -87,3 +87,30 @@ This allows us to mount the external drive directly to the antlet and move or co
 5. Create directory to mount external to with: `mkdir /media/externalHD`
 
 
+# Create the service
+This is the same as the service on the pi, except we add the conencted server: Replace [server_id] with BS3 or whatever is the id of the server this antlet is connecting to. After setting up we need to disable the service until we are ready to deploy.  This eliminates the service from running (collecting data) when we aren't testing / depoloying.
+
+
+1. `$ sudo touch /lib/systemd/system/hpd_mobile.service`
+2. `$ sudo nano /lib/systemd/system/hpd_mobile.service` and add the following:
+
+```
+[Unit]
+Description=Service to start Github/client/client.py on boot from venv
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/root/.virtualenvs/cv/bin/python /root/client/client.py [server_id]
+restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Reload service daemon: `$ sudo systemctl daemon-reload`
+4. Enable the service by default: `$ sudo systemctl enable hpd_mobile.service`
+5. Reboot the pi: `$ sudo reboot`
+6. Check if the service is running: `$ sudo systemctl status hpd_mobile.service`
+7. Stop the service: `$ sudo systemctl stop hpd_mobile.service`
+8. Disable the service to prevent it from starting on boot: `$ sudo systemctl disable hpd_mobile.service`

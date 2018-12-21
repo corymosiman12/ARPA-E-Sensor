@@ -6,7 +6,7 @@ The pi must be running the `stretch` OS (didn't work when I tried on `jessie`). 
 For the most part, this wiki will follow the install [here](https://www.linux-projects.org/uv4l/installation/).  I have condensed it to only the commands we need below.  This will require an internet connection on the pi.
 
 # First Steps
-When installing Raspbian for the first time make sure to select `US Keyboard setup`. 
+When setting up for the first time install Debian OS and make sure to select `US Keyboard setup`
 
 When prompted change the pi password to `arpa-e`
 
@@ -109,12 +109,10 @@ export WORKON_HOME=$HOME/.virtualenvs
 source /usr/local/bin/virtualenvwrapper.sh
 ```
 
-Exit out of the `.bashrc` file and run at the command line
-
+Exit out of the `.bashrc` file and run at the command line:
 2. `$ source .bashrc`
 
 Create a new virtualenv called 'cv'
-
 3. `$ mkvirtualenv cv`
 
 ## OpenCV Setup
@@ -161,7 +159,6 @@ type:
 `$ sudo nano /home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py` <br />
 
 ### NOTE: When copy/pasting from the link the "try" line gets indented. Make sure to remove indent manually.
-
 
 
 ## [I2S Configuration](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
@@ -225,7 +222,6 @@ This may already be done and will say - mount: debugs is already mounted. Keep g
 
 Note that on the Pi 3 you'll see `asoc-simple-card asoc-simple-card.0: snd-soc-dummy-dai <-> 3F203000.i2s mapping ok` on the last line 
 
-
 11.  Set to autoload on startup: <br />
 `$ sudo cp my_loader.ko /lib/modules/$(uname -r)` <br />
 `$ echo 'my_loader' | sudo tee --append /etc/modules > /dev/null` <br />
@@ -252,7 +248,7 @@ activate virtual environment with  `workon cv`
 5. `$ git fetch origin`
 6. `$ git checkout Maggie-branch`
 
-You will need to add in your credentials to the git manager to pull from Github.  Hannah or Maggie this could be either of yours.
+You will need to add in your credentials to the git manager to pull from Github
 
 
 ## Set Cradlepoint as preferred network and set priority
@@ -270,18 +266,35 @@ key_mgmt=WPA-PSK
 
 `$ sudo reboot` Check that it has joined the CP network.
 
+## Create HPD_mobile service
+A service basically allows us to run a script immediately on boot without having to enter any commands.
+
+We will want to make sure that the services work on all of the Pi's, but we need to disable them until we are ready to deploy.  This eliminates the service from running (collecting data) when we aren't testing / depoloying. After we go through the following, make sure to run `sudo systemctl disable hpd_mobile.service`, which will prevent it from starting on boot.
+
+1. On the pi, run the following to create a new file: `$ sudo touch /lib/systemd/system/hpd_mobile.service`
+2. Edit that file by running `$ sudo nano /lib/systemd/system/hpd_mobile.service` and add the following:
+
+```
+[Unit]
+Description=Serice to start Github/server/server.py on boot from venv
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/.virtualenvs/cv/bin/python /home/pi/Github/server/server.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Reload service daemon: `$ sudo systemctl daemon-reload`
+4. Enable the service by default: `$ sudo systemctl enable hpd_mobile.service`
+5. Reboot the pi: `$ sudo reboot`
+6. Check if the service is running: `$ sudo systemctl status hpd_mobile.service`
+7. Stop the service: `$ sudo systemctl stop hpd_mobile.service`
+8. Disable the service to prevent it from starting on boot: `$ sudo systemctl disable hpd_mobile.service`
+
 
 ## Set up SSH
 SSH from Antlet to pi atleast 1x. Upon SSH, you will enable trust between antlet and pi, and will therefore be able to use the `pysftp` library.
-
-
-
-## Update 10/28/18 for SD cards already formatted 
-Hannah - apologies, I made a mistake in the previous stuff.  On the SD cards you have gone through the above steps already, I need you to do the following.
-
-1. `$ workon cv`
-2. `(cv) $ pip uninstall board` (agree to removal)
-3. `(cv) $ pip uninstall adafruit-blinka` (agree to removal)
-4. `(cv) $ pip install adafruit-blinka`
-
-I have changed this in the install instructions now (removed from the `Others` section above), so you can now follow those instructions exactly.
