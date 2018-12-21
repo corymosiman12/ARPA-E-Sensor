@@ -276,7 +276,7 @@ We will want to make sure that the services work on all of the Pi's, but we need
 
 ```
 [Unit]
-Description=Serice to start Github/server/server.py on boot from venv
+Description=Service to start Github/server/server.py on boot from venv
 After=multi-user.target
 
 [Service]
