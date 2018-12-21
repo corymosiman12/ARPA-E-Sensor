@@ -100,9 +100,9 @@ Description=Service to start Github/client/client.py on boot from venv
 After=multi-user.target
 
 [Service]
-Type=idle
+Type=simple
 ExecStart=/root/.virtualenvs/cv/bin/python /root/client/client.py [server_id]
-restart=always
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

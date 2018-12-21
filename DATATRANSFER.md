@@ -16,25 +16,27 @@ BS5-Antlet      192.168.0.205
 
 # Photos, Audio, Logfiles
   
-- Make sure hpd_mobile.service is stopped on all antlets and pis:
-    `sudo systemctl stop hpd_mobile.service`
+- Make sure hpd_mobile.service is stopped on all antlets and pis: <br />
+    `sudo systemctl stop hpd_mobile.service` <br />
     `sudo systemctl disable hpd_mobile.service`
-- Move sensor log file from pi to antlet via sftp:
+- Move sensor log file from pi to antlet via sftp:<br />
     `sftp pi@192.168.0.10x:/home/pi/sensors_logfile.log /root/`
 - Plug external HD into the antsle in one of the blue ports (USB3.0)
 - Stop antlet in antman and [enable USB pass through](https://docs.antsle.com/usbdrives/#usb-pass-through). Restart antlet
 - SSH into the antlet
-- Mount drive with:
+- Mount drive with:<br />
      `sudo mount /dev/sda2 /media/externalHD`
-- Create subfolder for specific test (only once per test):
+- Create subfolder for specific test (only once per test):<br />
     `mkdir /media/externalHD/testxx`
-- Move files to external HD:
+- Move files to external HD:<br />
     `mv /mnt/vdb/BSx /media/externalHD/testxx/`
-- Get the logfiles: 
-    `mv /root/client_logfile.log /media/externalHD/testxx/BSx`
+- Get the logfiles: <br />
+    `mv /root/client_logfile.log /media/externalHD/testxx/BSx`<br />
     `mv /root/sensors_logfile.log /media/externalHD/testxx/BSx`
-- Unmount drive with: `udisksctl unmount -b /dev/sda2`
-- Detach with: `udisksctl power-off -b /dev/sda2`
+- Unmount drive with: <br />
+    `udisksctl unmount -b /dev/sda2`
+- Detach with: <br />
+    `udisksctl power-off -b /dev/sda2`
 - Repeat this for all of the antlets
 
 # Collecting InfluxDB (env_params)
