@@ -111,6 +111,10 @@ WantedBy=multi-user.target
 3. Reload service daemon: `$ sudo systemctl daemon-reload`
 4. Enable the service by default: `$ sudo systemctl enable hpd_mobile.service`
 5. Reboot the pi: `$ sudo reboot`
-6. Check if the service is running: `$ sudo systemctl status hpd_mobile.service`
+6. Log back in and check if the service is running: `$ sudo systemctl status hpd_mobile.service`
 7. Stop the service: `$ sudo systemctl stop hpd_mobile.service`
 8. Disable the service to prevent it from starting on boot: `$ sudo systemctl disable hpd_mobile.service`
+
+# Setup network bridge
+
+Follow steps [here](https://docs.antsle.com/bridgevnic/#configure-ip-address)

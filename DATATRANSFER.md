@@ -24,6 +24,8 @@ BS5-Antlet      192.168.0.205
 - Plug external HD into the antsle in one of the blue ports (USB3.0)
 - Stop antlet in antman and [enable USB pass through](https://docs.antsle.com/usbdrives/#usb-pass-through). Restart antlet
 - SSH into the antlet
+- Find connected devices with: <br />
+- `sudo fdisk -l` or `lsblk`
 - Mount drive with:<br />
      `sudo mount /dev/sda2 /media/externalHD`
 - Create subfolder for specific test (only once per test):<br />
@@ -44,21 +46,43 @@ To get all of the `env_params` data from the InfluxDB antsle, we will create a b
 
 ## Create a backup of hpd_mobile
 We tell the antsle which database we want backed up, since when, and where we want to save the backup.  We will do this first locally on the antlet, then transfer the backup to our external disk.
-1. ssh into the `InfluxDB` antsle
 
-2. Make a directory for where to store the backup: `$ mkdir testxx_influx`.
-- I have just been making directories based on the test number I have been doing so far.  This should correspond to an experiment number or the like when we get into actually doing this for real.
+1. ssh into the `InfluxDB` antlet
+
+2. Make a directory for where to store the backup: `$ mkdir testxx_influx`
 
 3. Create the backup of the hpd_mobile database:
 - `$ influxd backup -portable -database hpd_mobile test5_influx/`
-- This makes a backup of the `hpd_mobile` database, and stores all info in the `test5_influx` directory created in step 2 above.
+- This makes a backup of the `hpd_mobile` database, and stores all info in the `test5_influx` directory created in step 2 above
 
-4. Transfer it to the root Antsle (root@192.168.0.50 or root@hpdblack) by ssh'ing into this, then performing an sftp.
+4. Transfer it to the root Antsle (root@192.168.0.50 or root@hpdblack) by ssh'ing into this, then performing an sftp
 - From a new terminal window: `$ ssh root@hpdblack`
 - Transfer data into the root Antsle: `$ sftp -r 10.1.1.100:/root/test5_influx/ .`
 
 5. Transfer from root Antsle to the external disk.
 - From a new terminal window: `$ sftp -r -a root@hpdblack:/root/test5_influx/* /Volumes/HPD_Mobile/test5/influx`
+
+## Create influx container on your computer
+You must have docker installed on your computer for this to work.
+
+1. Open up a new terminal and create a new docker container named `influx_xx`: <br />
+`docker run -p 8088:8086 -v influx_xx:/var/lib/influxdb --name influx_xx influxdb:1.7`
+
+2. Start the docker container: `docker container start influx_xx`
+
+3. From a new terminal, access a bash terminal inside the `influxdb` container: 
+- `$ docker exec -it influxdb3 bash`
+- Create a new directory for the backup files: `$ mkdir test5_influx`
+
+4. Copy the data from the external disk into the container filesystem:
+- From a new terminal: `$ docker cp /Volumes/HPD_Mobile/testx/influx/. influxdb3:testx_influx`
+
+5. Restore a new database in the docker container:
+- From a new terminal, access a bash terminal inside the influxdb container: `$ docker exec -it influxdb bash`
+- Inside the influxdb bash shell: `$ influxd restore -portable -db hpd_mobile -newdb testx /testx_influx`
+- Access the influx CLI: `$ influx`
+- At the influx CLI, change the timestamp display used from queries more user friendly format: `> precision rfc3339`
+- Show the databases: `> show databases`
 
 # InfluxDB Docker (Iowa)
 You must have docker installed on your computer for this to work.
