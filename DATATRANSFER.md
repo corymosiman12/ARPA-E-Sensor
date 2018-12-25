@@ -70,16 +70,16 @@ You must have docker installed on your computer for this to work.
 
 2. Start the docker container: `docker container start influx_xx`
 
-3. From a new terminal, access a bash terminal inside the `influxdb` container: 
-- `$ docker exec -it influxdb3 bash`
-- Create a new directory for the backup files: `$ mkdir test5_influx`
+3. From a new terminal, access a bash terminal inside the `influx_xx` container: 
+- `$ docker exec -it influx_xx bash`
+- Create a new directory for the backup files: `$ mkdir testx_dir`
 
 4. Copy the data from the external disk into the container filesystem:
-- From a new terminal: `$ docker cp /Volumes/HPD_Mobile/testx/influx/. influxdb3:testx_influx`
+- From a new terminal: `$ docker cp /Volumes/HPD_Mobile/test13/influx/. influx_xx:testx_dir`
 
 5. Restore a new database in the docker container:
-- From a new terminal, access a bash terminal inside the influxdb container: `$ docker exec -it influxdb bash`
-- Inside the influxdb bash shell: `$ influxd restore -portable -db hpd_mobile -newdb testx /testx_influx`
+- From a new terminal, access a bash terminal inside the influxdb container: `$ docker exec -it influx_xx bash`
+- Inside the influxdb bash shell: `$ influxd restore -portable -db hpd_mobile -newdb test_x /testx_fir`
 - Access the influx CLI: `$ influx`
 - At the influx CLI, change the timestamp display used from queries more user friendly format: `> precision rfc3339`
 - Show the databases: `> show databases`
