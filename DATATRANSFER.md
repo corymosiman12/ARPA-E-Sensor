@@ -74,7 +74,7 @@ You must have docker installed on your computer for this to work.
 - `$ docker exec -it influx_xx bash`
 - Create a new directory for the backup files: `$ mkdir testx_dir`
 
-4. Copy the data from the external disk into the container filesystem:
+4. Copy the data from where ever you have it locally into the container filesystem (directions here are from and external disk titled "HPD_Mobile" on a mac - replace `/Volumes/HPD_Mobile/test13/influx/` with whatever the local path is):
 - From a new terminal: `$ docker cp /Volumes/HPD_Mobile/test13/influx/. influx_xx:testx_dir`
 
 5. Restore a new database in the docker container:
