@@ -79,7 +79,7 @@ You must have docker installed on your computer for this to work.
 
 5. Restore a new database in the docker container:
 - From a new terminal, access a bash terminal inside the influxdb container: `$ docker exec -it influx_xx bash`
-- Inside the influxdb bash shell: `$ influxd restore -portable -db hpd_mobile -newdb test_x /testx_fir`
+- Inside the influxdb bash shell: `$ influxd restore -portable -db hpd_mobile -newdb test_x /testx_dir`
 - Access the influx CLI: `$ influx`
 - At the influx CLI, change the timestamp display used from queries more user friendly format: `> precision rfc3339`
 - Show the databases: `> show databases`
