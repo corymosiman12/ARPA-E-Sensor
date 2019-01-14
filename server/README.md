@@ -22,7 +22,7 @@ Enable camera and other peripherals.  Run `$ sudo raspi-config`, then go to `Int
 Run `$ date` at cmd line, and if it says old date, run: `$ timedatectl`,  then run `$ date` again.
 
 If it still says old data then set manually with: <br />
-`$ sudo date --set='TZ="America/Denver" 8 Oct 2017 14:32' ` (with current time and date)
+`$ sudo date --set='TZ="America/Denver" 25 Dec 2018 18:09' ` (with current time and date)
 
 ## Rename pi (need to change in two files on pi)
 `$ sudo nano /etc/hostname`, and change name to 'BS1' or similar then reboot.
@@ -147,10 +147,6 @@ Install OpenCV (+ dependencies) and imutils
 ## VL53L1X
 1. `(cv) $ pip install VL53L1X==0.0.2`
 
-## NUMPY
-May have trouble importing numpy. To fix try this:
-`sudo apt-get install libatlas-base-dev`
-
 Check out [this post](https://github.com/pimoroni/vl53l1x-python/commit/8e8a29e19c4965219eff5baac085f49502503045) and change code to match accordingly.  If all steps have been followed correctly, code should be in:
 
 `/home/pi/.virtualenvs/cv/lib/python3.5/site-packages/VL53L1X.py`
@@ -160,6 +156,9 @@ type:
 
 ### NOTE: When copy/pasting from the link the "try" line gets indented. Make sure to remove indent manually.
 
+## NUMPY
+May have trouble importing numpy. To fix try this:
+`sudo apt-get install libatlas-base-dev`
 
 ## [I2S Configuration](https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test)
 
