@@ -56,7 +56,7 @@ class MyEnvParamsRetriever(threading.Thread):
                 self.my_env_params_root_date = env_params_date_dir
 
                 prev_step_env_params_dir = os.path.join(
-                    self.my_env_params_root, t.strftime('%H%M'))
+                    self.my_env_params_root_date, t.strftime('%H%M'))
 
                 if not os.path.isdir(prev_step_env_params_dir):
                     os.makedirs(prev_step_env_params_dir)

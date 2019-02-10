@@ -178,6 +178,7 @@ class Sensors(threading.Thread):
                     logging.info('{} created'.format(min_dir))
                 
                 self.env_params_dir = min_dir
+                time.sleep(60)
 
     def write_to_file(self, f_path, to_write):
         logging.info('in write_to_file. f_path: {}'.format(f_path))
@@ -196,9 +197,10 @@ class Sensors(threading.Thread):
                     pass
                 first = False
 
-            if datetime.now().second == 0:
+            if datetime.now().second == 3:
                 f_name = datetime.now().strftime('%Y-%m-%d %H%M_env_params.json')
                 f_path = os.path.join(self.env_params_dir, f_name)
+                time.sleep(1)
 
             # if datetime.now().second > 0:
             #     written = False
