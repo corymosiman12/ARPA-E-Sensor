@@ -45,9 +45,10 @@ class Server():
         self.root = self.settings['root']
         self.audio_root = self.settings['audio_root']
         self.img_root = self.settings['img_root']
+        self.env_params_root = self.settings['env_params_root']
         self.stream_type = self.settings['stream_type']
         self.sensors = hpd_sensors.Sensors(
-            int(self.settings['read_interval']), self.debug)
+            int(self.settings['read_interval']), self.debug, self.env_params_root)
         self.audio = hpd_sensors.MyAudio(
             self.audio_root, self.debug, self.settings['audio_tape_length'])
         self.audio_checker = MyAudioChecker(
