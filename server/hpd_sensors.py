@@ -227,6 +227,7 @@ class Sensors(threading.Thread):
                 writer.start()
                 writer.join()
                 self.readings.clear()
+                time.sleep(1)
                 # written = True
 
 class MyAudio(threading.Thread):
