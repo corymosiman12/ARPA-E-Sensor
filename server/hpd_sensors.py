@@ -181,7 +181,7 @@ class Sensors(threading.Thread):
 
     def write_to_file(self, f_path, to_write):
         logging.info('in write_to_file. f_path: {}'.format(f_path))
-        logging.info('data to write: {}'.format(to_write))
+        # logging.info('data to write: {}'.format(to_write))
         with open(f_path, 'w+') as f:
             json.dump(to_write, f)
 
@@ -215,10 +215,7 @@ class Sensors(threading.Thread):
                                       "tvoc_ppb": tvoc,
                                       "co2eq_base": co2_base,
                                       "tvoc_base": tvoc_base})
-                # if self.debug:
-                #     if len(self.readings) % 2 == 0:
-                #         print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),
-                #                                                                                     self.readings[0]["time"],
+
                 logging.info('Length of self.readings: {}'.format(len(self.readings)))
                 time.sleep(1)
             
@@ -312,13 +309,15 @@ class MyAudio(threading.Thread):
             print('Attempted to write: {}'.format(f_path))
     
     def run(self):
-        dir_create = threading.Thread(target=self.audio_dir_update, daemon=True)
+        # dir_create = threading.Thread(target=self.audio_dir_update, daemon=True)
+        dir_create = threading.Thread(target=self.audio_dir_update)
         dir_create.start()
 
         # Wait for self.audio_dir to exist
         time.sleep(1)
 
-        stream_start = threading.Thread(target=self.start_stream, daemon=True)
+        # stream_start = threading.Thread(target=self.start_stream, daemon=True)
+        stream_start = threading.Thread(target=self.start_stream)
         stream_start.start()
         while not self.stream:
             pass
