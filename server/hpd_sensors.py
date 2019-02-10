@@ -223,7 +223,8 @@ class Sensors(threading.Thread):
             # if datetime.now().second == 59 and not written:
             if datetime.now().second == 59:
                 logging.info('Second == 59')
-                writer = threading.Thread(target=self.write_to_file, args = (f_path, self.readings))
+                new_list = self.readings.copy()
+                writer = threading.Thread(target=self.write_to_file, args = (f_path, new_list))
                 writer.start()
                 writer.join()
                 self.readings.clear()
