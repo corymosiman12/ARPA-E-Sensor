@@ -769,7 +769,7 @@ class MyClient():
                     to_remove.append(item[0])
 
                 audio_retrieved = len(to_remove)
-                if len(audio_retrieved) <= 1:
+                if audio_retrieved <= 1:
                     logging.log(25,
                                 'Nothing to remove from self.audio_retriever.successfully_retrieved...')
 
@@ -777,10 +777,15 @@ class MyClient():
                     to_remove.append(item[0])
 
                 env_params_retrieved = len(to_remove) - audio_retrieved
-                if len(env_params_retrieved) <= 1:
+                if env_params_retrieved <= 1:
                     logging.log(25,
                                 'Nothing to remove from self.env_params_retriever.successfully_retrieved...')
+                
+                logging.info('to_remove: {}'.format(to_remove))
 
+                if audio_retrieved <= 1 and env_params_retrieved <= 1:
+                    pass
+                    
                 else:
                     # Instantiate IPV4 TCP socket class
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
