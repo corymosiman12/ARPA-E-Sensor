@@ -149,7 +149,8 @@ class Sensors(threading.Thread):
 
     def create_root_env_params_dir(self):
           if not os.path.isdir(self.env_params_root):
-            os.makedirs(self.env_params_root)      
+            os.makedirs(self.env_params_root)
+            logging.info('{} created'.format(self.env_params_root))     
 
     def env_params_dir_update(self):
         while 1:
@@ -163,10 +164,12 @@ class Sensors(threading.Thread):
                 min_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H%M'))
                 if not os.path.isdir(min_dir):
                     os.makedirs(min_dir)
+                    logging.info('{} created'.format(min_dir))
                 
                 self.env_params_dir = min_dir
 
     def write_to_file(self, f_path, to_write):
+        logging.info('in write_to_file. f_path: {}'.format(f_path))
         with open(f_path, 'w+') as f:
             json.dump(to_write, f)
 
@@ -174,14 +177,14 @@ class Sensors(threading.Thread):
         dir_create = threading.Thread(target=self.env_params_dir_update, daemon=True)
         dir_create.start()
         logging.info('Sensors run')
-        written = False
+        # written = False
         while True:
             if datetime.now().second == 0:
                 f_name = datetime.now().strftime('%Y-%m-%d %H%M_env_params.json')
                 f_path = os.path.join(self.env_params_dir, f_name)
 
-            if datetime.now().second > 0:
-                written = False
+            # if datetime.now().second > 0:
+            #     written = False
             if datetime.now().second % self.read_interval == 0:
                 (h, t) = self.temp_humid.read()
                 (co2, tvoc) = self.gas.read()
@@ -202,12 +205,14 @@ class Sensors(threading.Thread):
                                                                                                     self.readings[-1]["time"]))
                 time.sleep(1)
             
-            if datetime.now().second == 59 and not written:
+            # if datetime.now().second == 59 and not written:
+            if datetime.now().second == 59:
+                logging.info('Second == 59')
                 writer = threading.Thread(target=self.write_to_file, args = (f_path, self.readings))
                 writer.start()
                 writer.join()
                 self.readings.clear()
-                written = True
+                # written = True
 
 class MyAudio(threading.Thread):
     def __init__(self, audio_root, debug, tape_length):
