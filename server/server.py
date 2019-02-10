@@ -479,6 +479,8 @@ class MyThreadedSocket(threading.Thread):
                     # Respond that cache has not been cleared
                     self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
                                                 \tself.readings has not been cleared".encode())
+                    loging.warning('{} from client'.format(self.client_request))
+                    
                 if self.debug:
                     print("self.readings: {}".format(self.sensors.readings))
 
