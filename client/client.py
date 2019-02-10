@@ -27,7 +27,7 @@ logging.basicConfig(filename='/root/client_logfile.log', level=logging.INFO,
 class MyEnvParamsRetriever(threading.Thread):
     def __init__(self, my_root, pi_ip_address, pi_img_audio_root, listen_port, debug):
         threading.Thread.__init__(self)
-        logging.log(25, 'Initializing MyAudioRetriever')
+        logging.log(25, 'Initializing MyEnvParamsRetriever')
         self.my_env_params_root = os.path.join(my_root, 'env_params')
         self.pi_ip_address = pi_ip_address
         self.pi_env_params_root = os.path.join(pi_img_audio_root, 'env_params')
@@ -44,6 +44,7 @@ class MyEnvParamsRetriever(threading.Thread):
         # COMPLETE
         while True:
             if datetime.now().second == 0 and datetime.now().minute % 5 == 0:
+                logging.info('Running MyEnvParams to_retrieve_updater')
                 time.sleep(1)
 
                 t = datetime.now() - timedelta(minutes=5)
@@ -131,7 +132,7 @@ class MyEnvParamsRetriever(threading.Thread):
 
     def run(self):
         # COMPLETE
-        retriever_updater = threading.Thread(target=self.to_retrieve_updater)
+        retriever_updater = threading.Thread(target=self.to_retrieve_updater, daemon=True)
         retriever_updater.start()
         log_this = True
         while True:
@@ -810,7 +811,7 @@ class MyClient():
                                         self.audio_retriever.successfully_retrieved.pop(
                                             ind)
                                         removed_from_queue += 1
-                                        
+
                                 for b in self.env_params_retriever.successfully_retrieved:
                                     if b[0] == d:
                                         ind = self.env_params_retriever.successfully_retrieved.index(b)

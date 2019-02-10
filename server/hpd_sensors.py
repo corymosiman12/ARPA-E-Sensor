@@ -216,7 +216,7 @@ class Sensors(threading.Thread):
                                       "co2eq_base": co2_base,
                                       "tvoc_base": tvoc_base})
 
-                logging.info('Length of self.readings: {}'.format(len(self.readings)))
+                # logging.info('Length of self.readings: {}'.format(len(self.readings)))
                 time.sleep(1)
             
             # if datetime.now().second == 59 and not written:
