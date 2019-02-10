@@ -190,10 +190,10 @@ class Sensors(threading.Thread):
         first = True
         while True:
             if first:
-                while not datetime.now().second == 0:
+                while datetime.now().second != 0:
                     pass
                 first = False
-                
+
             if datetime.now().second == 0:
                 f_name = datetime.now().strftime('%Y-%m-%d %H%M_env_params.json')
                 f_path = os.path.join(self.env_params_dir, f_name)
