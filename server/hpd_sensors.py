@@ -309,15 +309,15 @@ class MyAudio(threading.Thread):
             print('Attempted to write: {}'.format(f_path))
     
     def run(self):
-        # dir_create = threading.Thread(target=self.audio_dir_update, daemon=True)
-        dir_create = threading.Thread(target=self.audio_dir_update)
+        dir_create = threading.Thread(target=self.audio_dir_update, daemon=True)
+        # dir_create = threading.Thread(target=self.audio_dir_update)
         dir_create.start()
 
         # Wait for self.audio_dir to exist
         time.sleep(1)
 
-        # stream_start = threading.Thread(target=self.start_stream, daemon=True)
-        stream_start = threading.Thread(target=self.start_stream)
+        stream_start = threading.Thread(target=self.start_stream, daemon=True)
+        # stream_start = threading.Thread(target=self.start_stream)
         stream_start.start()
         while not self.stream:
             pass
