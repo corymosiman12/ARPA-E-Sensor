@@ -800,6 +800,7 @@ class MyClient():
                         self.delete_response = self.my_recv_all(
                             s).split('\r\n')
                         self.num_dirs_deleted = self.delete_response[0]
+                        logging.info('self.delete_response: {}'.format(self.delete_response))
                         logging.info('num dirs deleted: {}'.format(self.num_dirs_deleted))
                         if self.debug:
                             print('{} dirs deleted'.format(
