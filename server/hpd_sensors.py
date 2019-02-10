@@ -15,6 +15,7 @@ import os
 import sys
 import logging
 import subprocess
+import json
 
 # logging.basicConfig(filename = '/home/pi/sensors_logfile.log', level = logging.INFO,
 #                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
