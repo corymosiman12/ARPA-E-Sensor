@@ -169,7 +169,7 @@ class Sensors(threading.Thread):
                 
                 self.env_params_dir = min_dir
                 start = False
-                
+
             if datetime.now().minute % 5 == 0:
                 min_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H%M'))
                 if not os.path.isdir(min_dir):
@@ -187,8 +187,13 @@ class Sensors(threading.Thread):
         dir_create = threading.Thread(target=self.env_params_dir_update, daemon=True)
         dir_create.start()
         logging.info('Sensors run')
-        # written = False
+        first = True
         while True:
+            if first:
+                while not datetime.now().second == 0:
+                    pass
+                first = False
+                
             if datetime.now().second == 0:
                 f_name = datetime.now().strftime('%Y-%m-%d %H%M_env_params.json')
                 f_path = os.path.join(self.env_params_dir, f_name)
@@ -212,7 +217,7 @@ class Sensors(threading.Thread):
                     if len(self.readings) % 2 == 0:
                         print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),
                                                                                                     self.readings[0]["time"],
-                                                                                                    self.readings[-1]["time"]))
+                logging.info('Length of self.readings: {}'.format(len(self.readings)))                                                                 self.readings[-1]["time"]))
                 time.sleep(1)
             
             # if datetime.now().second == 59 and not written:
