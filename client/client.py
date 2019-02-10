@@ -15,7 +15,11 @@ from imutils.video import WebcamVideoStream
 from queue import Queue
 import numpy as np
 
-logging.basicConfig(filename='/root/client_logfile.log', level=25,
+# logging.basicConfig(filename='/root/client_logfile.log', level=25,
+#                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+#                     datefmt='%Y-%m-%d %H:%M:%S',)
+
+logging.basicConfig(filename='/root/client_logfile.log', level=logging.INFO,
                     format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',)
 
@@ -737,7 +741,8 @@ class MyClient():
             print('Times of sensor readings: {}'.format(times))
         if count_points != 12:
             logging.warning('{} points to insert into influxdb.'.format(count_points))
-            # logging.warning('Timestamps of sensor readings: {}'.format(times))
+        else:
+            logging.info('{} points to insert into influxdb'.format(count_points))
 
         successful_write = self.influx_client.write_points(json_body)
 
@@ -815,9 +820,10 @@ class MyClient():
                 # Receive all data from server.  Load as dictionary
                 self.get_sensors_response = json.loads(self.my_recv_all(s))
                 self.good_sensor_responses += 1
-            except json.decoder.JSONDecodeError as e:
-                logging.warning(
-                    'Unable to decode JSON from server.  Exception: {}'.format(e))
+            # except json.decoder.JSONDecodeError as e:
+            except Exception as e:
+                # logging.warning('Unable to decode JSON from server.  Exception: {}'.format(e))
+                logging.warning('Unable to json.load or my_recv_all.  Exception: {}'.format(e))
                 self.get_sensors_response = False
                 self.bad_sensor_responses += 1
                 logging.warning('{} bad responses. {} good responses'.format(self.bad_sensor_responses, self.good_sensor_responses))
@@ -847,8 +853,9 @@ class MyClient():
                 # Close socket
                 s.close()
 
-                # if not successful_write and self.bad_writes >= 5:
-                #     self.restart_dat_service()
+            else:
+                logging.warning('No self.get_sensors_response')
+                s.close()
 
         except (OSError, ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as e:
             logging.warning(
@@ -959,3 +966,5 @@ if __name__ == "__main__":
             get_data = threading.Thread(target=c.get_sensors_data())
             get_data.start()
             get_data.join()
+
+            time.sleep(58)
