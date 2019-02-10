@@ -153,6 +153,7 @@ class Sensors(threading.Thread):
             logging.info('{} created'.format(self.env_params_root))     
 
     def env_params_dir_update(self):
+        start = True
         while 1:
             date_dir = os.path.join(self.env_params_root, datetime.now().strftime('%Y-%m-%d'))
             if not os.path.isdir(date_dir):
@@ -160,6 +161,15 @@ class Sensors(threading.Thread):
             
             self.env_params_root_date = date_dir
             
+            if start:
+                min_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H%M'))
+                if not os.path.isdir(min_dir):
+                    os.makedirs(min_dir)
+                    logging.info('{} created'.format(min_dir))
+                
+                self.env_params_dir = min_dir
+                start = False
+                
             if datetime.now().minute % 5 == 0:
                 min_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H%M'))
                 if not os.path.isdir(min_dir):
