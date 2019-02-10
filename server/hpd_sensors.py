@@ -180,6 +180,7 @@ class Sensors(threading.Thread):
 
     def write_to_file(self, f_path, to_write):
         logging.info('in write_to_file. f_path: {}'.format(f_path))
+        logging.info('data to write: {}'.format(to_write))
         with open(f_path, 'w+') as f:
             json.dump(to_write, f)
 
