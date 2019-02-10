@@ -217,7 +217,7 @@ class Sensors(threading.Thread):
                 #     if len(self.readings) % 2 == 0:
                 #         print("{} readings in the Queue\n\tMin timestamp: {}\n\tMax timestamp: {}".format(len(self.readings),
                 #                                                                                     self.readings[0]["time"],
-                logging.info('Length of self.readings: {}'.format(len(self.readings))                                                                 self.readings[-1]["time"]))
+                logging.info('Length of self.readings: {}'.format(len(self.readings)))
                 time.sleep(1)
             
             # if datetime.now().second == 59 and not written:
