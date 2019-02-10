@@ -497,7 +497,7 @@ class MyThreadedSocket(threading.Thread):
         #             self.client_socket.close()
         #             logging.info("env_params socket closed, finally")
 
-        elif self.client_request == "to_remove":
+        if self.client_request == "to_remove":
             deleted = []
             try:
                 # self.dirs_to_delete is updated in self.decode_request
