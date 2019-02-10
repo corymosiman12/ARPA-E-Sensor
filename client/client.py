@@ -785,7 +785,7 @@ class MyClient():
 
                 if audio_retrieved <= 1 and env_params_retrieved <= 1:
                     pass
-                    
+
                 else:
                     # Instantiate IPV4 TCP socket class
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -800,15 +800,18 @@ class MyClient():
                         self.delete_response = self.my_recv_all(
                             s).split('\r\n')
                         self.num_dirs_deleted = self.delete_response[0]
+                        logging.info('num dirs deleted: {}'.format(self.num_dirs_deleted))
                         if self.debug:
                             print('{} dirs deleted'.format(
                                 self.num_dirs_deleted))
 
                         if len(self.delete_response) > 1:
                             self.dirs_deleted = self.delete_response[1:]
+                            logging.info('self.dirs_deleted: {}'.format(self.dirs_deleted))
                             removed_from_queue = 0
 
                             for d in self.dirs_deleted:
+                                logging.info('iterating through self.dirs_deleted')
                                 for a in self.audio_retriever.successfully_retrieved:
                                     if a[0] == d:
                                         ind = self.audio_retriever.successfully_retrieved.index(

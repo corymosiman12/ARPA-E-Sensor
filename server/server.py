@@ -527,7 +527,8 @@ class MyThreadedSocket(threading.Thread):
 
                 # Messages always seperated by carriage return, newline
                 message = '\r\n'.join(temp)
-
+                
+                logging.info('server_delete_response to client: {}'.format(message))
                 # Respond to clien
                 self.client_socket.sendall(message.encode())
 
