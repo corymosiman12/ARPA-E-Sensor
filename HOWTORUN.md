@@ -1,7 +1,6 @@
 # General
 All services on the raspberry pi's and antlet VM's should always be STOPPED before powering off the devices:
 - `$ sudo systemctl stop hpd_mobile.service`
-- The one exception is the InfluxDB antlet.  This is ok to run on boot.
 
 # Steps
 1. Plug the cradlepoint router in at the home in a central location.
@@ -33,7 +32,7 @@ Nov 20 19:56:05 BS1 python[19148]: attempt to connect to server failed
 
 ## Antlets
 1. Let the raspberry pi's run for atleast 1 minute each.
-2. SSH into antlet either directly with `ssh root@192.168.0.201` or into antlse first with `ssh 192.168.0.50`, then antlet with `$ ssh root@10.1.1.101`
+2. SSH into antlet either directly with `ssh root@192.168.0.201` or into antlse first with `ssh 192.168.0.120`, then antlet with `$ ssh root@10.1.1.101`
 3. Start virtual environment: `$ workon cv`
 4. Rather than starting the service, just run the data collections program as a normal program first to make sure everything looks good:
 - `(cv) $ pwd` should be in /root/client/
@@ -52,12 +51,12 @@ Successfully retrieved /home/pi/audio/2018-11-20/2026
 If the code needs to be updated, do this by first brining it to the antsle, then from the antsle to the antlet.
 
 1. ssh into the antsle from the command line: 
-`$ ssh root@192.168.0.50`
+`$ ssh root@192.168.0.120`
 2. Navigate to the `root/Github` directory
 3. pull new code: `$ git pull origin img_client_side`
 4. ssh into the antlet now with `$ ssh root@10.1.1.101`
 5. Make sure in `/root` directory with `$ pwd` 
-6. `sftp -r 192.168.0.50:Github/client .` brings code from antles to antlet
+6. `sftp -r 192.168.0.120:Github/client .` brings code from antles to antlet
 
 
 

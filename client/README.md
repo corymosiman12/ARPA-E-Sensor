@@ -10,7 +10,7 @@ With a new antsle need to add remote origin for github
 3. `$ git init`
 4. `$ git remote add origin https://github.com/corymosiman12/ARPA-E-Sensor`
 5. `$ git fetch origin`
-6. `$ git checkout Maggie-branch`
+6. `$ git checkout [current branch]`
 
 # Antlet setup
 1. Create a new `Ubuntu16.04 - KVM` antlet through antman.  I have been using `Inherit` compression.
@@ -22,11 +22,12 @@ With a new antsle need to add remote origin for github
 - Perform all OpenCV setup by ssh'ing in as the root user.
 
 3. Mount a new virtual drive with 400 GB HDD space.  Name it `vdb`, then follow this guide [here](https://docs.antsle.com/drives/).
-- If it is the first drive created, the target name should always be `vdb`
+- IMPORTANT: use the hdd zpool, NOT the antlets zpool
+- If it is the first drive created, the target name should always be `vdb` (`vdc` in HPDblack)
 - Regardless of the target name, when we need to create a new directory, name it `/mnt/vdb`, i.e. perform `mkdir /mnt/vdb`.
 - Follow the rest of the guide, only performing the Debian/Ubuntu steps.
 
-## Rename pi (need to change in two files on pi)
+## Rename host (need to change in two files)
 `$ sudo nano /etc/hostname`, and change name to 'BS1-Antlet' or similar then reboot.
 
 Go to: `$ sudo nano /etc/hosts` 
@@ -68,7 +69,6 @@ When you are in the virtualenv, (cv) should appear at the front now.  You can ru
 - `(cv) $ apt install -y libsm6 libxext6`
 - `(cv) $ apt install -y libxrender-dev`
 - `(cv) $ pip install imutils`
-- `(cv) $ pip install influxdb`
 - `(cv) $ pip install pysftp`
 
 5. ssh from antlet vm to correct raspberry pi, should look something like this:

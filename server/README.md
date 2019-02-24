@@ -124,8 +124,6 @@ Install OpenCV (+ dependencies) and imutils
 3. `(cv) $ sudo apt install -y libsm6 libxext6`
 4. `(cv) $ sudo apt install -y libxrender-dev`
 5. `(cv) $ pip install imutils`
-6. `(cv) $ pip install influxdb`
-
 
 # Install Sensor Specific Libraries
 ## [Circuit Python](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)

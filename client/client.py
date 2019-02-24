@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import logging
 import time
-import influxdb
+#import influxdb
 import pysftp
 import paramiko
 import cv2
@@ -608,8 +608,8 @@ class MyClient():
         self.env_params_dir = os.path.join(self.my_root, 'env_params')
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
-        self.influx_client = influxdb.InfluxDBClient(
-            self.conf['influx_ip'], 8086, database='hpd_mobile')
+        #self.influx_client = influxdb.InfluxDBClient(
+        #    self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.env_params_read_interval = int(
             self.conf['env_params_read_interval_sec'])
