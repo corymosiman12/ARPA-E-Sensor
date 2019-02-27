@@ -8,21 +8,22 @@ import os
 import datetime
 import csv
 import copy
+import pickle
 
 class DynamicUpdatePlot(object):
     def __init__(self,sensorhub,query):
         self.min_x = 0
         self.max_x = 20
         #Change parameters here
-        self.json_name='/mnt/disk2/'+sensorhub+'/env_params/' #Parameterize this to change date and sensor hub
-        self.json_time=2040 #periodically increase by 5 minutes, adjust the starting time once before starting
-        self.date='2019-02-22' #adjust the starting date
+        self.json_name='/mnt/disk3/'+sensorhub+'/env_params/' #Parameterize this to change date and sensor hub
+        self.json_time=2230 #periodically increase by 5 minutes, adjust the starting time once before starting
+        self.date='2019-02-24' #adjust the starting date
         self.local_save_path='C:/Users/maggie/Desktop/json'
         #Connection parameters
         self.ip='192.168.0.202'
         self.ip_name='root'
         self.ip_pass='antsle'
-        self.local_test=True
+        self.local_test=False
 
         self.start_json_time=copy.copy(self.json_time)
         self.query=query
@@ -67,8 +68,16 @@ class DynamicUpdatePlot(object):
             print("Creating new positions in data holder")
         ##Gets the json file for all time instants within the specified minute
         if(self.local_test==False):
+            #ip_addr = self.ip, username=self.ip_name, password=self.ip_pass
+            #print(ip_addr)
+            #with pysftp.Connection(ip_addr) as sftp: #parameterzie IP address
             with pysftp.Connection(self.ip, username=self.ip_name, password=self.ip_pass) as sftp: #parameterzie IP address
-                with sftp.cd(self.json_name+self.date+'/'+repr(self.json_time)): #parameterize path
+                path = self.json_name+self.date+'/'+repr(self.json_time)
+                print(path)
+                #with sftp.cd(self.json_name+self.date+'/'+repr(self.json_time)): #parameterize path
+                with sftp.cd(path): #parameterize path
+
+                    #print()
                     etd_ftp_files = set()
                     for etd_file in sftp.listdir():
                         if sftp.isfile(etd_file) and etd_file.lower().endswith('.json'):
