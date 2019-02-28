@@ -19,7 +19,6 @@ Raspberry pi must be running Stretch OS.  Both the camera and I2C must be enable
 
 # Antsle
 The Antsle will contain multiple antlets with different functions:
-- 1 antlet will be used as the InfluxDB store
 - 5-6 antlets will be used as the client antlets
 - 1 antlet will be used as the USRP antlet
 
