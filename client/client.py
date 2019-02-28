@@ -119,6 +119,10 @@ class MyEnvParamsRetriever(threading.Thread):
                     # If files not found, nothing to do.  Mark task as complete so as to not
                     # bog down Queue
                     self.to_retrieve.task_done()
+                    
+                except Exception as e:
+                    logging.warning('Exception trying to get item for env_params_retrieve_this.  Exception: {}'.format(e))
+
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning(
@@ -129,6 +133,12 @@ class MyEnvParamsRetriever(threading.Thread):
 
             # Put item back in Queue, since unsure if successfully retrieved
             self.to_retrieve.put(item)
+
+        except Exception as e:
+            logging.warning('Other exception found for env_params_retrieve_this. Exception: {}'.format(e))
+            
+            # Assume task is done.
+            self.to_retrieve.task_done()
 
     def run(self):
         # COMPLETE
@@ -321,6 +331,9 @@ class MyAudioRetriever(threading.Thread):
                             'File not found on Server.  No way to retrieve past info.')
                     self.to_retrieve.task_done()
 
+                except Exception as e:
+                    logging.warning('Exception trying to get item for audio_retrieve_this.  Exception: {}'.format(e))
+
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning(
                 'MyAudioRetriever network connection error: {}'.format(conn_error))
@@ -328,6 +341,12 @@ class MyAudioRetriever(threading.Thread):
                 print('Network connection error: {}'.format(conn_error))
             self.to_retrieve.task_done()
             self.to_retrieve.put(item)
+
+        except Exception as e:
+            logging.warning('Other exception found for audio_retrieve_this. Exception: {}'.format(e))
+            
+            # Assume task is done.
+            self.to_retrieve.task_done()
 
     def run(self):
         retriever_updater = threading.Thread(target=self.to_retrieve_updater)
@@ -763,18 +782,23 @@ class MyClient():
             print('Starting server_delete Thread')
         while True:
             if datetime.now().minute % 5 == 0 and datetime.now().second == 30:
-                logging.info('00:30 or 05:30')
-                to_remove = ['to_remove']
-                for item in self.audio_retriever.successfully_retrieved:
-                    to_remove.append(item[0])
+                try:
+                    logging.info('00:30 or 05:30')
+                    to_remove = ['to_remove']
+                    for item in self.audio_retriever.successfully_retrieved:
+                        to_remove.append(item[0])
 
-                audio_retrieved = len(to_remove)
-                if audio_retrieved <= 1:
-                    logging.log(25,
-                                'Nothing to remove from self.audio_retriever.successfully_retrieved...')
+                    audio_retrieved = len(to_remove)
+                    if audio_retrieved <= 1:
+                        logging.log(25,
+                                    'Nothing to remove from self.audio_retriever.successfully_retrieved...')
 
-                for item in self.env_params_retriever.successfully_retrieved:
-                    to_remove.append(item[0])
+                    for item in self.env_params_retriever.successfully_retrieved:
+                        to_remove.append(item[0])
+                
+                except Exception as e:
+                    logging.warning('Error in trying to add audio_retrieved or env_params_retrieved. Exception: {}'.format(e))
+
 
                 env_params_retrieved = len(to_remove) - audio_retrieved
                 if env_params_retrieved <= 1:
@@ -849,6 +873,9 @@ class MyClient():
                         if self.debug:
                             print(
                                 'Unable to connect and server_delete. Error: {}'.format(e))
+                    
+                    except Exception as e:
+                        logging.warning('Excepted in server_delete.  Exception: {}'.format(e))
                     finally:
                         s.close()
 
