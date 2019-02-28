@@ -119,10 +119,10 @@ class MyEnvParamsRetriever(threading.Thread):
                     # If files not found, nothing to do.  Mark task as complete so as to not
                     # bog down Queue
                     self.to_retrieve.task_done()
-                    
-                except Exception as e:
-                    logging.warning('Exception trying to get item for env_params_retrieve_this.  Exception: {}'.format(e))
 
+                except Exception as e:
+                    logging.warning(
+                        'Exception trying to get item for env_params_retrieve_this.  Exception: {}'.format(e))
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning(
@@ -135,14 +135,16 @@ class MyEnvParamsRetriever(threading.Thread):
             self.to_retrieve.put(item)
 
         except Exception as e:
-            logging.warning('Other exception found for env_params_retrieve_this. Exception: {}'.format(e))
-            
+            logging.warning(
+                'Other exception found for env_params_retrieve_this. Exception: {}'.format(e))
+
             # Assume task is done.
             self.to_retrieve.task_done()
 
     def run(self):
         # COMPLETE
-        retriever_updater = threading.Thread(target=self.to_retrieve_updater, daemon=True)
+        retriever_updater = threading.Thread(
+            target=self.to_retrieve_updater, daemon=True)
         retriever_updater.start()
         log_this = True
         while True:
@@ -332,7 +334,8 @@ class MyAudioRetriever(threading.Thread):
                     self.to_retrieve.task_done()
 
                 except Exception as e:
-                    logging.warning('Exception trying to get item for audio_retrieve_this.  Exception: {}'.format(e))
+                    logging.warning(
+                        'Exception trying to get item for audio_retrieve_this.  Exception: {}'.format(e))
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning(
@@ -343,8 +346,9 @@ class MyAudioRetriever(threading.Thread):
             self.to_retrieve.put(item)
 
         except Exception as e:
-            logging.warning('Other exception found for audio_retrieve_this. Exception: {}'.format(e))
-            
+            logging.warning(
+                'Other exception found for audio_retrieve_this. Exception: {}'.format(e))
+
             # Assume task is done.
             self.to_retrieve.task_done()
 
@@ -627,7 +631,7 @@ class MyClient():
         self.env_params_dir = os.path.join(self.my_root, 'env_params')
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
-        #self.influx_client = influxdb.InfluxDBClient(
+        # self.influx_client = influxdb.InfluxDBClient(
         #    self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.env_params_read_interval = int(
@@ -795,16 +799,16 @@ class MyClient():
 
                     for item in self.env_params_retriever.successfully_retrieved:
                         to_remove.append(item[0])
-                
-                except Exception as e:
-                    logging.warning('Error in trying to add audio_retrieved or env_params_retrieved. Exception: {}'.format(e))
 
+                except Exception as e:
+                    logging.warning(
+                        'Error in trying to add audio_retrieved or env_params_retrieved. Exception: {}'.format(e))
 
                 env_params_retrieved = len(to_remove) - audio_retrieved
                 if env_params_retrieved <= 1:
                     logging.log(25,
                                 'Nothing to remove from self.env_params_retriever.successfully_retrieved...')
-                
+
                 logging.info('to_remove: {}'.format(to_remove))
 
                 if audio_retrieved <= 1 and env_params_retrieved <= 1:
@@ -824,19 +828,23 @@ class MyClient():
                         self.delete_response = self.my_recv_all(
                             s).split('\r\n')
                         self.num_dirs_deleted = self.delete_response[0]
-                        logging.info('self.delete_response: {}'.format(self.delete_response))
-                        logging.info('num dirs deleted: {}'.format(self.num_dirs_deleted))
+                        logging.info('self.delete_response: {}'.format(
+                            self.delete_response))
+                        logging.info('num dirs deleted: {}'.format(
+                            self.num_dirs_deleted))
                         if self.debug:
                             print('{} dirs deleted'.format(
                                 self.num_dirs_deleted))
 
                         if len(self.delete_response) > 1:
                             self.dirs_deleted = self.delete_response[1:]
-                            logging.info('self.dirs_deleted: {}'.format(self.dirs_deleted))
+                            logging.info(
+                                'self.dirs_deleted: {}'.format(self.dirs_deleted))
                             removed_from_queue = 0
 
                             for d in self.dirs_deleted:
-                                logging.info('iterating through self.dirs_deleted')
+                                logging.info(
+                                    'iterating through self.dirs_deleted')
                                 for a in self.audio_retriever.successfully_retrieved:
                                     if a[0] == d:
                                         ind = self.audio_retriever.successfully_retrieved.index(
@@ -847,8 +855,10 @@ class MyClient():
 
                                 for b in self.env_params_retriever.successfully_retrieved:
                                     if b[0] == d:
-                                        ind = self.env_params_retriever.successfully_retrieved.index(b)
-                                        self.env_params_retriever.successfully_retrieved.pop(ind)
+                                        ind = self.env_params_retriever.successfully_retrieved.index(
+                                            b)
+                                        self.env_params_retriever.successfully_retrieved.pop(
+                                            ind)
                                         removed_from_queue += 1
 
                             logging.log(25, '{} directories deleted from server'.format(
@@ -873,9 +883,13 @@ class MyClient():
                         if self.debug:
                             print(
                                 'Unable to connect and server_delete. Error: {}'.format(e))
-                    
+                        s.close()
+
                     except Exception as e:
-                        logging.warning('Excepted in server_delete.  Exception: {}'.format(e))
+                        logging.warning(
+                            'Excepted in server_delete.  Exception: {}'.format(e))
+                        s.close()
+
                     finally:
                         s.close()
 
