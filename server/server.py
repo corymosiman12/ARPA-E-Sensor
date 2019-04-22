@@ -455,49 +455,6 @@ class MyThreadedSocket(threading.Thread):
         self.request = self.my_recv_all()
         self.decode_request()
 
-        # Process based on information requested by client.
-        # Info is either environmental parameters or audio data.
-        # if self.client_request == "env_params":
-        #     try:
-        #         self.client_socket.sendall(self.send_sensors())
-
-        #         # Client will respond to whether or not the write
-        #         # to the InfluxDB was successful
-        #         self.request = self.my_recv_all()
-        #         self.decode_request()
-
-        #         # self.client_request is now either "success" or "not success"
-        #         if self.debug:
-        #             print("Write to influx: {}".format(self.client_request))
-        #         if self.client_request == "SUCCESS":
-
-        #             # clear sensor cache
-        #             self.sensors.readings = []
-
-        #             # respond that cache has been cleared.
-        #             self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
-        #                                         \tself.readings is now cleared. \n\
-        #                                         \tself.readings= {}".format(self.client_request,
-        #                                                                     self.sensors.readings).encode())
-        #         elif self.client_request == "NOT SUCCESS":
-        #             # Respond that cache has not been cleared
-        #             self.client_socket.sendall("Server: Client write status to InfluxDB: {}. \n\
-        #                                         \tself.readings has not been cleared".encode())
-        #         if self.debug:
-        #             print("self.readings: {}".format(self.sensors.readings))
-
-        #         # Close socket
-        #         self.client_socket.close()
-        #         logging.info("env_params socket closed, try")
-        #     except Exception as e:
-        #         logging.warning(
-        #             'env_params excepted.  Exception: {}'.format(e))
-
-        #     finally:
-        #         if self.client_socket:
-        #             self.client_socket.close()
-        #             logging.info("env_params socket closed, finally")
-
         if self.client_request == "to_remove":
             deleted = []
             try:

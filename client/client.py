@@ -152,88 +152,6 @@ class MyEnvParamsRetriever(threading.Thread):
                     worker.setDaemon(True)
                     worker.start()
 
-    # def influx_write(self):
-    #     """
-    #     Format all data received from server to be inserted into the
-    #     InfluxDB.  This is currently specific to all data excluding
-    #     microphone and camera data.
-
-    #     return: <class 'bool'>
-    #             When the influx write_points method is called to write
-    #             all points of the json_body to the DB, the result of the
-    #             write (True or False) indicates success or not.  This
-    #             is returned for further processing.
-    #     """
-    #     json_body = []
-    #     count_points = 0
-    #     times = []
-    #     for r in self.get_sensors_response["Readings"]:
-    #         count_points += 1
-    #         try:
-    #             json_body.append({
-    #                 "measurement": "env_params",
-    #                 "tags": {
-    #                     "server_id": self.server_id,
-    #                     "pi_ip_address": self.pi_ip_address,
-    #                     "client_request_time": self.get_sensors_response["Client_Request_Time"],
-    #                     "server_response_time": self.get_sensors_response["Server_Response_Time"]
-    #                 },
-    #                 "time": r["time"],
-    #                 "fields": {
-    #                     "light_lux": int(r["light_lux"]),
-    #                     "temp_c": int(r["temp_c"]),
-    #                     "rh_percent": int(r["rh_percent"]),
-    #                     "dist_mm": int(r["dist_mm"]),
-    #                     "co2eq_ppm": int(r["co2eq_ppm"]),
-    #                     "tvoc_ppb": int(r["tvoc_ppb"]),
-    #                     "co2eq_base": int(r["co2eq_base"]),
-    #                     "tvoc_base": int(r["tvoc_base"])
-    #                 }
-    #             })
-    #         except TypeError as e:
-    #             logging.warning('TypeError in readings.  Error: {}'.format(e))
-    #             if self.debug:
-    #                 print('TypeError in readings.  Error: {}'.format(e))
-    #             json_body.append({
-    #                 "measurement": "env_params",
-    #                 "tags": {
-    #                     "server_id": self.server_id,
-    #                     "pi_ip_address": self.pi_ip_address,
-    #                     "client_request_time": self.get_sensors_response["Client_Request_Time"],
-    #                     "server_response_time": self.get_sensors_response["Server_Response_Time"]
-    #                 },
-    #                 "time": r["time"],
-    #                 "fields": {
-    #                     "light_lux": r["light_lux"],
-    #                     "temp_c": r["temp_c"],
-    #                     "rh_percent": r["rh_percent"],
-    #                     "dist_mm": r["dist_mm"],
-    #                     "co2eq_ppm": r["co2eq_ppm"],
-    #                     "tvoc_ppb": r["tvoc_ppb"],
-    #                     "co2eq_base": r["co2eq_base"],
-    #                     "tvoc_base": r["tvoc_base"]
-    #                 }
-    #             })
-    #         times.append(r["time"])
-    #     if self.debug:
-    #         print('{} points to insert into influxdb'.format(count_points))
-    #         print('Times of sensor readings: {}'.format(times))
-    #     if count_points != 12:
-    #         logging.warning(
-    #             '{} points to insert into influxdb.'.format(count_points))
-    #     else:
-    #         logging.info(
-    #             '{} points to insert into influxdb'.format(count_points))
-
-    #     successful_write = self.influx_client.write_points(json_body)
-
-    #     if successful_write:
-    #         self.readings_inserted += count_points
-    #     else:
-    #         self.bad_writes += 1
-
-    #     return(successful_write)
-
 
 class MyAudioRetriever(threading.Thread):
     def __init__(self, my_root, pi_ip_address, pi_img_audio_root, listen_port, debug, tape_length):
@@ -613,6 +531,82 @@ class MyPhoto(threading.Thread):
                             # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
 
 
+class MyPhotoChecker(threading.Thread):
+    """
+    This class is designed to check the number of audio files written 
+    to disk for each minute.
+
+    param: 
+    """
+
+    def __init__(self, num_imgs, img_root):
+        threading.Thread.__init__(self)
+        self.num_imgs = int(num_imgs)
+        self.img_root = img_root
+        self.img_seconds = [str(x).zfill(2)
+                              for x in range(0, 60, self.num_imgs)]
+        # self.daemon = True
+        self.total_missing = 0
+        self.per_min_missing = []
+        self.start()
+        self.server_restart = False
+
+    def run(self):
+        logging.info('MyPhotoChecker run')
+        first_check = True
+        while True:
+            t = datetime.now()
+            # Check img files for previous minute at the 5 second.
+            if t.second == 5:
+                t_prev = t - timedelta(minutes=1)
+                d = t_prev.strftime("%Y-%m-%d")
+                hr = t_prev.strftime("%H%M")
+
+                prev_min_img_dir = os.path.join(self.img_root, d, hr)
+                should_have_files = [os.path.join(prev_min_img_dir,
+                                                  '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+
+                # logging.info('len: {} should_have_files: {}'.format(
+                #     len(should_have_files), should_have_files))
+
+                has_files = [os.path.join(prev_min_img_dir, f) for f in os.listdir(
+                    prev_min_img_dir) if f.endswith('.png')]
+
+                """
+                if len(has_files) == 0 and not first_check:
+                    logging.critical(
+                        'No image files found.  Next line runs os._exit(1)')
+                    os._exit(1) """
+
+                missing = list(set(should_have_files) - set(has_files))
+                if len(missing) > 0:
+                    self.total_missing += len(missing)
+                    logging.warning(
+                        'images missing: {} files'.format(len(missing)))
+                    logging.warning(
+                        'images missing these files: {}'.format(missing))
+
+                if len(missing) > 3:
+                    self.per_min_missing.append((hr, self.len(missing)))
+                    
+                if len(self.per_min_missing > 10):
+                    logging.critical('self.per_min_missing = {}. Server request to restart'.format(
+                        self.per_min_missing))
+                    self.server_restart = True       
+
+                # Abrupt exit if more than 5 minutes of data missing.
+                """if self.total_missing > 5*len(should_have_files):
+                    logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
+                        self.total_missing))
+                    os._exit(1)"""
+
+                if first_check:
+                    first_check = False
+
+                time.sleep(1)
+
+
+
 class MyClient():
     def __init__(self, server_id, debug):
         logging.info('\n\n\t\t\t ##### NEW START #####')
@@ -651,6 +645,11 @@ class MyClient():
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug, self.conf["audio_tape_length"])
         self.env_params_retriever = MyEnvParamsRetriever(
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
+        
+        self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
+        
+
+
 
     def import_conf(self, server_id):
         """
@@ -676,6 +675,7 @@ class MyClient():
         """
         if not os.path.isdir(self.image_dir):
             os.makedirs(self.image_dir)
+    
 
     def create_audio_dir(self):
         """
