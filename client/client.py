@@ -171,6 +171,8 @@ class MyAudioRetriever(threading.Thread):
         self.bad_audio_transfers = 0
         self.audio_not_found = 0
         self.start()
+        self.ten_missing = False
+        self.checked_time = datetime.now()
 
     def to_retrieve_updater(self):
         while True:
@@ -214,12 +216,34 @@ class MyAudioRetriever(threading.Thread):
             if self.debug:
                 print('audio missing: {} files'.format(len(missing)))
                 print('specifically these files: {}'.format(missing))
-            if len(missing) >= 1:
+
+            if len(missing) > 1:
                 self.bad_audio_transfers += 1
                 logging.warning('audio missing: {} files.  {} bad_audio_transfers'.format(
                     len(missing), self.bad_audio_transfers))
                 logging.warning(
                     'audio missing these files: {}'.format(missing))
+
+            if self.ten_missing == False:    
+                if self.bad_audio_transfers > 10:
+                    self.ten_missing = True
+                    self.time_missing = datetime.now()
+                    self.missing_now = self.bad_audio_transfers
+                    logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
+            else:
+                if datetime.now() > self.time_missing + timedelta(minutes = 60):
+                    if self.bad_audio_transfers > self.missing_now + 10:
+                        logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
+                        os._exit(1)
+                    else:
+                        self.ten_missing = False
+                else:
+                    logging.critical('self.per_min_missing = {} at {}'.format(self.per_min_missing, datetime.now()))
+
+        t = datetime.now()
+        if t.minute % 10 == 0:
+            self.checked_time = t
+
 
     def retrieve_this(self):
         item = self.to_retrieve.get()
@@ -265,6 +289,8 @@ class MyAudioRetriever(threading.Thread):
             
             # Assume task is done.
             self.to_retrieve.task_done()
+
+
 
     def run(self):
         retriever_updater = threading.Thread(target=self.to_retrieve_updater)
@@ -533,7 +559,7 @@ class MyPhoto(threading.Thread):
 
 class MyPhotoChecker(threading.Thread):
     """
-    This class is designed to check the number of audio files written 
+    This class is designed to check the number of image files written 
     to disk for each minute.
 
     param: 
@@ -550,6 +576,7 @@ class MyPhotoChecker(threading.Thread):
         self.per_min_missing = []
         self.start()
         self.server_restart = False
+        self.ten_missing = False
 
     def run(self):
         logging.info('MyPhotoChecker run')
@@ -588,11 +615,36 @@ class MyPhotoChecker(threading.Thread):
 
                 if len(missing) > 3:
                     self.per_min_missing.append((hr, self.len(missing)))
-                    
-                if len(self.per_min_missing > 10):
-                    logging.critical('self.per_min_missing = {}. Server request to restart'.format(
-                        self.per_min_missing))
-                    self.server_restart = True       
+
+                """ restarts if 3 or more image files 
+                are missing for more than 10 minutes in the last hour"""
+
+                if self.ten_missing == False:    
+                    if len(self.per_min_missing > 10):
+                        self.ten_missing = True
+                        self.time_missing = datetime.now()
+                        self.missing_now = len(self.per_min_missing)
+                        logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
+                else:
+                    if datetime.now() > self.time_missing + timedelta(minutes = 60):
+                        if len(self.per_min_missing) > self.missing_now + 1:
+                            logging.critical('self.total_image_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
+                            os._exit(1)
+                        else:
+                            self.ten_missing = False
+                    else:
+                        logging.critical('self.img_per_min_missing = {} at {}'.format(self.per_min_missing, datetime.now()))
+
+
+
+
+
+                            #self.server_restart = True
+
+                # if self.server_restart == True:
+                #     logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
+                #         self.total_missing))
+                #     os._exit(1)       
 
                 # Abrupt exit if more than 5 minutes of data missing.
                 """if self.total_missing > 5*len(should_have_files):
@@ -647,9 +699,17 @@ class MyClient():
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
         
         self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
-        
+        self.audio_retreiver_check()
 
 
+    def audio_retreiver_check(self):
+        if datetime.now().minute % 30 == 0:
+            self.last_checked = self.audio_retriever.checked_time
+            if datetime.now() > self.last_checked + timedelta(minute = 20):
+                logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
+                os._exit(1)
+
+            
 
     def import_conf(self, server_id):
         """

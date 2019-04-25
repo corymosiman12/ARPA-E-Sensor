@@ -11,40 +11,50 @@ from collections import defaultdict
 
 
 class AudioChecker():
-    def __init__(self, path, server_id, days_to_check, display_output = True, write_file = True):
-        #self.root = '/Users/maggie/Desktop/HPD_mobile-H1' #
-        #self.root = '/Volumes/HPD_Mobile/H1'
-        self.days_to_check = days_to_check
-        self.root = path
-        self.audio_tape_length = '20' #
-        self.write_file = write_file        
-        self.display_output = display_output 
+    def __init__(self, server_id, days_to_check, test, display_output = True, write_file = True):
         self.server_id = server_id
-        #self.import_conf('client/client_conf.json')
-        #self.root = self.conf_dict['img_audio_root']
+        self.days_to_check = days_to_check
+        self.test = test
+        self.display_output = display_output 
+        self.write_file = write_file        
+
+
+        self.import_conf(self.conf())
+        self.root = self.conf_dict['img_audio_root']
         self.root_dir = os.path.join(self.root, self.server_id, 'audio')
-        self.pi_files_dir = os.path.join(self.root, self.server_id, 'audio_from_pi')
-        self.store_dir = os.path.join(self.root, self.server_id, 'audio_output_dicts')  
-        self.write_name = self.server_id + '_audio_'
-        #self.full_write = 
-        #self.audio_tape_length = str(self.conf_dict['audio_tape_length'])
-        self.correct_files_per_dir = int(60/int(self.audio_tape_length))        
+        self.store = self.conf_dict['store_location']
+
+        self.audio_tape_length = str(self.conf_dict['audio_tape_length'])
+        self.correct_files_per_dir = int(60/int(self.audio_tape_length))
+        self.end_sec = str(60-int(self.audio_tape_length)) 
+
         self.date_folders = self.get_date_folders(self.root_dir)
         self.date_dirs = [str(day.date()) for day in pd.date_range(start = self.day1, end = self.dayn, freq = 'D').tolist()]
-        self.missing_days = [day for day in self.date_dirs if day not in self.date_folders]        
+        self.missing_days = [day for day in self.date_dirs if day not in self.date_folders]   
+        self.pi_files_dir = os.path.join(self.root, self.server_id, 'audio_from_pi')
+        self.store_dir = os.path.join(self.store, self.server_id + '_audio_output_dicts')  
+        self.write_name = self.server_id + '_audio_' 
+
         self.day_summary = {}
         self.day_full = {}
         self.first_last = {}
-        self.end_sec = str(60-int(self.audio_tape_length))
-        self.output_exists = False
-        self.found_on_pi = []
         self.pi_dict = {}
+        self.found_on_pi = []
+        self.output_exists = False
+
+  
+    def conf(self):
+        if self.test:
+            return '/Users/maggie/Desktop/HPD_test_data/test-H1/client_conf_test.json'
+        else:
+            return 'root/client/client_conf.json'
 
 
     def import_conf(self, path):
         with open(path, 'r') as f:
             self.conf_dict = json.loads(f.read())
-        
+             
+
     def mylistdir(self, directory):
         filelist = os.listdir(directory)
         return [x for x in filelist if not (x.startswith('.') or 'Icon' in x)] 
@@ -154,15 +164,15 @@ class AudioChecker():
                 'Total number of duplicates': self.duplicates,
                 'Number of not captured wavs': len(self.expected_wavs),
                 'Percent of wavs captured': self.perc_cap,
-                #'Percent captured including pi': self.perc_cap_pi,
                 'Percent of the day captured': self.day_cap,
-                #'Percent of the day captured including pi': self.day_cap_pi,                
                 'Expected number of directories': len(self.expected_dirs),
                 'Number of directories w/ correct number wavs': len(self.count_correct),
                 'Number of directories w/ incorrect number wavs': len(self.count_other),
                 'Number of directories w/ zero wavs': len(self.num_zero_dirs),
                 'Directories per hour w/ zero wavs': self.zero_dirs,
-                'Hours with no wavs': self.zero_hours,
+                'Hours with no wavs': self.zero_hours
+                #'Percent captured including pi': self.perc_cap_pi,
+                #'Percent of the day captured including pi': self.day_cap_pi,                
                 #'Number of files found on pi': len(self.found_on_pi),
                 #'Files found on pi': self.pi_dict
             }
@@ -170,14 +180,15 @@ class AudioChecker():
             output_dict_display = {
                 'Start Time': datetime.strptime(self.first_last[0], '%H%M').strftime('%H:%M'),
                 'End Time': datetime.strptime(self.first_last[1], '%H%M').strftime('%H:%M'),
+                'Expected number of wavs': self.expect_num_wavs,
                 'Number not captured': len(self.expected_wavs),
                 'Percent of wavs captured': self.perc_cap,
+                'Directories per hour w/ zero wavs': self.zero_dirs,
+                'Hours with no wavs': self.zero_hours
                 #'Percent captured including pi': self.perc_cap_pi,
                 #'Percent of the day captured': self.day_cap,
                 #'Percent of the day captured including pi': self.day_cap_pi,  
-                'Directories per hour w/ zero wavs': self.zero_dirs,
-                'Hours with no wavs': self.zero_hours,
-                #gvb'Number of files found on pi': len(self.found_on_pi)
+                #'Number of files found on pi': len(self.found_on_pi)
             }            
                         
             return output_dict_write, output_dict_display
@@ -188,8 +199,6 @@ class AudioChecker():
         if days_n > len(self.date_folders):
             print("Not enough days exist. Please try a smaller number.")
             return(False)
-        # else: 
-        #     print(self.date_folders[-self.days_to_check:])
         for d in self.date_folders[-days_n:]:
             hr_min_dirs = self.mylistdir(os.path.join(self.root_dir, d))
             self.get_all_mins(d, hr_min_dirs)
@@ -225,7 +234,6 @@ class AudioChecker():
                     else:
                         self.count_other[hr_min] = len(self.wavs)
 
-
             # self.pi_files = os.path.join(self.pi_files_dir, d)
             # if len(self.expected_wavs) > 0 and os.path.exists(self.pi_files):
             #     self.check_pi(d)
@@ -235,30 +243,21 @@ class AudioChecker():
                 print('Date: {}, Sensor: {}'.format(d, self.server_id))
                 self.displayer(output_dict[1])
             self.writer(output_dict[0], d) 
-            #self.day_full[d] = output_dict[0]
             self.day_summary[d] = output_dict[1]
+            #self.day_full[d] = output_dict[0]
+
         self.writer(self.day_summary, 'all_days')
         
 
 
-
-
 if __name__ == '__main__':
-    #path = '/Users/maggie/Desktop/HPD_mobile-H1'
-    #path = '/mnt/disk2'
-    #sensors = ['RS1', 'RS2', 'RS3', 'RS4', 'RS5', 'RS6']
-    #server_id = 'BS1'
-    #audio_tape_length = '20'
-    #root_dir = os.path.join(path, server_id, 'audio')
-    #sensors = ['BS1', 'BS2', 'BS3', 'BS4', 'BS5', 'BS6']
-    sensors = ['BS1']
-    path = sys.argv[1]
-    #server_id = sensors[5]
-    server_id = sys.argv[2]
-    days = sys.argv[3]
-    #for server_id in sensors:
-    a = AudioChecker(path, server_id, days)
+    server_id = sys.argv[1]
+    days = sys.argv[2]
+
+    if len(sys.argv) > 3:
+        test = sys.argv[3]
+    else:
+        test = False
+
+    a = AudioChecker(server_id, days, test)
     a.main()
-
-
-
