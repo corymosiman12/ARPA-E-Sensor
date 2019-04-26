@@ -140,7 +140,7 @@ class ImageChecker():
         if days_n > len(self.date_folders):
             print("Not enough days exist. Please try a smaller number.")
             return(False)
-        for d in self.date_folders:
+        for d in self.date_folders[-days_n]:
             self.hr_min_dirs = self.mylistdir(os.path.join(self.root_dir, d))
             self.zero_hours = []
             self.less_than_30 = []
