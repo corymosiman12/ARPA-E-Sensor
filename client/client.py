@@ -229,7 +229,7 @@ class MyAudioRetriever(threading.Thread):
                     self.ten_missing = True
                     self.time_missing = datetime.now()
                     self.missing_now = self.bad_audio_transfers
-                    logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
+                    logging.critical('first check: self.missing_now = {} at {}'.format(self.missing_now, self.time_missing))
             else:
                 if datetime.now() > self.time_missing + timedelta(minutes = 60):
                     if self.bad_audio_transfers > self.missing_now + 10:
@@ -238,7 +238,7 @@ class MyAudioRetriever(threading.Thread):
                     else:
                         self.ten_missing = False
                 else:
-                    logging.critical('self.per_min_missing = {} at {}'.format(self.per_min_missing, datetime.now()))
+                    logging.critical('self.missing = {} at {}'.format(self.missing, datetime.now()))
 
         t = datetime.now()
         if t.minute % 10 == 0:

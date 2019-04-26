@@ -18,7 +18,6 @@ class AudioChecker():
         self.display_output = display_output 
         self.write_file = write_file        
 
-
         self.import_conf(self.conf())
         self.root = self.conf_dict['img_audio_root']
         self.root_dir = os.path.join(self.root, self.server_id, 'audio')
@@ -34,6 +33,7 @@ class AudioChecker():
         self.pi_files_dir = os.path.join(self.root, self.server_id, 'audio_from_pi')
         self.store_dir = os.path.join(self.store, self.server_id + '_audio_output_dicts')  
         self.write_name = self.server_id + '_audio_' 
+        self.store_dir = os.path.join(self.store, str(datetime.now().date()) + '_output', 'audio')  
 
         self.day_summary = {}
         self.day_full = {}
@@ -47,7 +47,7 @@ class AudioChecker():
         if self.test:
             return '/Users/maggie/Desktop/HPD_test_data/test-H1/client_conf_test.json'
         else:
-            return 'root/client/client_conf.json'
+            return '/root/client/client_conf.json'
 
 
     def import_conf(self, path):
