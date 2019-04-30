@@ -117,7 +117,7 @@ class AudioChecker():
         self.output_exists = False
         if self.write_file:
             if not os.path.isdir(self.store_dir):
-                os.mkdir(self.store_dir)
+                os.makedirs(self.store_dir)
             b = self.write_name + d + '.json'
             write_file = os.path.join(self.store_dir, b)
             if not os.path.exists(write_file):
