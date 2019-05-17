@@ -225,20 +225,20 @@ class MyAudioRetriever(threading.Thread):
                     'audio missing these files: {}'.format(missing))
 
             if self.ten_missing == False:    
-                if len(self.missing) > 3:
+                if len(missing) > 3:
                     self.ten_missing = True
                     self.time_missing = datetime.now()
-                    self.missing_now = len(self.missing)
+                    self.missing_now = len(missing)
                     logging.critical('first check: self.missing_now = {} at {}'.format(self.missing_now, self.time_missing))
             else:
                 if datetime.now() > self.time_missing + timedelta(minutes = 10):
-                    if self.missing > self.missing_now + 3:
+                    if missing > self.missing_now + 3:
                         logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
                         os._exit(1)
                     else:
                         self.ten_missing = False
                 else:
-                    logging.critical('self.missing = {} at {}'.format(self.missing, datetime.now()))
+                    logging.critical('missing = {} at {}'.format(missing, datetime.now()))
 
         t = datetime.now()
         if t.minute % 10 == 0:
