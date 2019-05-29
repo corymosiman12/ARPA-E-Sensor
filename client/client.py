@@ -243,6 +243,7 @@ class MyAudioRetriever(threading.Thread):
         t = datetime.now()
         if t.minute % 10 == 0:
             self.checked_time = t
+            logging.info('checked time is: {}'.format(self.checked_time))
 
 
     def retrieve_this(self):
@@ -647,10 +648,10 @@ class MyPhotoChecker(threading.Thread):
                 #     os._exit(1)       
 
                 # Abrupt exit if more than 5 minutes of data missing.
-                """if self.total_missing > 5*len(should_have_files):
-                    logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
-                        self.total_missing))
-                    os._exit(1)"""
+                # if self.total_missing > 5*len(should_have_files):
+                #     logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
+                #         self.total_missing))
+                #     os._exit(1)
 
                 if first_check:
                     first_check = False
@@ -704,6 +705,7 @@ class MyClient():
 
     def audio_retreiver_check(self):
         if datetime.now().minute % 30 == 0:
+            logging.info('Running audio_retreiver_check. The current time is: {}'.format(datetime.now()))
             self.last_checked = self.audio_retriever.checked_time
             if datetime.now() > self.last_checked + timedelta(minute = 20):
                 logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
