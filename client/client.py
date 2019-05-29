@@ -245,7 +245,6 @@ class MyAudioRetriever(threading.Thread):
             self.checked_time = t
             logging.info('checked time is: {}'.format(self.checked_time))
 
-
     def retrieve_this(self):
         item = self.to_retrieve.get()
         typ = 'audio' if 'audio' in item[0] else 'img'
@@ -291,8 +290,6 @@ class MyAudioRetriever(threading.Thread):
             # Assume task is done.
             self.to_retrieve.task_done()
 
-
-
     def run(self):
         retriever_updater = threading.Thread(target=self.to_retrieve_updater)
         retriever_updater.start()
@@ -326,7 +323,7 @@ class MyPhoto(threading.Thread):
         self.video_status = False
         self.img_checked = False
         self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
-        self.create_root_img_dir()
+        # self.create_root_img_dir() ## this action is strictly duplicated in MyClient
         self.connect_to_video()
         self.start()
 
@@ -421,9 +418,9 @@ class MyPhoto(threading.Thread):
 
         time.sleep(2)
 
-    def create_root_img_dir(self):
-        if not os.path.isdir(self.img_root):
-            os.makedirs(self.img_root)
+    # def create_root_img_dir(self):
+    #     if not os.path.isdir(self.img_root):
+    #         os.makedirs(self.img_root)
 
     def connect_to_video(self):
         self.video_status = False
@@ -620,7 +617,8 @@ class MyPhotoChecker(threading.Thread):
                 """ restarts if 3 or more image files 
                 are missing for more than 10 minutes in the last hour"""
 
-                if self.ten_missing == False:    
+                if self.ten_missing == False:
+                        
                     if len(self.per_min_missing > 10):
                         self.ten_missing = True
                         self.time_missing = datetime.now()
@@ -657,7 +655,6 @@ class MyPhotoChecker(threading.Thread):
                     first_check = False
 
                 time.sleep(1)
-
 
 
 class MyClient():
@@ -702,7 +699,6 @@ class MyClient():
         self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
         self.audio_retreiver_check()
 
-
     def audio_retreiver_check(self):
         if datetime.now().minute % 30 == 0:
             logging.info('Running audio_retreiver_check. The current time is: {}'.format(datetime.now()))
@@ -710,8 +706,6 @@ class MyClient():
             if datetime.now() > self.last_checked + timedelta(minute = 20):
                 logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
                 os._exit(1)
-
-            
 
     def import_conf(self, server_id):
         """
@@ -738,7 +732,6 @@ class MyClient():
         if not os.path.isdir(self.image_dir):
             os.makedirs(self.image_dir)
     
-
     def create_audio_dir(self):
         """
         Check if server directories for images exist.  If they exist, do nothing.
@@ -942,7 +935,6 @@ class MyClient():
                         s.close()
 
                 time.sleep(30)
-
 
 if __name__ == "__main__":
     """
