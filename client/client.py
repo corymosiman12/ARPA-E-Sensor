@@ -323,104 +323,8 @@ class MyPhoto(threading.Thread):
         self.video_status = False
         self.img_checked = False
         self.img_seconds = [str(x).zfill(2) for x in range(0, 60)]
-        # self.create_root_img_dir() ## this action is strictly duplicated in MyClient
         self.connect_to_video()
         self.start()
-
-    # def create_message(self, to_send):
-    #     """
-    #     Configure the message to send to the server.
-    #     Elements are separated by a carriage return and newline.
-    #     The first line is always the datetime of client request.
-
-    #     param: to_send <class 'list'>
-    #             List of elements to send to server.
-
-    #     return: <class 'bytes'> a byte string (b''), ready to 
-    #             send over a socket connection
-    #     """
-    #     dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
-    #     for item in to_send:
-    #         dt_str.append(item)
-
-    #     message = '\r\n'.join(dt_str)
-    #     logging.log(25, "Sending Message: \n{}".format(message))
-    #     return message.encode()
-
-    # def my_recv_all(self, s, timeout=2):
-    #     """
-    #     Regardless of message size, ensure that entire message is received
-    #     from server.  Timeout specifies time to wait for additional socket
-    #     stream.
-
-    #     param: s <class 'socket.socket'>
-    #             A socket connection to server.
-    #     return: <class 'str'>
-    #             A string containing all info sent.
-    #     """
-    #     # try:
-    #     # make socket non blocking
-    #     s.setblocking(0)
-
-    #     # total data partwise in an array
-    #     total_data = []
-    #     data = ''
-
-    #     # beginning time
-    #     begin = time.time()
-    #     while 1:
-    #         # if you got some data, then break after timeout
-    #         if total_data and time.time()-begin > timeout:
-    #             break
-
-    #         # if you got no data at all, wait a little longer, twice the timeout
-    #         elif time.time()-begin > timeout*2:
-    #             break
-
-    #         # recv something
-    #         try:
-    #             data = s.recv(8192).decode()
-    #             if data:
-    #                 total_data.append(data)
-    #                 # change the beginning time for measurement
-    #                 begin = time.time()
-    #             else:
-    #                 # sleep for sometime to indicate a gap
-    #                 time.sleep(0.1)
-    #         except:
-    #             pass
-
-    #     # join all parts to make final string
-    #     return ''.join(total_data)
-
-    # def has_correct_files(self):
-    #     ''' Image Check Files'''
-    #     t = datetime.now() - timedelta(minutes=1)
-    #     d = t.strftime("%Y-%m-%d")
-    #     hr = t.strftime("%H%M")
-
-    #     self.prev_min_img_dir = os.path.join(
-    #         self.img_root_date, t.strftime("%H%M"))
-    #     should_have_files = [os.path.join(
-    #         self.prev_min_img_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
-    #     has_files = [os.path.join(self.prev_min_img_dir, f) for f in os.listdir(
-    #         self.prev_min_img_dir) if f.endswith('.png')]
-
-    #     missing = list(set(should_have_files) - set(has_files))
-    #     if self.debug:
-    #         print('img missing: {} files'.format(len(missing)))
-    #         print('img missing these files: {}'.format(missing))
-
-    #     if len(missing) >= 1:
-    #         self.bad_img_transfers += 1
-    #         logging.warning('img missing: {} files'.format(len(missing)))
-    #         logging.warning('img missing these files: {}'.format(missing))
-
-    #     time.sleep(2)
-
-    # def create_root_img_dir(self):
-    #     if not os.path.isdir(self.img_root):
-    #         os.makedirs(self.img_root)
 
     def connect_to_video(self):
         self.video_status = False
@@ -445,12 +349,7 @@ class MyPhoto(threading.Thread):
             if self.debug:
                 print('Unable to connect to video')
             if self.img_restart_attempts >= 5:
-                # self.restart_dat_img()
-                # subprocess.run("sudo reboot", shell = True)
-                # subprocess.run("sudo service uv4l_raspicam restart", shell = True)
-                # time.sleep(5)
                 self.img_restart_attempts = 0
-                # subprocess.run("sudo service hpd_mobile restart", shell = True)
 
             time.sleep(10)
 
@@ -475,24 +374,10 @@ class MyPhoto(threading.Thread):
                 os.makedirs(min_dir)
             self.img_dir = min_dir
 
-    # def img_checker(self):
-    #     while 1:
-    #         t = datetime.now()
-    #         if t.second == 1 and not self.img_checked:
-    #             file_checker = threading.Thread(target=self.has_correct_files)
-    #             file_checker.start()
-    #             self.img_checked = True
-    #         if t.second != 1:
-    #             self.img_checked = False
-
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
 
-        # img_checker = threading.Thread(target=self.img_checker)
-        # img_checker.start()
-
-        # Wait for self.img_dir to exist
         time.sleep(1)
         while 1:
             if self.bad_img_transfers >= 5:
@@ -591,17 +476,8 @@ class MyPhotoChecker(threading.Thread):
                 should_have_files = [os.path.join(prev_min_img_dir,
                                                   '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
 
-                # logging.info('len: {} should_have_files: {}'.format(
-                #     len(should_have_files), should_have_files))
-
                 has_files = [os.path.join(prev_min_img_dir, f) for f in os.listdir(
                     prev_min_img_dir) if f.endswith('.png')]
-
-                """
-                if len(has_files) == 0 and not first_check:
-                    logging.critical(
-                        'No image files found.  Next line runs os._exit(1)')
-                    os._exit(1) """
 
                 missing = list(set(should_have_files) - set(has_files))
                 if len(missing) > 0:
@@ -634,23 +510,6 @@ class MyPhotoChecker(threading.Thread):
                     else:
                         logging.critical('self.img_per_min_missing = {} at {}'.format(self.per_min_missing, datetime.now()))
 
-
-
-
-
-                            #self.server_restart = True
-
-                # if self.server_restart == True:
-                #     logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
-                #         self.total_missing))
-                #     os._exit(1)       
-
-                # Abrupt exit if more than 5 minutes of data missing.
-                # if self.total_missing > 5*len(should_have_files):
-                #     logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(
-                #         self.total_missing))
-                #     os._exit(1)
-
                 if first_check:
                     first_check = False
 
@@ -671,8 +530,6 @@ class MyClient():
         self.env_params_dir = os.path.join(self.my_root, 'env_params')
         self.listen_port = int(self.conf['listen_port'])
         self.collect_interval = int(self.conf['collect_interval_min'])
-        #self.influx_client = influxdb.InfluxDBClient(
-        #    self.conf['influx_ip'], 8086, database='hpd_mobile')
         self.pi_img_audio_root = self.conf['pi_img_audio_root']
         self.env_params_read_interval = int(
             self.conf['env_params_read_interval_sec'])
@@ -814,23 +671,7 @@ class MyClient():
 
             except:
                 pass
-            # except Exception as e:
-            #     logging.warning(
-            #         'Exception occured in my_recv_all inner.  Exception: {}'.format(e))
-            #     try:
-            #         s.close()
-            #     except:
-            #         pass
-
-        # join all parts to make final string
         return ''.join(total_data)
-        # except Exception as e:
-        #     logging.warning(
-        #         'Exception occured in my_recv_all_outer.  Exception: {}'.format(e))
-        #     try:
-        #         s.close()
-        #     except:
-        #         pass
 
     def server_delete(self):
         logging.log(25, 'Starting server_delete Thread')
@@ -950,17 +791,3 @@ if __name__ == "__main__":
 
     # Instantiate client
     c = MyClient(server_id, debug)
-
-    # while True:
-    #     # pass
-    #     if datetime.now().minute % c.collect_interval == 0:
-
-    #         # Wait two seconds before connecting to server
-    #         time.sleep(2)
-
-    #         # Get data from sensors and save to influxdb
-    #         get_data = threading.Thread(target=c.get_sensors_data())
-    #         get_data.start()
-    #         get_data.join()
-
-    #         time.sleep(58)
