@@ -393,30 +393,30 @@ class MyPhoto(threading.Thread):
         # join all parts to make final string
         return ''.join(total_data)
 
-    def has_correct_files(self):
-        ''' Image Check Files'''
-        t = datetime.now() - timedelta(minutes=1)
-        d = t.strftime("%Y-%m-%d")
-        hr = t.strftime("%H%M")
+    # def has_correct_files(self):
+    #     ''' Image Check Files'''
+    #     t = datetime.now() - timedelta(minutes=1)
+    #     d = t.strftime("%Y-%m-%d")
+    #     hr = t.strftime("%H%M")
 
-        self.prev_min_img_dir = os.path.join(
-            self.img_root_date, t.strftime("%H%M"))
-        should_have_files = [os.path.join(
-            self.prev_min_img_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
-        has_files = [os.path.join(self.prev_min_img_dir, f) for f in os.listdir(
-            self.prev_min_img_dir) if f.endswith('.png')]
+    #     self.prev_min_img_dir = os.path.join(
+    #         self.img_root_date, t.strftime("%H%M"))
+    #     should_have_files = [os.path.join(
+    #         self.prev_min_img_dir, '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+    #     has_files = [os.path.join(self.prev_min_img_dir, f) for f in os.listdir(
+    #         self.prev_min_img_dir) if f.endswith('.png')]
 
-        missing = list(set(should_have_files) - set(has_files))
-        if self.debug:
-            print('img missing: {} files'.format(len(missing)))
-            print('img missing these files: {}'.format(missing))
+    #     missing = list(set(should_have_files) - set(has_files))
+    #     if self.debug:
+    #         print('img missing: {} files'.format(len(missing)))
+    #         print('img missing these files: {}'.format(missing))
 
-        if len(missing) >= 1:
-            self.bad_img_transfers += 1
-            logging.warning('img missing: {} files'.format(len(missing)))
-            logging.warning('img missing these files: {}'.format(missing))
+    #     if len(missing) >= 1:
+    #         self.bad_img_transfers += 1
+    #         logging.warning('img missing: {} files'.format(len(missing)))
+    #         logging.warning('img missing these files: {}'.format(missing))
 
-        time.sleep(2)
+    #     time.sleep(2)
 
     # def create_root_img_dir(self):
     #     if not os.path.isdir(self.img_root):
@@ -475,22 +475,22 @@ class MyPhoto(threading.Thread):
                 os.makedirs(min_dir)
             self.img_dir = min_dir
 
-    def img_checker(self):
-        while 1:
-            t = datetime.now()
-            if t.second == 1 and not self.img_checked:
-                file_checker = threading.Thread(target=self.has_correct_files)
-                file_checker.start()
-                self.img_checked = True
-            if t.second != 1:
-                self.img_checked = False
+    # def img_checker(self):
+    #     while 1:
+    #         t = datetime.now()
+    #         if t.second == 1 and not self.img_checked:
+    #             file_checker = threading.Thread(target=self.has_correct_files)
+    #             file_checker.start()
+    #             self.img_checked = True
+    #         if t.second != 1:
+    #             self.img_checked = False
 
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
 
-        img_checker = threading.Thread(target=self.img_checker)
-        img_checker.start()
+        # img_checker = threading.Thread(target=self.img_checker)
+        # img_checker.start()
 
         # Wait for self.img_dir to exist
         time.sleep(1)
@@ -697,6 +697,7 @@ class MyClient():
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
         
         self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
+        self.photo_checker.run()
         self.audio_retreiver_check()
 
     def audio_retreiver_check(self):
