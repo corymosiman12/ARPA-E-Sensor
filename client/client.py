@@ -327,25 +327,25 @@ class MyPhoto(threading.Thread):
         self.connect_to_video()
         self.start()
 
-    def create_message(self, to_send):
-        """
-        Configure the message to send to the server.
-        Elements are separated by a carriage return and newline.
-        The first line is always the datetime of client request.
+    # def create_message(self, to_send):
+    #     """
+    #     Configure the message to send to the server.
+    #     Elements are separated by a carriage return and newline.
+    #     The first line is always the datetime of client request.
 
-        param: to_send <class 'list'>
-                List of elements to send to server.
+    #     param: to_send <class 'list'>
+    #             List of elements to send to server.
 
-        return: <class 'bytes'> a byte string (b''), ready to 
-                send over a socket connection
-        """
-        dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
-        for item in to_send:
-            dt_str.append(item)
+    #     return: <class 'bytes'> a byte string (b''), ready to 
+    #             send over a socket connection
+    #     """
+    #     dt_str = [datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")]
+    #     for item in to_send:
+    #         dt_str.append(item)
 
-        message = '\r\n'.join(dt_str)
-        logging.log(25, "Sending Message: \n{}".format(message))
-        return message.encode()
+    #     message = '\r\n'.join(dt_str)
+    #     logging.log(25, "Sending Message: \n{}".format(message))
+    #     return message.encode()
 
     def my_recv_all(self, s, timeout=2):
         """
