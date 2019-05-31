@@ -233,18 +233,31 @@ class MyAudioRetriever(threading.Thread):
                     logging.critical('first check: self.missing_now = {} at {}'.format(self.missing_now, self.time_missing))
             else:
                 if datetime.now() > self.time_missing + timedelta(minutes = 10):
-                    if missing > self.missing_now + 3:
+                    if len(missing) > int(self.missing_now + 3):
                         logging.critical('self.total_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
                         os._exit(1)
                     else:
                         self.ten_missing = False
                 else:
-                    logging.critical('missing = {} at {}'.format(missing, datetime.now()))
+                    logging.critical('missing = {} at {}'.format(len(missing), datetime.now()))
 
         t = datetime.now()
         if t.minute % 10 == 0:
             self.checked_time = t
             logging.info('checked time is: {}'.format(self.checked_time))
+
+
+    # def audio_checker(self):
+    #     while 1:
+    #         t = datetime.now()
+    #         if t.second == 1 and not self.audio_checked:
+    #             file_checker = threading.Thread(target=self.has_correct_files)
+    #             file_checker.start()
+    #             self.audio_checked = True
+    #         if t.second != 1:
+    #             self.audio_checked = False
+
+
 
     def retrieve_this(self):
         item = self.to_retrieve.get()
@@ -275,7 +288,7 @@ class MyAudioRetriever(threading.Thread):
                     self.to_retrieve.task_done()
 
                 except Exception as e:
-                    logging.warning('Exception trying to get item for audio_retrieve_this.  Exception: {}'.format(e))
+                    logging.warning('Exception trying to get item for audio_retrieve_this.  Exception: {}. Item: {}'.format(e, item))
 
         except (ConnectionAbortedError, ConnectionError, ConnectionRefusedError, ConnectionResetError, paramiko.ssh_exception.SSHException) as conn_error:
             logging.warning(
@@ -431,14 +444,14 @@ class MyPhoto(threading.Thread):
         are missing for more than 10 minutes in the last 15 minutes"""
 
         if self.ten_missing == False:
-            if len(self.per_min_missing > 10):
+            if len(self.per_min_missing) > 10:
                 self.ten_missing = True
                 self.time_missing = datetime.now()
                 self.missing_now = len(self.per_min_missing)
                 logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
         else:
             if datetime.now() > self.time_missing + timedelta(minutes = 5):
-                if len(self.per_min_missing) > self.missing_now + 1:
+                if len(self.per_min_missing) > int(self.missing_now + 1):
                     logging.critical('self.total_image_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
                     os._exit(1)
                 else:
