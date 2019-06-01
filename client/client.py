@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-05-31 - audio retriever check
+### Updated by Maggie 2019-06-01 - audio check thread made daemon
 import json
 import socket
 import sys
@@ -724,9 +724,9 @@ class MyClient():
         
         # self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
         # self.photo_checker.run()
-        self.audio_retriever_check()
+        #self.audio_retriever_check()
         self.audio_retriever_check_thread = threading.Thread(
-            target=self.audio_retriever_check)
+            target=self.audio_retriever_check, daemon=True)
         self.audio_retriever_check_thread.start()
 
     def audio_retriever_check(self):
