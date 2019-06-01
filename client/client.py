@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-05-30
+### Updated by Maggie 2019-05-31 - audio retriever checj
 import json
 import socket
 import sys
@@ -244,7 +244,7 @@ class MyAudioRetriever(threading.Thread):
         t = datetime.now()
         if t.minute % 10 == 0:
             self.checked_time = t
-            logging.info('checked time is: {}'.format(self.checked_time))
+            logging.info('Audio checked time is: {}'.format(self.checked_time))
 
 
     # def audio_checker(self):
@@ -724,15 +724,23 @@ class MyClient():
         
         # self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
         # self.photo_checker.run()
-        self.audio_retreiver_check()
+        self.audio_retriever_check()
+        self.audio_retriever_check_thread = threading.Thread(
+            target=self.audio_retriever_check)
+        self.audio_retriever_check_thread.start()
 
-    def audio_retreiver_check(self):
-        if datetime.now().minute % 30 == 0:
-            logging.info('Running audio_retreiver_check. The current time is: {}'.format(datetime.now()))
-            self.last_checked = self.audio_retriever.checked_time
-            if datetime.now() > self.last_checked + timedelta(minute = 20):
-                logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
-                os._exit(1)
+    def audio_retriever_check(self):
+        logging.log(25, 'Starting audio_retriever_check Thread')
+        if self.debug:
+            print('Starting audio_retriever_check Thread')
+        While True:
+            if datetime.now().minute % 30 == 0:
+                logging.info('Running audio_retriever_check. The current time is: {}'.format(datetime.now()))
+                self.last_checked = self.audio_retriever.checked_time
+                logging.info('audio_retriever last checked time: {}'.format(self.last_checked))
+                if datetime.now() > self.last_checked + timedelta(minute = 20):
+                    logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
+                    os._exit(1)
 
     def import_conf(self, server_id):
         """
