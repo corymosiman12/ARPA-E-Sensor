@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-05-31 - audio retriever checj
+### Updated by Maggie 2019-05-31 - audio retriever check
 import json
 import socket
 import sys
@@ -733,7 +733,7 @@ class MyClient():
         logging.log(25, 'Starting audio_retriever_check Thread')
         if self.debug:
             print('Starting audio_retriever_check Thread')
-        While True:
+        while True:
             if datetime.now().minute % 30 == 0:
                 logging.info('Running audio_retriever_check. The current time is: {}'.format(datetime.now()))
                 self.last_checked = self.audio_retriever.checked_time
@@ -741,6 +741,7 @@ class MyClient():
                 if datetime.now() > self.last_checked + timedelta(minute = 20):
                     logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
                     os._exit(1)
+            time.sleep(60)
 
     def import_conf(self, server_id):
         """
