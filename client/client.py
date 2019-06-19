@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-06-01 - audio check thread made daemon
+### Updated by Maggie 2019-06-19 - audio restart and img check fix
 import json
 import socket
 import sys
