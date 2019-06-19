@@ -343,6 +343,9 @@ class MyPhoto(threading.Thread):
         self.total_missing = 0
         self.per_min_missing = []
         self.ten_missing = False
+        self.img_checker_thread = threading.Thread(
+            target=self.img_checker, daemon=True)
+        self.img_checker_thread.start()
 
 
     # comment this function out
@@ -414,6 +417,7 @@ class MyPhoto(threading.Thread):
 
     def has_correct_files(self):
         ''' Image Check Files'''
+        logging.info('Running image checker has_correct_files')
         t = datetime.now() - timedelta(minutes=1)
         d = t.strftime("%Y-%m-%d")
         hr = t.strftime("%H%M")
@@ -531,8 +535,9 @@ class MyPhoto(threading.Thread):
         while 1:
             t = datetime.now()
             if t.second == 1 and not self.img_checked:
-                file_checker = threading.Thread(target=self.has_correct_files)
-                file_checker.start()
+                # file_checker = threading.Thread(target=self.has_correct_files)
+                # file_checker.start()
+                self.has_correct_files()
                 self.img_checked = True
             if t.second != 1:
                 self.img_checked = False
@@ -540,9 +545,6 @@ class MyPhoto(threading.Thread):
     def run(self):
         dir_create = threading.Thread(target=self.img_dir_update)
         dir_create.start()
-
-        img_checker = threading.Thread(target=self.img_checker)
-        img_checker.start()
 
         # Wait for self.img_dir to exist
         time.sleep(1)
@@ -741,7 +743,7 @@ class MyClient():
                 if datetime.now() > self.last_checked + timedelta(minute = 20):
                     logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
                     os._exit(1)
-            time.sleep(60)
+                time.sleep(30)
 
     def import_conf(self, server_id):
         """
