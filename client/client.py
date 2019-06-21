@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-06-20 - try/except in audio_retriever_check, logging in img check
+### Updated by Maggie 2019-06-20 - timedelta minute becomes minutes, try/except in img_checker, fixed datetime.now() in that function
 import json
 import socket
 import sys
@@ -530,14 +530,17 @@ class MyPhoto(threading.Thread):
 
     def img_checker(self):
         while True:
-            if datetime.now().second == 1 and not self.img_checked:
-                if self.debug:
-                    logging.info('Checking images captured')
-                # file_checker = threading.Thread(target=self.has_correct_files)
-                # file_checker.start()
-                self.has_correct_files()
-                self.img_checked = True
-            if t.second != 1:
+            try:
+                if datetime.now().second == 1 and not self.img_checked:
+                    if self.debug:
+                        logging.info('Checking images captured')
+                    # file_checker = threading.Thread(target=self.has_correct_files)
+                    # file_checker.start()
+                    self.has_correct_files()
+                    self.img_checked = True
+            except Exception as e:
+                logging.warning('Error with img_checker. Exception: {}'.format(e))
+            if datetime.now().second != 1:
                 self.img_checked = False
 
     def run(self):
@@ -738,7 +741,7 @@ class MyClient():
                 try:
                     self.last_checked = self.audio_retriever.checked_time
                     logging.info('audio_retriever last checked time: {}'.format(self.last_checked))
-                    if datetime.now() > self.last_checked + timedelta(minute = 20):
+                    if datetime.now() > self.last_checked + timedelta(minutes = 20):
                         logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
                         os._exit(1)
                 except Exception as e:
