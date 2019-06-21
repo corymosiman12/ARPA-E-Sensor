@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-06-19 - audio restart and img check fix
+### Updated by Maggie 2019-06-20 - try/except in audio_retriever_check, logging in img check
 import json
 import socket
 import sys
@@ -432,6 +432,7 @@ class MyPhoto(threading.Thread):
         missing = list(set(should_have_files) - set(has_files))
         #num_missing_now = len(missing)
         if self.debug:
+            logging.info('Number of images missing this minute: {}'.format(len(missing)))
             print('images missing this min: {} files'.format(len(missing)))
             print('images missing these files: {}'.format(missing))
 
@@ -462,17 +463,13 @@ class MyPhoto(threading.Thread):
                     self.ten_missing = False
                     self.per_min_missing = []
             else:
-                logging.critical('more than 10 missing: {} at {}. Total missing minutes = {}'.format(len(missing), hr, len(self.per_min_missing)))
+                logging.critical('more than 10 images missing: {} at {}. Total missing minutes = {}'.format(len(missing), hr, len(self.per_min_missing)))
 
         # if first_check:
         #     first_check = False
 
         time.sleep(1)
 
-
-
-
-        time.sleep(2)
 
     def create_root_img_dir(self):
         if not os.path.isdir(self.img_root):
@@ -532,9 +529,10 @@ class MyPhoto(threading.Thread):
             self.img_dir = min_dir
 
     def img_checker(self):
-        while 1:
-            t = datetime.now()
-            if t.second == 1 and not self.img_checked:
+        while True:
+            if datetime.now().second == 1 and not self.img_checked:
+                if self.debug:
+                    logging.info('Checking images captured')
                 # file_checker = threading.Thread(target=self.has_correct_files)
                 # file_checker.start()
                 self.has_correct_files()
@@ -723,7 +721,6 @@ class MyClient():
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug, self.conf["audio_tape_length"])
         self.env_params_retriever = MyEnvParamsRetriever(
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
-        
         # self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
         # self.photo_checker.run()
         #self.audio_retriever_check()
@@ -736,14 +733,18 @@ class MyClient():
         if self.debug:
             print('Starting audio_retriever_check Thread')
         while True:
-            if datetime.now().minute % 30 == 0:
+            if datetime.now().minute % 30 == 0 and datetime.now().second == 50:
                 logging.info('Running audio_retriever_check. The current time is: {}'.format(datetime.now()))
-                self.last_checked = self.audio_retriever.checked_time
-                logging.info('audio_retriever last checked time: {}'.format(self.last_checked))
-                if datetime.now() > self.last_checked + timedelta(minute = 20):
-                    logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
-                    os._exit(1)
-                time.sleep(30)
+                try:
+                    self.last_checked = self.audio_retriever.checked_time
+                    logging.info('audio_retriever last checked time: {}'.format(self.last_checked))
+                    if datetime.now() > self.last_checked + timedelta(minute = 20):
+                        logging.critical('MyAudioRetriever is not running.  Next line runs os._exit(1)')
+                        os._exit(1)
+                except Exception as e:
+                    logging.warning('Error in running audio_retriever_check. Exception: {}'.format(e))
+                time.sleep(1)
+
 
     def import_conf(self, server_id):
         """
