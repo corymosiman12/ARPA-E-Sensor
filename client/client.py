@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-06-20 - timedelta minute becomes minutes, try/except in img_checker, fixed datetime.now() in that function
+### Updated by Maggie 2019-06-26 - fix exceptions
 import json
 import socket
 import sys
@@ -87,7 +87,7 @@ class MyEnvParamsRetriever(threading.Thread):
         if len(missing) >= 1:
             self.bad_env_params_transfers += 1
             logging.warning('env_params missing: {} files.  {} bad_env_params_transfers'.format(
-                len(missing), self.bad_audio_transfers))
+                len(missing), self.bad_env_params_transfers))
             logging.warning(
                 'env_params missing these files: {}'.format(missing))
 
@@ -239,12 +239,12 @@ class MyAudioRetriever(threading.Thread):
                     else:
                         self.ten_missing = False
                 else:
-                    logging.critical('missing = {} at {}'.format(len(missing), datetime.now()))
+                    logging.critical('missing = {} at {}'.format(len(missing), datetime.now().strftime("%H:%M:%S")))
 
         t = datetime.now()
         if t.minute % 10 == 0:
             self.checked_time = t
-            logging.info('Audio checked time is: {}'.format(self.checked_time))
+            logging.info('Audio checked time is: {}'.format(self.checked_time.strftime("%H:%M:%S")))
 
 
     # def audio_checker(self):
@@ -430,20 +430,20 @@ class MyPhoto(threading.Thread):
             self.prev_min_img_dir) if f.endswith('.png')]
 
         missing = list(set(should_have_files) - set(has_files))
-        #num_missing_now = len(missing)
+        num_missing_now = len(missing)
         if self.debug:
-            logging.info('Number of images missing this minute: {}'.format(len(missing)))
-            print('images missing this min: {} files'.format(len(missing)))
+            logging.info('Number of images missing this minute: {}'.format(num_missing_now))
+            print('images missing this min: {} files'.format(num_missing_now))
             print('images missing these files: {}'.format(missing))
 
         if len(missing) > 0:
             #self.bad_img_transfers += 1
             self.total_missing += num_missing_now
-            logging.warning('images missing this min: {} files'.format(len(missing)))
+            logging.warning('images missing this min: {} files'.format(num_missing_now))
             logging.warning('images missing these files: {}'.format(missing))
     
         if len(missing) > 3:
-            self.per_min_missing.append((hr, len(missing)))
+            self.per_min_missing.append((hr, num_missing_now))
 
         """ restarts if 3 or more image files 
         are missing for more than 10 minutes in the last 15 minutes"""
@@ -453,7 +453,7 @@ class MyPhoto(threading.Thread):
                 self.ten_missing = True
                 self.time_missing = datetime.now()
                 self.missing_now = len(self.per_min_missing)
-                logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
+                logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing.strftime("%H:%M:%S")))
         else:
             if datetime.now() > self.time_missing + timedelta(minutes = 5):
                 if len(self.per_min_missing) > int(self.missing_now + 1):
@@ -468,7 +468,7 @@ class MyPhoto(threading.Thread):
         # if first_check:
         #     first_check = False
 
-        time.sleep(1)
+        time.sleep(30)
 
 
     def create_root_img_dir(self):
@@ -737,7 +737,7 @@ class MyClient():
             print('Starting audio_retriever_check Thread')
         while True:
             if datetime.now().minute % 30 == 0 and datetime.now().second == 50:
-                logging.info('Running audio_retriever_check. The current time is: {}'.format(datetime.now()))
+                logging.info('Running audio_retriever_check. The current time is: {}'.format(datetime.now().strftime("%H:%M:%S")))
                 try:
                     self.last_checked = self.audio_retriever.checked_time
                     logging.info('audio_retriever last checked time: {}'.format(self.last_checked))
@@ -746,7 +746,7 @@ class MyClient():
                         os._exit(1)
                 except Exception as e:
                     logging.warning('Error in running audio_retriever_check. Exception: {}'.format(e))
-                time.sleep(1)
+                time.sleep(30)
 
 
     def import_conf(self, server_id):
