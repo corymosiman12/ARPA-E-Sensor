@@ -6,7 +6,7 @@ import sys
 import logging
 from datetime import datetime, timedelta
 import json
-import hpd_sensors
+import hpd_sensors_wout_client
 import time
 import shutil
 import subprocess
