@@ -161,21 +161,6 @@ class Sensors(threading.Thread):
                 os.makedirs(date_dir)           
             
             self.env_params_root_date = date_dir
-            
-            # if start:
-            #     min_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H%M'))
-            #     if not os.path.isdir(min_dir):
-            #         os.makedirs(min_dir)
-            #         logging.info('{} created'.format(min_dir))
-                
-            #     self.env_params_dir = min_dir
-            #     start = False
-
-            # if datetime.now().minute % 5 == 0:
-            #     min_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H%M'))
-            #     if not os.path.isdir(min_dir):
-            #         os.makedirs(min_dir)
-            #         logging.info('{} created'.format(min_dir))
 
             if start:
                 hr_dir = os.path.join(self.env_params_root_date, datetime.now().strftime('%H00'))
