@@ -5,6 +5,7 @@ from datetime import datetime
 from PIL import Image
 import pickle
 import gzip
+import json
 #from collections import namedtuple
 import collections
 
@@ -23,9 +24,9 @@ class ImageFile():
         else:
             conf = self.import_conf()
             self.path = os.path.join(conf['img_audio_root'], self.sensor, 'img')
-            self.write_location = os.path.join(self.path, 'pickled_images')
+            self.write_location = os.path.join(conf['img_audio_root'], self.sensor, 'pickled_images')
             if not os.path.isdir(self.write_location):
-                os.mkdir(self.write_location)
+                os.m(self.write_location)
        
     def import_conf(self):
         with open('/root/client/client_conf.json', 'r') as f:
@@ -42,6 +43,7 @@ class ImageFile():
 
     def load_image(self, png):
         im = Image.open(png)
+        im = im.resize((112,112), Image.BILINEAR)
         return list(im.getdata())
 
     # def make_date_range(self, day):
@@ -70,8 +72,9 @@ class ImageFile():
                     img_list = self.load_image(os.path.join(self.path, day, hour, img_file))
                     str_time = NewImage(day=str_day, time=str_time, data=img_list)
                     day_entry.append(str_time)
+                    fname = str_day + '_' + hour
                     
-            self.pickle_object(day_entry, str_day)
+            self.pickle_object(day_entry, fname)
 
 
 if __name__ == '__main__':
