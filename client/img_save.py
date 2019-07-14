@@ -66,8 +66,9 @@ class ImageFile():
             print(day)
             #new_range = self.make_date_range(day)
             day_entry = []
-            hours = [str(x).zfill(2) + '00' for x in range(0,24)]
+            hours = [str(x).zfill(2) + str(y) + '0' for x in range(0,24) for y in range(0,6)]
             all_mins = sorted(self.mylistdir(os.path.join(self.path, day)))
+            print(hours)
             for hr in hours:
                 this_hr = [x for x in all_mins if x[0:2] == hr[0:2]]
                 for minute in sorted(this_hr):
@@ -79,6 +80,66 @@ class ImageFile():
                         day_entry.append(str_time)
                 fname = day + '_' + hr
                 self.pickle_object(day_entry, fname)
+
+# class MyPerformanceMonitor(threading.Thread):
+#     """
+#     Used to monitor the disk space, CPU, and memory of the pi.
+#     """
+
+#     def __init__(self):
+#         threading.Thread.__init__(self)
+#         self.disk_threshold = 75
+#         self.mem_threshold = 25
+#         self.calc_cpu_range()
+#         self.start()
+
+#     def calc_cpu_range(self):
+#         cpu = psutil.cpu_freq()
+#         self.cpu_range = cpu.max - cpu.min
+
+#     def run(self):
+#         logging.info('MyPerformanceMonitor run')
+#         while True:
+#             # michaelJordan time
+#             if datetime.now().second == 23:
+#                 try:
+#                     # logging.info('MyPerformanceMonitor time to check!')
+#                     cpu_perc = psutil.cpu_percent()
+#                     if cpu_perc > 80:
+#                         m = 'High CPU usage: {}'.format(cpu_perc)
+#                         logging.warning(m)
+#                         # print(m)
+
+#                     virt_mem = psutil.virtual_memory()
+#                     if virt_mem.percent <= self.mem_threshold:
+#                         m = 'High virtual mem usage. Mem available: {}'.format(
+#                             virt_mem.percent)
+#                         logging.warning(m)
+#                         # print(m)
+
+#                     swap_mem = psutil.swap_memory()
+#                     if swap_mem.percent >= self.mem_threshold:
+#                         m = 'High swap mem usage: {}'.format(swap_mem.percent)
+#                         logging.warning(m)
+#                         # print(m)
+
+#                     disk_usage = psutil.disk_usage('/')
+#                     if disk_usage.percent >= self.disk_threshold:
+#                         m = 'High disk usage: % User disk utilization: {}'.format(
+#                             disk_usage.percent)
+#                         # print(m)
+#                         logging.warning(m)
+
+#                     if datetime.now().minute % 5 == 0:
+#                         logging.info('CPU Perc Usage: {}\tVirt Mem Perc Usage: {}\tSwap Mem Perc Usage: {}\tDisk Perc Usage: {}'.format(
+#                             cpu_perc, virt_mem.percent, swap_mem.percent, disk_usage.percent))
+#                 except Exception as e:
+#                     logging.warning(
+#                         'MyPerformanceMonitor excepted: {}'.format(e))
+#                 time.sleep(1)
+
+
+
 
 if __name__ == '__main__':
     on_line = True if len(sys.argv) > 1 else False
