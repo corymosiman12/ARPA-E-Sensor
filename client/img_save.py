@@ -26,7 +26,7 @@ class ImageFile():
             self.path = os.path.join(conf['img_audio_root'], self.sensor, 'img')
             self.write_location = os.path.join(conf['img_audio_root'], self.sensor, 'pickled_images')
             if not os.path.isdir(self.write_location):
-                os.m(self.write_location)
+                os.mkdir(self.write_location)
        
     def import_conf(self):
         with open('/root/client/client_conf.json', 'r') as f:
@@ -39,7 +39,7 @@ class ImageFile():
 
     def get_time(self, file_name):
         day_time = datetime.strptime(file_name.strip('_photo.png'), '%Y-%m-%d %H%M%S')
-        return day_time
+        return day_time.strftime('%Y-%m-%d %H%M%S')
 
     def load_image(self, png):
         im = Image.open(png)
@@ -53,29 +53,32 @@ class ImageFile():
     #     return date_range   
 
     def pickle_object(self, entry, day):
+        print('time is: {}'.format(datetime.now().strftime('%H:%M:%S')))
         fname = day + '_' + self.sensor + '.pklz'
         f = gzip.open(os.path.join(self.write_location,fname), 'wb')
         pickle.dump(entry, f)
-        print('File written: {}'.format(fname))
         f.close() 
+        print('File written: {}'.format(fname))
+
     
     def main(self):
         for day in sorted(self.mylistdir(self.path)):
             print(day)
             #new_range = self.make_date_range(day)
             day_entry = []
-            for hour in sorted(self.mylistdir(os.path.join(self.path, day))):
-                for img_file in sorted(self.mylistdir(os.path.join(self.path, day, hour))):
-                    day_time = self.get_time(img_file).strftime('%Y-%m-%d %H%M%S')
-                    str_day = day_time.split(' ')[0]
-                    str_time = day_time.split(' ')[1]
-                    img_list = self.load_image(os.path.join(self.path, day, hour, img_file))
-                    str_time = NewImage(day=str_day, time=str_time, data=img_list)
-                    day_entry.append(str_time)
-                    fname = str_day + '_' + hour
-                    
-            self.pickle_object(day_entry, fname)
-
+            hours = [str(x).zfill(2) + '00' for x in range(0,24)]
+            all_mins = sorted(self.mylistdir(os.path.join(self.path, day)))
+            for hr in hours:
+                this_hr = [x for x in all_mins if x[0:2] == hr[0:2]]
+                for minute in sorted(this_hr):
+                    for img_file in sorted(self.mylistdir(os.path.join(self.path, day, minute))):
+                        day_time = self.get_time(img_file).split(' ')
+                        str_day, str_time = day_time[0], day_time[1]
+                        img_list = self.load_image(os.path.join(self.path, day, minute, img_file))
+                        str_time = NewImage(day=str_day, time=str_time, data=img_list)
+                        day_entry.append(str_time)
+                fname = day + '_' + hr
+                self.pickle_object(day_entry, fname)
 
 if __name__ == '__main__':
     on_line = True if len(sys.argv) > 1 else False
