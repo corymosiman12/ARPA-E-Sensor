@@ -8,6 +8,7 @@ import gzip
 import json
 #from collections import namedtuple
 import collections
+from memory_profiler import profile
 
 NewImage = collections.namedtuple('NewImage', 'day time data')
 
@@ -52,15 +53,15 @@ class ImageFile():
     #     date_range = pd.date_range(start=self.range_start, end=self.range_end, freq='1s')
     #     return date_range   
 
-    def pickle_object(self, entry, day):
+    # @profile
+    def pickle_object(self, entry, fname):
         print('time is: {}'.format(datetime.now().strftime('%H:%M:%S')))
-        fname = day + '_' + self.sensor + '.pklz'
+        # fname = day + '_' + self.sensor + '.pklz'
         f = gzip.open(os.path.join(self.write_location,fname), 'wb')
         pickle.dump(entry, f)
         f.close() 
         print('File written: {}'.format(fname))
 
-    
     def main(self):
         for day in sorted(self.mylistdir(self.path)):
             print(day)
@@ -68,9 +69,14 @@ class ImageFile():
             day_entry = []
             hours = [str(x).zfill(2) + str(y) + '0' for x in range(0,24) for y in range(0,6)]
             all_mins = sorted(self.mylistdir(os.path.join(self.path, day)))
-            print(hours)
+
             for hr in hours:
-                this_hr = [x for x in all_mins if x[0:2] == hr[0:2]]
+                this_hr = [x for x in all_mins if x[0:3] == hr[0:3]]
+                # if len(this_hr) > 0:
+                #     print(len(this_hr))
+                #     print(hr, this_hr)
+                # else:
+                #     print('{} is empty'.format(hr))
                 for minute in sorted(this_hr):
                     for img_file in sorted(self.mylistdir(os.path.join(self.path, day, minute))):
                         day_time = self.get_time(img_file).split(' ')
@@ -78,8 +84,21 @@ class ImageFile():
                         img_list = self.load_image(os.path.join(self.path, day, minute, img_file))
                         str_time = NewImage(day=str_day, time=str_time, data=img_list)
                         day_entry.append(str_time)
-                fname = day + '_' + hr
-                self.pickle_object(day_entry, fname)
+                        
+                fname = day + '_' + hr + '_' + self.sensor + '.pklz'
+
+                # print('time is: {}'.format(datetime.now().strftime('%H:%M:%S')))
+                # fname = day + '_' + hr + '_' + self.sensor + '.pklz'
+                # f = gzip.open(os.path.join(self.write_location,fname), 'wb')
+                # pickle.dump(entry, f)
+                # f.close() 
+                # print('File written: {}'.format(fname))
+
+                try:
+                    self.pickle_object(day_entry, fname)
+                except Exception as e:
+                    print('Error: {}'.format(e))
+                
 
 # class MyPerformanceMonitor(threading.Thread):
 #     """

@@ -46,7 +46,7 @@ class MyEnvParamsRetriever(threading.Thread):
         while True:
             if datetime.now().second == 0 and datetime.now().minute % 5 == 0:
                 logging.info('Running MyEnvParams to_retrieve_updater')
-                time.sleep(1)
+                time.sleep(1)  
 
                 t = datetime.now() - timedelta(minutes=5)
                 env_params_date_dir = os.path.join(
@@ -461,9 +461,11 @@ class MyPhoto(threading.Thread):
                     os._exit(1)
                 else:
                     self.ten_missing = False
+                    logging.info('Resetting per_min_missing. Time is: {}. Number missing is: {}'.format(datetime.now().strftime('%H:%M:%S'), len(self.per_min_missing)))
                     self.per_min_missing = []
+
             else:
-                logging.critical('more than 10 images missing: {} at {}. Total missing minutes = {}'.format(len(missing), hr, len(self.per_min_missing)))
+                logging.critical('More than 10 images missing: {} at {}. Total missing minutes = {}'.format(len(missing), hr, len(self.per_min_missing)))
 
         # if first_check:
         #     first_check = False
