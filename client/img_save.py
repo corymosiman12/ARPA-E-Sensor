@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 import pandas as pd
 from datetime import datetime
 from PIL import Image
@@ -8,7 +9,8 @@ import gzip
 import json
 #from collections import namedtuple
 import collections
-from memory_profiler import profile
+#from memory_profiler import profile
+
 
 NewImage = collections.namedtuple('NewImage', 'day time data')
 
@@ -17,6 +19,8 @@ class ImageFile():
         self.on_line = on_line
         self.sensor = sensor
         self.get_params()     
+        # self.img_means = []
+        self.black_imgs = []
 
     def get_params(self):
         if not self.on_line:
@@ -42,10 +46,17 @@ class ImageFile():
         day_time = datetime.strptime(file_name.strip('_photo.png'), '%Y-%m-%d %H%M%S')
         return day_time.strftime('%Y-%m-%d %H%M%S')
 
-    def load_image(self, png):
+    def load_image(self, png, time):
         im = Image.open(png)
         im = im.resize((112,112), Image.BILINEAR)
-        return list(im.getdata())
+        new_im = list(im.getdata())
+        ave_pxl = np.mean(new_im)
+        return new_im if ave_pxl > 10 else 0
+        # if ave_pxl < 10:
+        #     self.black_imgs.append(time)
+        #     return 0
+        # else:
+        #     return new_im
 
     # def make_date_range(self, day):
     #     self.range_start = str(day + ' 00:00:00')
@@ -66,12 +77,17 @@ class ImageFile():
         for day in sorted(self.mylistdir(self.path)):
             print(day)
             #new_range = self.make_date_range(day)
-            day_entry = []
-            hours = [str(x).zfill(2) + str(y) + '0' for x in range(0,24) for y in range(0,6)]
+            #day_entry = []
+            #hours = [str(x).zfill(2) + str(y) + '0' for x in range(0,24) for y in range(0,6)]
+            hours = [str(x).zfill(2) + '00' for x in range(0,24)]
+
             all_mins = sorted(self.mylistdir(os.path.join(self.path, day)))
 
             for hr in hours:
-                this_hr = [x for x in all_mins if x[0:3] == hr[0:3]]
+                hr_entry = []
+                self.img_means = []
+                this_hr = [x for x in all_mins if x[0:2] == hr[0:2]]
+                # print(hr, this_hr)
                 # if len(this_hr) > 0:
                 #     print(len(this_hr))
                 #     print(hr, this_hr)
@@ -81,21 +97,21 @@ class ImageFile():
                     for img_file in sorted(self.mylistdir(os.path.join(self.path, day, minute))):
                         day_time = self.get_time(img_file).split(' ')
                         str_day, str_time = day_time[0], day_time[1]
-                        img_list = self.load_image(os.path.join(self.path, day, minute, img_file))
+                        img_list = self.load_image(os.path.join(self.path, day, minute, img_file), str_time)
                         str_time = NewImage(day=str_day, time=str_time, data=img_list)
-                        day_entry.append(str_time)
-                        
+                        hr_entry.append(str_time)
+                
                 fname = day + '_' + hr + '_' + self.sensor + '.pklz'
 
                 # print('time is: {}'.format(datetime.now().strftime('%H:%M:%S')))
-                # fname = day + '_' + hr + '_' + self.sensor + '.pklz'
+                # #fname = day + '_' + hr + '_' + self.sensor + '.pklz'
                 # f = gzip.open(os.path.join(self.write_location,fname), 'wb')
                 # pickle.dump(entry, f)
                 # f.close() 
                 # print('File written: {}'.format(fname))
 
                 try:
-                    self.pickle_object(day_entry, fname)
+                    self.pickle_object(hr_entry, fname)
                 except Exception as e:
                     print('Error: {}'.format(e))
                 
