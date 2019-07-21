@@ -15,21 +15,23 @@ import collections
 NewImage = collections.namedtuple('NewImage', 'day time data')
 
 class ImageFile():
-    def __init__(self, on_line, sensor):
+    def __init__(self, on_line, sensor, dir):
         self.on_line = on_line
         self.sensor = sensor
         self.get_params()     
         # self.img_means = []
         self.black_imgs = []
+        self.path = dir
 
     def get_params(self):
         if not self.on_line:
-            self.path = '/Users/maggie/Desktop/HPD_mobile_data/HPD_mobile-H1/BS1/img'
+            #self.path = '/Users/maggie/Desktop/HPD_mobile_data/HPD_mobile-H1/BS1/img'
             self.write_location = '/Users/maggie/Desktop/HPD_mobile_data/HPD_mobile-H1/pickled_images'
         else:
-            conf = self.import_conf()
-            self.path = os.path.join(conf['img_audio_root'], self.sensor, 'img')
-            self.write_location = os.path.join(conf['img_audio_root'], self.sensor, 'pickled_images')
+            #conf = self.import_conf()
+            #self.path = os.path.join(self.path, self.sensor, 'img')
+            stored = self.path.slpit('/')[0:3]
+            self.write_location = os.path.join(stored, 'pickled_images')
             if not os.path.isdir(self.write_location):
                 os.mkdir(self.write_location)
        
@@ -97,7 +99,10 @@ class ImageFile():
                     for img_file in sorted(self.mylistdir(os.path.join(self.path, day, minute))):
                         day_time = self.get_time(img_file).split(' ')
                         str_day, str_time = day_time[0], day_time[1]
-                        img_list = self.load_image(os.path.join(self.path, day, minute, img_file), str_time)
+                        try:
+                            img_list = self.load_image(os.path.join(self.path, day, minute, img_file), str_time)
+                        except Exception as e:
+                            print('Pillow error : {}'.format(e))
                         str_time = NewImage(day=str_day, time=str_time, data=img_list)
                         hr_entry.append(str_time)
                 
@@ -113,7 +118,7 @@ class ImageFile():
                 try:
                     self.pickle_object(hr_entry, fname)
                 except Exception as e:
-                    print('Error: {}'.format(e))
+                    print('Pickle error: {}'.format(e))
                 
 
 # class MyPerformanceMonitor(threading.Thread):
@@ -179,5 +184,6 @@ class ImageFile():
 if __name__ == '__main__':
     on_line = True if len(sys.argv) > 1 else False
     sensor = sys.argv[1] if len(sys.argv) == 2 else 'BS1'
-    I = ImageFile(on_line, sensor)
+    stored_loc = sys.argv[2] if len(sys.argv) == 3 else '/Users/maggie/Desktop/HPD_mobile_data/HPD_mobile-H1/BS1/img'
+    I = ImageFile(on_line, sensor, stored_loc)
     I.main()
