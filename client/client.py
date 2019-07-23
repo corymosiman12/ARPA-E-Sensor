@@ -551,7 +551,7 @@ class MyPhoto(threading.Thread):
 
         # Wait for self.img_dir to exist
         time.sleep(1)
-        while 1:
+        while True:
             # if self.bad_img_transfers >= 5:
             #     try:
             #         self.cam.stop()
@@ -612,80 +612,83 @@ class MyPhoto(threading.Thread):
                             # logging.CRITICAL("Unable to convert to grayscale and write to disk.  Error: {}.  File: {}".format(e, fname))
 
 
-# class MyPhotoChecker(threading.Thread):
-#     """
-#     This class is designed to check the number of image files written 
-#     to disk for each minute.
+class MyPhotoChecker(threading.Thread):
+    """
+    This class is designed to check the number of image files written 
+    to disk for each minute.
 
-#     param: 
-#     """
+    param: 
+    """
 
-#     def __init__(self, num_imgs, img_root):
-#         threading.Thread.__init__(self)
-#         self.num_imgs = int(num_imgs)
-#         self.img_root = img_root
-#         self.img_seconds = [str(x).zfill(2)
-#                               for x in range(0, 60, self.num_imgs)]
-#         # self.daemon = True
-#         self.total_missing = 0
-#         self.per_min_missing = []
-#         self.start()
-#         self.server_restart = False
-#         self.ten_missing = False
+    def __init__(self, num_imgs, img_root):
+        threading.Thread.__init__(self)
+        self.num_imgs = int(num_imgs)
+        self.img_root = img_root
+        self.img_seconds = [str(x).zfill(2)
+                              for x in range(0, 60, self.num_imgs)]
+        # self.daemon = True
+        self.total_missing = 0
+        self.per_min_missing = []
+        self.start()
+        self.server_restart = False
+        self.ten_missing = False
+        self.bad_minutes = 0
 
-#     def run(self):
-#         logging.info('MyPhotoChecker run')
-#         first_check = True
-#         while True:
-#             t = datetime.now()
-#             # Check img files for previous minute at the 5 second.
-#             if t.second == 5:
-#                 t_prev = t - timedelta(minutes=1)
-#                 d = t_prev.strftime("%Y-%m-%d")
-#                 hr = t_prev.strftime("%H%M")
+    def run(self):
+        logging.info('MyPhotoChecker run')
+        #first_check = True
+        while True:
+            t = datetime.now()
+            # Check img files for previous minute at the 5 second.
+            if t.second == 5:
+                logging.info('Checking photos captured...')
+                t_prev = t - timedelta(minutes=1)
+                d = t_prev.strftime("%Y-%m-%d")
+                hr = t_prev.strftime("%H%M")
 
-#                 prev_min_img_dir = os.path.join(self.img_root, d, hr)
-#                 should_have_files = [os.path.join(prev_min_img_dir,
-#                                                   '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
+                prev_min_img_dir = os.path.join(self.img_root, d, hr)
+                should_have_files = [os.path.join(prev_min_img_dir,
+                                                  '{} {}{}_photo.png'.format(d, hr, s)) for s in self.img_seconds]
 
-#                 has_files = [os.path.join(prev_min_img_dir, f) for f in os.listdir(
-#                     prev_min_img_dir) if f.endswith('.png')]
+                has_files = [os.path.join(prev_min_img_dir, f) for f in os.listdir(
+                    prev_min_img_dir) if f.endswith('.png')]
 
-#                 missing = list(set(should_have_files) - set(has_files))
-#                 if len(missing) > 0:
-#                     self.total_missing += len(missing)
-#                     logging.warning(
-#                         'images missing: {} files'.format(len(missing)))
-#                     logging.warning(
-#                         'images missing these files: {}'.format(missing))
+                missing = list(set(should_have_files) - set(has_files))
+                if len(missing) > 0:
+                    self.total_missing += len(missing)
+                    self.bad_minutes += 1
+                    logging.warning(
+                        'images missing: {} files'.format(len(missing)))
+                    logging.warning(
+                        'images missing these files: {}'.format(missing))
 
-#                 if len(missing) > 3:
-#                     self.per_min_missing.append((hr, self.len(missing)))
+                if len(missing) > 3:
+                    self.per_min_missing.append((hr, len(self.missing)))
 
-#                 """ restarts if 3 or more image files 
-#                 are missing for more than 10 minutes in the last hour"""
+                """ restarts if 3 or more image files 
+                are missing for more than 10 minutes in the last half hour"""
 
-#                 if self.ten_missing == False:
+                if self.ten_missing == False:
                         
-#                     if len(self.per_min_missing > 10):
-#                         self.ten_missing = True
-#                         self.time_missing = datetime.now()
-#                         self.missing_now = len(self.per_min_missing)
-#                         logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
-#                 else:
-#                     if datetime.now() > self.time_missing + timedelta(minutes = 60):
-#                         if len(self.per_min_missing) > self.missing_now + 1:
-#                             logging.critical('self.total_image_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
-#                             os._exit(1)
-#                         else:
-#                             self.ten_missing = False
-#                     else:
-#                         logging.critical('self.img_per_min_missing = {} at {}'.format(self.per_min_missing, datetime.now()))
+                    if len(self.per_min_missing) > 10:
+                        self.ten_missing = True
+                        self.time_missing = datetime.now()
+                        self.missing_now = len(self.per_min_missing)
+                        logging.critical('first check: self.per_min_missing = {} at {}'.format(self.missing_now, self.time_missing))
+                else:
+                    if datetime.now() > self.time_missing + timedelta(minutes = 30):
+                        if len(self.per_min_missing) > self.missing_now + 1:
+                            logging.critical('self.total_image_missing = {}.  Next line runs os._exit(1)'.format(self.total_missing))
+                            os._exit(1)
+                        else:
+                            self.ten_missing = False
+                    else:
+                        logging.critical('self.img_per_min_missing = {} at {}'.format(self.per_min_missing, datetime.now()))
 
-#                 if first_check:
-#                     first_check = False
+                # if first_check:
+                #     first_check = False
 
-#                 time.sleep(1)
+                time.sleep(1)
 
 
 class MyClient():
@@ -726,8 +729,8 @@ class MyClient():
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug, self.conf["audio_tape_length"])
         self.env_params_retriever = MyEnvParamsRetriever(
             self.my_root, self.pi_ip_address, self.pi_img_audio_root, self.listen_port, self.debug)
-        # self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
-        # self.photo_checker.run()
+        self.photo_checker = MyPhotoChecker(self.conf['imgs_per_min'], self.image_dir)
+        #self.photo_checker.run()
         #self.audio_retriever_check()
         self.audio_retriever_check_thread = threading.Thread(
             target=self.audio_retriever_check, daemon=True)

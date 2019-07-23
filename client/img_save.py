@@ -18,10 +18,10 @@ class ImageFile():
     def __init__(self, on_line, sensor, dir):
         self.on_line = on_line
         self.sensor = sensor
+        self.path = dir
         self.get_params()     
         # self.img_means = []
         self.black_imgs = []
-        self.path = dir
 
     def get_params(self):
         if not self.on_line:
@@ -30,8 +30,8 @@ class ImageFile():
         else:
             #conf = self.import_conf()
             #self.path = os.path.join(self.path, self.sensor, 'img')
-            stored = self.path.slpit('/')[0:3]
-            self.write_location = os.path.join(stored, 'pickled_images')
+            stored = self.path.slpit('/')
+            self.write_location = os.path.join(stored[1], stored[2], self.sensor, 'pickled_images')
             if not os.path.isdir(self.write_location):
                 os.mkdir(self.write_location)
        
@@ -101,10 +101,10 @@ class ImageFile():
                         str_day, str_time = day_time[0], day_time[1]
                         try:
                             img_list = self.load_image(os.path.join(self.path, day, minute, img_file), str_time)
+                            str_time = NewImage(day=str_day, time=str_time, data=img_list)
+                            hr_entry.append(str_time)
                         except Exception as e:
-                            print('Pillow error : {}'.format(e))
-                        str_time = NewImage(day=str_day, time=str_time, data=img_list)
-                        hr_entry.append(str_time)
+                            print('Pillow error: {}'.format(e))
                 
                 fname = day + '_' + hr + '_' + self.sensor + '.pklz'
 
