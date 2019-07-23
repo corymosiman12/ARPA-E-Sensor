@@ -1,4 +1,4 @@
-### Updated by Maggie 2019-06-26 - fix exceptions
+### Updated by Maggie 2019-07-23 - Reinstate PhotoChecker class
 import json
 import socket
 import sys
