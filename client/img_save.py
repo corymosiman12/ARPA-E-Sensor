@@ -7,9 +7,16 @@ from PIL import Image
 import pickle
 import gzip
 import json
-#from collections import namedtuple
 import collections
-#from memory_profiler import profile
+
+"""
+This class takes the raw images that are saved on a server (antsle)
+or in similar folder structure on a computer, and turns the images 
+into arrays, reduces the size (from 336 x 336 to 112 x 112) and
+pickles and compresses the result by hour. 
+
+This file is meant to be used in conjunction with 'img_extract.py"
+"""
 
 
 NewImage = collections.namedtuple('NewImage', 'day time data')
@@ -20,18 +27,17 @@ class ImageFile():
         self.sensor = sensor
         self.path = dir
         self.get_params()     
-        # self.img_means = []
         self.black_imgs = []
+        self.write_path = None
+        self.stored_path = None
 
     def get_params(self):
         if not self.on_line:
-            #self.path = '/Users/maggie/Desktop/HPD_mobile_data/HPD_mobile-H1/BS1/img'
             self.write_location = '/Users/maggie/Desktop/HPD_mobile_data/HPD_mobile-H1/pickled_images'
         else:
-            #conf = self.import_conf()
-            #self.path = os.path.join(self.path, self.sensor, 'img')
             stored = self.path.slpit('/')
-            self.write_location = os.path.join(stored[1], stored[2], self.sensor, 'pickled_images')
+            #self.write_location = os.path.join(stored[1], stored[2], self.sensor, 'pickled_images')
+            self.write_location = self.write_path
             if not os.path.isdir(self.write_location):
                 os.mkdir(self.write_location)
        
@@ -51,22 +57,20 @@ class ImageFile():
     def load_image(self, png, time):
         im = Image.open(png)
         im = im.resize((112,112), Image.BILINEAR)
-        new_im = list(im.getdata())
+        new_im = np.array(list(im.getdata()))
         ave_pxl = np.mean(new_im)
         return new_im if ave_pxl > 10 else 0
-        # if ave_pxl < 10:
-        #     self.black_imgs.append(time)
-        #     return 0
-        # else:
-        #     return new_im
 
+    """
+    The following method creates a pandas dataframe for all images that 
+    are supposed to be present. It is not active now
+    """
     # def make_date_range(self, day):
     #     self.range_start = str(day + ' 00:00:00')
     #     self.range_end = str(day + ' 23:59:59')
     #     date_range = pd.date_range(start=self.range_start, end=self.range_end, freq='1s')
     #     return date_range   
 
-    # @profile
     def pickle_object(self, entry, fname):
         print('time is: {}'.format(datetime.now().strftime('%H:%M:%S')))
         # fname = day + '_' + self.sensor + '.pklz'
@@ -78,23 +82,13 @@ class ImageFile():
     def main(self):
         for day in sorted(self.mylistdir(self.path)):
             print(day)
-            #new_range = self.make_date_range(day)
-            #day_entry = []
-            #hours = [str(x).zfill(2) + str(y) + '0' for x in range(0,24) for y in range(0,6)]
             hours = [str(x).zfill(2) + '00' for x in range(0,24)]
-
             all_mins = sorted(self.mylistdir(os.path.join(self.path, day)))
 
             for hr in hours:
                 hr_entry = []
                 self.img_means = []
                 this_hr = [x for x in all_mins if x[0:2] == hr[0:2]]
-                # print(hr, this_hr)
-                # if len(this_hr) > 0:
-                #     print(len(this_hr))
-                #     print(hr, this_hr)
-                # else:
-                #     print('{} is empty'.format(hr))
                 for minute in sorted(this_hr):
                     for img_file in sorted(self.mylistdir(os.path.join(self.path, day, minute))):
                         day_time = self.get_time(img_file).split(' ')
@@ -108,77 +102,10 @@ class ImageFile():
                 
                 fname = day + '_' + hr + '_' + self.sensor + '.pklz'
 
-                # print('time is: {}'.format(datetime.now().strftime('%H:%M:%S')))
-                # #fname = day + '_' + hr + '_' + self.sensor + '.pklz'
-                # f = gzip.open(os.path.join(self.write_location,fname), 'wb')
-                # pickle.dump(entry, f)
-                # f.close() 
-                # print('File written: {}'.format(fname))
-
                 try:
                     self.pickle_object(hr_entry, fname)
                 except Exception as e:
                     print('Pickle error: {}'.format(e))
-                
-
-# class MyPerformanceMonitor(threading.Thread):
-#     """
-#     Used to monitor the disk space, CPU, and memory of the pi.
-#     """
-
-#     def __init__(self):
-#         threading.Thread.__init__(self)
-#         self.disk_threshold = 75
-#         self.mem_threshold = 25
-#         self.calc_cpu_range()
-#         self.start()
-
-#     def calc_cpu_range(self):
-#         cpu = psutil.cpu_freq()
-#         self.cpu_range = cpu.max - cpu.min
-
-#     def run(self):
-#         logging.info('MyPerformanceMonitor run')
-#         while True:
-#             # michaelJordan time
-#             if datetime.now().second == 23:
-#                 try:
-#                     # logging.info('MyPerformanceMonitor time to check!')
-#                     cpu_perc = psutil.cpu_percent()
-#                     if cpu_perc > 80:
-#                         m = 'High CPU usage: {}'.format(cpu_perc)
-#                         logging.warning(m)
-#                         # print(m)
-
-#                     virt_mem = psutil.virtual_memory()
-#                     if virt_mem.percent <= self.mem_threshold:
-#                         m = 'High virtual mem usage. Mem available: {}'.format(
-#                             virt_mem.percent)
-#                         logging.warning(m)
-#                         # print(m)
-
-#                     swap_mem = psutil.swap_memory()
-#                     if swap_mem.percent >= self.mem_threshold:
-#                         m = 'High swap mem usage: {}'.format(swap_mem.percent)
-#                         logging.warning(m)
-#                         # print(m)
-
-#                     disk_usage = psutil.disk_usage('/')
-#                     if disk_usage.percent >= self.disk_threshold:
-#                         m = 'High disk usage: % User disk utilization: {}'.format(
-#                             disk_usage.percent)
-#                         # print(m)
-#                         logging.warning(m)
-
-#                     if datetime.now().minute % 5 == 0:
-#                         logging.info('CPU Perc Usage: {}\tVirt Mem Perc Usage: {}\tSwap Mem Perc Usage: {}\tDisk Perc Usage: {}'.format(
-#                             cpu_perc, virt_mem.percent, swap_mem.percent, disk_usage.percent))
-#                 except Exception as e:
-#                     logging.warning(
-#                         'MyPerformanceMonitor excepted: {}'.format(e))
-#                 time.sleep(1)
-
-
 
 
 if __name__ == '__main__':
