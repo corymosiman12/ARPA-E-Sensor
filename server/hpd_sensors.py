@@ -113,7 +113,7 @@ class HPD_VL53L1X():
         self.sensor.open()
 
     def read(self):
-        self.sensor.start_ranging(1) # 1 = Short range, 2 = Medium Range, 3 = Long Range
+        self.sensor.start_ranging(3) # 1 = Short range, 2 = Medium Range, 3 = Long Range
         distance = self.sensor.get_distance() # Default returns the distance in mm
         self.sensor.stop_ranging()
         return distance
