@@ -1,3 +1,5 @@
+# Updated 9/11/2019
+
 import os
 import sys
 import numpy as np
@@ -26,9 +28,6 @@ class ImageFile():
         self.on_line = on_line
         self.sensor = sensor
         self.path = files_dir   
-        # self.write_path = None
-        # self.stored_path = None
-        # self.black_images = []
         self.dark_days = {}
         self.dark_days_summary = {}
         self.home = house
@@ -117,7 +116,6 @@ class ImageFile():
             for hr in hours:
                 hr_entry = []
                 dark_mins = []
-                #self.img_means = []
                 this_hr = [x for x in all_mins if x[0:2] == hr[0:2]]
                 if len(this_hr) > 0:
                     for minute in sorted(this_hr):
@@ -145,12 +143,9 @@ class ImageFile():
                     except Exception as e:
                         print('Pickle error: {}'.format(e))
                 else:
-                    print('No files for: {}'.format(day, hr))
+                    print('No files for {}, hour {}'.format(day, hr))
 
             self.dark_days_summary[day] = dark_hrs
-            # self.dark_days[day] = black_images
-            # print(self.dark_days_summary)
-            # print(black_images)
             self.write_json(black_images, day)
             print(self.dark_days_summary)
         
