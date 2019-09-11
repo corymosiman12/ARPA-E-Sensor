@@ -94,8 +94,8 @@ class ImageFile():
 
     def write_json(self, output_dict, day):
         json_files_stored = os.path.join(self.write_location, 'black_image_dicts')
-        if not os.path.isdir(json_files):
-            os.make_dirs(json_files_stored)
+        if not os.path.isdir(json_files_stored):
+            os.makedirs(json_files_stored)
         fname = day + '_dark_images.json'
         write_file = os.path.join(json_files_stored, fname)
         if not os.path.exists(write_file):
@@ -148,8 +148,8 @@ class ImageFile():
             # self.dark_days[day] = black_images
             # print(self.dark_days_summary)
             # print(black_images)
-        self.write_json(black_images)
-        [print(self.dark_days_summary)]
+            self.write_json(black_images, day)
+            print(self.dark_days_summary)
         
             
 
