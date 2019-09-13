@@ -71,8 +71,8 @@ class HPD_APDS9301():
 
         # Assume we are using the default low gain setting
         # So, scale raw light values by 16 as per the datasheet
-        ch0 *= 16
-        ch1 *= 16
+        ch0 *= 16;
+        ch1 *= 16;
 
         # Calculate lux based on the ratio as per the datasheet
         if ratio <= 0.5:
