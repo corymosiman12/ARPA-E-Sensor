@@ -74,7 +74,10 @@ class ImageExtract():
                         the images as an array or list (need to save new_image in this case)
                         """
                         fname = str(entry.day + '_' + entry.time + '_' + sensor + '_' + home + '.png')
-                        new_image.save(os.path.join(full_img_dir, fname))
+                        if not os.path.exists(os.path.join(full_img_dir, fname)):
+                            new_image.save(os.path.join(full_img_dir, fname))
+                        else:
+                            print('Image exists: {}'.format(fname))
 
 
 

@@ -1,4 +1,4 @@
-# Updated 9/11/2019
+# Updated 9/14/2019
 
 import os
 import sys
@@ -22,6 +22,8 @@ This file is meant to be used in conjunction with 'img_extract.py"
 
 
 NewImage = collections.namedtuple('NewImage', 'day time data')
+
+
 
 class ImageFile():
     def __init__(self, on_line, sensor, files_dir, house):
@@ -135,15 +137,19 @@ class ImageFile():
                     if len(dark_mins) > 0:
                         dark_hrs.append((hr, len(dark_mins)))
                         black_images[hr] = dark_mins
-                    fname = day + '_' + hr + '_' + self.sensor + '_' + self.home + '.pklz'
-                    write_day = os.path.join(self.write_location,str_day)
 
-                    try:
-                        self.pickle_object(hr_entry, fname, write_day)
-                    except Exception as e:
-                        print('Pickle error: {}'.format(e))
+                    if len(hr_entry) > 0:    
+                        fname = day + '_' + hr + '_' + self.sensor + '_' + self.home + '.pklz'
+                        write_day = os.path.join(self.write_location,str_day)
+
+                        try:
+                            self.pickle_object(hr_entry, fname, write_day)
+                        except Exception as e:
+                            print('Pickle error: {}'.format(e))
+                    else:
+                        print('No images for {}, hour {}'.format(day, hr))
                 else:
-                    print('No files for {}, hour {}'.format(day, hr))
+                    print('No directories for {}, hour {}'.format(day, hr))
 
             self.dark_days_summary[day] = dark_hrs
             self.write_json(black_images, day)
