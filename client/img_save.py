@@ -147,9 +147,9 @@ class ImageFile():
                         except Exception as e:
                             print('Pickle error: {}'.format(e))
                     else:
-                        print('No images for {}, hour {}'.format(day, hr))
+                        print('No images for {} hour: {}'.format(day, hr))
                 else:
-                    print('No directories for {}, hour {}'.format(day, hr))
+                    print('No directories for {} hour: {}'.format(day, hr))
 
             self.dark_days_summary[day] = dark_hrs
             self.write_json(black_images, day)
