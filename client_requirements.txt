@@ -9,7 +9,7 @@ idna==2.7
 imutils==0.5.1
 influxdb==5.2.0
 numpy==1.15.1
-opencv-python==3.4.3.18
+opencv-python==3.4.7.28
 paramiko==2.4.1
 pyasn1==0.4.4
 pycparser==2.18
