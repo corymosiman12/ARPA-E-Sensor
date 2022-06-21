@@ -9,7 +9,7 @@ circuitpython-build-tools==1.1.5
 click==6.7
 freeze==1.0.10
 imutils==0.5.1
-numpy==1.15.1
+numpy==1.22.0
 opencv-python==3.4.3.18
 PyAudio==0.2.11
 rpi-ws281x==4.0.0
